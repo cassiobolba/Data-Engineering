@@ -53,8 +53,10 @@
 * Used for data analisys
 * specific for dataframes - 2 dimensional data
 
-fig 1 - Dataframes
-<img src="http://....jpg" width="200" height="200" />
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%201%20-%20Dataframe.JPG?raw=true"/>   
+
+fig 1 - Dataframes  
 
 * you can work with many type of files
 * most common are flat files like csv
@@ -212,6 +214,8 @@ except pd.io.common.CParserError:
 * Excel usually have non taular data, like headers and formulas
 * there are parameters to read excel to help skip rows like nrows, skiprows, usecols
 * usecols accept a range of values in this case
+ 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%202%20-%20Loading%20Excel.JPG?raw=true"/> 
 
 fig 2 - Loading Excel
 
@@ -320,6 +324,8 @@ print(survey_subset.head())
 * Pandas normally bring datetimes as string, use parse_date argument to specify date type
 * parse_date accept, list of names or numbers, list of lists to be combined together as date
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%203%20-%20Datetime%20Table.JPG?raw=true"/> 
+
 fig 3 - Datetime Table
 
 #### Parsing Regular Dates 
@@ -349,6 +355,7 @@ survey_df = pd.read_excel( "File.csv",
 * use pd.to_datetitme() after laoding data, if parse_dates don't work
 * use format codes:
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%204%20-%20Datetime%20Formatting.JPG?raw=true"/> 
 fig 4 - Datetime Formatting
 
 ```py
@@ -527,7 +534,11 @@ In this case we did not needed to use min or max in the tmax and tmin because th
 * use read_json() to read it, the parameter can be a file or URL ended in .json
 * Pandas infer the structure according to json orientation that can be Record oriented or column oriented. column oriented reduce size.
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%205%20-%20JSON%20Object%20Oriented.JPG?raw=true"/>   
+
 fig 5 - JSON Record Oriented
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%206%20-%20JSON%20Column%20Oriented.JPG?raw=true"/> 
 
 fig 6 - JSON Column Oriented
 
@@ -572,6 +583,8 @@ except ValueError:
     * need to convert to dataframe using pd.DataFrame()
 
 #### Parsing from Yelp API
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/2%20-%20Streamlined%20data%20with%20pandas/fig%207%20-%20Yelp%20Documentation.JPG?raw=true"/> 
 
 fig 7 - Yelp Documentation
 
