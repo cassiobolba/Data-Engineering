@@ -1,6 +1,55 @@
 # STREAMLINED DATA INGESTION WITH PANDAS
-## IMPORTING FLAT FILES
-### DATA FRAMES
+
+- [STREAMLINED DATA INGESTION WITH PANDAS](#streamlined-data-ingestion-with-pandas)
+  * [1. IMPORTING FLAT FILES](#1-importing-flat-files)
+    + [1.1 DATA FRAMES](#11-data-frames)
+    + [1.2 MODIFY FLAT FILE IMPORTS](#12-modify-flat-file-imports)
+      - [Limit Columns with usecol](#limit-columns-with-usecol)
+      - [Limit rows with nrows and skiprows](#limit-rows-with-nrows-and-skiprows)
+      - [Assigning Column Names](#assigning-column-names)
+      - [Exercise - reading necessary columns](#exercise---reading-necessary-columns)
+      - [Exercise - reading chuncks of data](#exercise---reading-chuncks-of-data)
+    + [1.3 HANDLING ERRORS AND MISSING DATA](#13-handling-errors-and-missing-data)
+      - [Specify data types](#specify-data-types)
+      - [Missing Datas](#missing-datas)
+      - [Lines Pandas Can't Parse](#lines-pandas-can-t-parse)
+  * [2. IMPORTING DATA FROM EXCEL](#2-importing-data-from-excel)
+    + [2.1 INTRODUCTION TO SPREADSHEETS](#21-introduction-to-spreadsheets)
+      - [Loading Spreadsheets](#loading-spreadsheets)
+      - [Exercise](#exercise)
+    + [2.2 GETTING DATA FROM MULTIPLE WORKSHEETS](#22-getting-data-from-multiple-worksheets)
+      - [Execise:](#execise-)
+    + [2.3 MODIFY IMPORTS: TRUE/FALSE BOOLEANS](#23-modify-imports--true-false-booleans)
+    + [2.4 MODIFY IMPORTS: PARSING DATES](#24-modify-imports--parsing-dates)
+      - [Parsing Regular Dates](#parsing-regular-dates)
+      - [Parsing Split up Dates](#parsing-split-up-dates)
+      - [Non-Standard Dates](#non-standard-dates)
+      - [Exercise](#exercise-1)
+  * [3. IMPORTING DATA FROM DATABASES](#3-importing-data-from-databases)
+    + [3.1 CONNECTING TO DATABASES](#31-connecting-to-databases)
+      - [Exercise](#exercise-2)
+    + [3.2 REFINING IMPORTS WITH SQL QUERIES](#32-refining-imports-with-sql-queries)
+      - [Exercise](#exercise-3)
+    + [3.3 MORE COMPLEX SQL QUERIES](#33-more-complex-sql-queries)
+      - [Exercise](#exercise-4)
+    + [3.4 LOADING MULTIPLE TABLES WITH JOINS](#34-loading-multiple-tables-with-joins)
+      - [Exercise](#exercise-5)
+  * [4. IMPORTING JSON DATA AND WORKING WITH API](#4-importing-json-data-and-working-with-api)
+    + [4.1 INTRODUCTION TO JSON](#41-introduction-to-json)
+      - [Exercise](#exercise-6)
+    + [4.2 INTRODUCTION TO API](#42-introduction-to-api)
+      - [requests() method](#requests---method)
+      - [Parsing from Yelp API](#parsing-from-yelp-api)
+    + [4.3 WORKING WITH NESTED JSON](#43-working-with-nested-json)
+      - [Deeply Nested Data](#deeply-nested-data)
+    + [4.4 COMBINING MULTIPLE DATASETS](#44-combining-multiple-datasets)
+      - [Exercise](#exercise-7)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+
+## 1. IMPORTING FLAT FILES
+### 1.1 DATA FRAMES
 * Used for data analisys
 * specific for dataframes - 2 dimensional data
 
@@ -32,7 +81,7 @@ counts.plot.bar()
 plt.show()
 ```
 
-### MODIFY FLAT FILE IMPORTS  
+### 1.2 MODIFY FLAT FILE IMPORTS  
 If you have big dateframes, it is a good practice to reduce size to only needed data.  
 #### Limit Columns with usecol
 ```py
@@ -88,7 +137,7 @@ print(vt_data_first500.head())
 print(vt_data_next500.head())
 ```
 
-### HANDLING ERRORS AND MISSING DATA
+### 1.3 HANDLING ERRORS AND MISSING DATA
 Common issues are:
 * Columns data types is wrong
 * missing Values
@@ -151,8 +200,8 @@ try:
 except pd.io.common.CParserError:
     print("Your data contained rows that could not be parsed.")
 ```
-
-### INTRODUCTION TO SPREADSHEETS
+## 2. IMPORTING DATA FROM EXCEL
+### 2.1 INTRODUCTION TO SPREADSHEETS
 * Are excel files
 * Organize like dataframes (row and columns)
 * Support formulas
@@ -186,7 +235,7 @@ survey_responses = pd.read_excel("fcc_survey_headers.xlsx",
 # View the names of the columns selected
 print(survey_responses.columns)
 ```
-### GETTING DATA FROM MULTIPLE WORKSHEETS
+### 2.2 GETTING DATA FROM MULTIPLE WORKSHEETS
 * Excel can have multiple sheets
 * Can contain charts and other visuals
 * use argument sheet_name to choose the sheet
@@ -237,7 +286,7 @@ counts.plot.barh()
 plt.show()
 ```
 
-### MODIFY IMPORTS: TRUE/FALSE BOOLEANS
+### 2.3 MODIFY IMPORTS: TRUE/FALSE BOOLEANS
 * Usually, booleans are interpreted as floats
 * convert the booleand to bool by the argument dtype { "column" : bool}
 * Still NaN, or yes/no are interpreted wrong, as True, mostly. Have to fix it.
@@ -265,7 +314,7 @@ survey_subset = pd.read_excel("fcc_survey_yn_data.xlsx",
 print(survey_subset.head())
 ```
 
-### MODIFY IMPORTS: PARSING DATES
+### 2.4 MODIFY IMPORTS: PARSING DATES
 * Pandas stores dates and times in it own format
 * It can be translated to string representations
 * Pandas normally bring datetimes as string, use parse_date argument to specify date type
@@ -330,14 +379,14 @@ survey_data = pd.read_excel("fcc_survey_dts.xlsx",
 print(survey_data.Part2Start.describe())
 ```
 
-## IMPORTING DATA FROM DATABASES
+## 3. IMPORTING DATA FROM DATABASES
 * Data arranged into tables
 * There are relationships via unique keys
 * Support more data, usually have quality control
 * use sql as language
 * this course use SQLite, which store data like computer files
 
-### CONNECTING TO DATABASES
+### 3.1 CONNECTING TO DATABASES
 It is made in 2 steps:
 * Conecting to the database
 * Querying from it, with pandas, for ex, with sqlalchemy
@@ -384,7 +433,7 @@ weather = pd.read_sql(query , engine)
 print(weather.head())
 ```
 
-### REFINING IMPORTS WITH SQL QUERIES
+### 3.2 REFINING IMPORTS WITH SQL QUERIES
 * Select only columns quanted like usecol
 * use where operator
 * use comparing operator like > < <>
@@ -419,7 +468,7 @@ call_counts = safety_calls.groupby('borough').unique_key.count()
 call_counts.plot.barh()
 ```
 
-### MORE COMPLEX SQL QUERIES
+### 3.3 MORE COMPLEX SQL QUERIES
 * Get distinct values
 * Aggregate functions: Sum, avg, Max...
 * Aggregate by categories must use group by
@@ -440,7 +489,7 @@ weather_by_month = pd.read_sql(query, engine)
 print(weather_by_month)
 ```
 
-### LOADING MULTIPLE TABLES WITH JOINS
+### 3.4 LOADING MULTIPLE TABLES WITH JOINS
 * bring or join data tables by key values
 * EX: join a table to other by date:
 ```sql
@@ -469,8 +518,8 @@ df = pd.read_sql(query, engine)
 print(df.head(5))
 ```
 In this case we did not needed to use min or max in the tmax and tmin because they only have one value per row. Otherwise it would be necessary.
-
-### INTRODUCTION TO JSON
+## 4. IMPORTING JSON DATA AND WORKING WITH API
+### 4.1 INTRODUCTION TO JSON
 * Based on javascript
 * common web data format
 * not tabular to make more efficient to storage
@@ -505,7 +554,7 @@ except ValueError:
     print("pandas could not parse the JSON.")
 ```
 
-### INTRODUCTION TO API
+### 4.2 INTRODUCTION TO API
 * Applications Programing Interfaces
 * Most common source of json
 * Defined way to of an app communicate with other programs
@@ -576,7 +625,7 @@ print(cafes.head())
 ```
 check out documentation in: https://www.yelp.com/developers/documentation/v3/authentication
 
-### WORKING WITH NESTED JSON
+### 4.3 WORKING WITH NESTED JSON
 * Nested lists and dictionaries
 * pandas.io.json subpackage and json_normalize() method are used in this cases to flatten ou
 * can change sep to use different separator in the parent column notation
@@ -604,7 +653,7 @@ df = json_normalize(data["businesses"],
                         )
 ```
 
-### COMBINING MULTIPLE DATASETS
+### 4.4 COMBINING MULTIPLE DATASETS
 * append: Used to add row from on df to another
 * Paramenter ignore_index = True in case you want to renumber the index
 ```py
