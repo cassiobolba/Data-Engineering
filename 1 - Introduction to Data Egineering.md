@@ -1,4 +1,47 @@
 # INTRODUCTION TO DATA ENGINEERING
+
+- [INTRODUCTION TO DATA ENGINEERING](#introduction-to-data-engineering)
+  * [1. INTRODUCTION TO DATA ENGINEERING](#1-introduction-to-data-engineering)
+    + [1.1 TASKS OF DATA ENGINEERS](#11-tasks-of-data-engineers)
+    + [1.2 DATA ENGINEERS PROBLEMS](#12-data-engineers-problems)
+    + [1.3TOOLS OF DATA ENGINEERS](#13tools-of-data-engineers)
+    + [1.4 CLOUD PROVIDERS](#14-cloud-providers)
+      - [1.4.1 Big 3](#141-big-3)
+  * [2. DATA ENGINEERING TOOLBOX](#2-data-engineering-toolbox)
+    + [2.1 DATABASES](#21-databases)
+    + [2.2 STRUCTURES](#22-structures)
+    + [2.3 SQL STAR SCHEMA](#23-sql-star-schema)
+      - [2.3.1 Querying from Database with Python](#231-querying-from-database-with-python)
+      - [2.3.2 Joining tables with Python](#232-joining-tables-with-python)
+    + [2.4 PARALLEL COMPUTING](#24-parallel-computing)
+      - [2.4.1 Benefits](#241-benefits)
+      - [2.4.2 Risks](#242-risks)
+      - [2.4.3 Dask to parallelize with python](#243-dask-to-parallelize-with-python)
+    + [2.5 Parallel Computation Frameworks](#25-parallel-computation-frameworks)
+      - [2.5.1 Apache Hadoop](#251-apache-hadoop)
+      - [2.5.2 Hive](#252-hive)
+      - [2.5.3 RDD - Resilient Distributed Dataset](#253-rdd---resilient-distributed-dataset)
+    + [2.6 workflow Scheduling](#26-workflow-scheduling)
+      - [2.6.1 Tools for Scheduling](#261-tools-for-scheduling)
+  * [3. ETL - Extract, Transform and Load](#3-etl---extract--transform-and-load)
+    + [3.1 Extract:](#31-extract-)
+      - [3.1.1 Fetching data from an API](#311-fetching-data-from-an-api)
+      - [3.1.2 Fetching data from a Database](#312-fetching-data-from-a-database)
+    + [3.2 Transform:](#32-transform-)
+      - [3.2.1 Split in Pandas](#321-split-in-pandas)
+      - [3.2.2 Join in pySpark](#322-join-in-pyspark)
+      - [Exercise - convert - split](#exercise---convert---split)
+      - [Exercise - Group by - join](#exercise---group-by---join)
+    + [3.3 Loading:](#33-loading-)
+      - [3.3.1 Analitycs (OLAP)](#331-analitycs--olap-)
+      - [3.3.2 Applications (OLTP)](#332-applications--oltp-)
+      - [3.3.3 Massive parallel Processing (MPP)](#333-massive-parallel-processing--mpp-)
+    + [Putting it all together - Schedule](#putting-it-all-together---schedule)
+      - [Scheduling with DAG in Airflow](#scheduling-with-dag-in-airflow)
+      - [Exercise - Define ETL Function](#exercise---define-etl-function)
+      - [Exercise - Find null values and replace it](#exercise---find-null-values-and-replace-it)
+
+
 ## 1. INTRODUCTION TO DATA ENGINEERING
 ### 1.1 TASKS OF DATA ENGINEERS
 * Connect to Data sources
@@ -19,8 +62,9 @@
 
 A DATA PIPELINE
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%201%20-%20Pipeline.JPG"/>   
+
 fig 1 - Pipeline
-<img src="http://....jpg" width="200" height="200" />
 
 ### 1.4 CLOUD PROVIDERS
 When using self-hosted Data Center:
@@ -65,6 +109,8 @@ Usually a large collection o data organized for rapid search and retrieval.
 ### 2.3 SQL STAR SCHEMA
 One or more fact tables referencing to many dimensional tables, having fact table centralized
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%202%20-%20Star%20Schema.JPG"/> 
+
 fig 2 - Star Schema
 
 Fact: Values of actions that happened  
@@ -99,6 +145,8 @@ print(data.id)
 
 ### 2.4 PARALLEL COMPUTING
 Basis of modern processing tools, because of memory and Processing Power. The idea is: take a big task, split into subtasks working together to finish the task.
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%203%20-%20Parallel%20Computing.JPG"/>   
 
 fig 3 - Parallel Computing
 
@@ -159,6 +207,8 @@ Now we know different sources of data, the power o parallel processing and also 
 * Linux cron
 * Spotify Luigi
 * Apache Airflow (air BNB)
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%204%20-%20DAG%20Example%20Air%20Flow.JPG"/>  
 
 fig 4 - DAG Example Air Flow
 
@@ -301,6 +351,8 @@ When loading, there are considerations to make regarding the type o database, an
 * Queries computed on several nodes
 * Amazon Redshift, azure SQL DW and google big query
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%205%20-%20MPP.JPG"/>   
+
 fig 5 - MPP
 
 * this kind of storage use parquet or avro files, they are prepared to be processed parallely
@@ -344,6 +396,8 @@ etl_task.set_upstream(wait_for_this_task)
 # in this case, it will run only after wait_for_this_task run
 ```
 once this script is done, you can save as etl_dag.py and save in ~/airflow/dags/ inside the airflow
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/1%20-%20Intro%20to%20data%20Engineering/fig%206%20-%20AirFlow%20UI.JPG"/> 
 
 fig 6 - AirFlow UI
 
