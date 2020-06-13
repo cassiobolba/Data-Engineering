@@ -189,7 +189,7 @@ setup(name='text_analyzer',
 To make easy the use of classes is important to know OOP (object oriented programing) to have a clean and readable code.
 #### Anatomy of classes:
 * define the class name with no underscore
-* In red, is what appear when you use help in yout class
+* In red, is what appear when you use help in your class
 * Define the instance of your class
 
 <img src=""/> 
@@ -228,7 +228,7 @@ working_dir
 ```
 Go to the document. py and you'll be creating the beginnings of a Document class that will be a foundation for text analysis in your package.
 ```py
-# Define Document class
+# Define Document class. this class create a text file
 class Document:
     """A class for text analysis
     
@@ -255,4 +255,88 @@ my_document = text_analyzer.Document(text=datacamp_tweet)
 
 # Print the text attribute of the Document instance
 print(my_document.text)
+```
+
+### 3.1 ADDING FUNCTIONALITIES TO CLASSES
+Now, our class just convert an object to a text. Let's add more functions to it.
+Tokenize separate each word in a file by a separator, let's add it in the init definition
+You can define a method as non public, so it is only used inside the package, for package functions and you define as private using _ before method, according to PEP8.
+```py
+from .token_utils import tokenize
+from collections import Counter
+
+class Document:
+  def __init__(self, text):
+    self.text = text
+    # Tokenize the document with non-public tokenize method
+    self.tokens = self._tokenize()
+    # Perform word count with non-public count_words method
+    self.word_counts = self._count_words()
+
+  def _tokenize(self):
+    return tokenize(self.text)
+	
+  # non-public method to tally document's word counts with Counter
+  def _count_words(self):
+    return Counter(self.tokens)
+```
+How to use this class:
+```py 
+# create a new document instance from datacamp_tweets and transform it in a class document
+datacamp_doc = Document(datacamp_tweets)
+
+# print the first 5 tokens from datacamp_doc, using the tokens class
+print(datacamp_doc.tokens[:5])
+
+# print the top 5 most used words in datacamp_doc using the count words class
+print(datacamp_doc.word_counts.most_common(5))
+```
+Thanks to the functionality you added to the __init__ method, your users get the benefits of tokenization and word counts without any extra effort.
+
+### 3.2 CLASSES AND THE DRY PRINCIPLE
+If we want to analyze the result of one class in another class created in another file, we should not break DRY principle.
+It stands for Don't repeat yourself. It saves time, reuse code, avoid needing to fix same bug in many places, makes the code reusable.
+
+#### Intro to Inheritance
+You can create a child class that inherit all features from the parent class. 
+For example: We want to further analyze tweeter insights and need to use the same attributes as Document class have before do the analisys. In this case, to don't repeat the code in both files, you can create a child class from the parent document class.
+It will live right together with other functions from text analyzer, as tweet.py 
+
+<img src=""/>   
+fig 5 - Inheritance
+
+How to code a parent child class
+```py
+# Import the parent class
+from text_analyzer import Document
+
+# Define a SocialMedia class that is a child of the `Document class`
+class SocialMedia(Document):
+    # define the init this way will bring all attributes from parent
+   def __init__(self, text):
+        Document.__init__(self,text)
+        self.hashtag_counts = self._count_hashtags()
+        self.mention_counts = self._count_mentions()
+        
+    def _count_hashtags(self):
+        # Filter attribute so only words starting with '#' remain
+        return filter_word_counts(self.word_counts, first_char='#')      
+    
+    def _count_mentions(self):
+        # Filter attribute so only words starting with '@' remain
+        return filter_word_counts(self.word_counts, first_char='@')
+```
+How to call it:
+```py
+# Import custom text_analyzer package
+import text_analyzer
+
+# Create a SocialMedia instance with datacamp_tweets
+dc_tweets = text_analyzer.SocialMedia(text=datacamp_tweets)
+
+# Print the top five most most mentioned users
+print(dc_tweets.mention_counts.most_common(5))
+
+# Plot the most used hashtags
+text_analyzer.plot_counter(dc_tweets.hashtag_counts)
 ```
