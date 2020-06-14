@@ -340,3 +340,10 @@ print(dc_tweets.mention_counts.most_common(5))
 # Plot the most used hashtags
 text_analyzer.plot_counter(dc_tweets.hashtag_counts)
 ```
+
+#### Multi-level Inheritance
+* A class can give attributes to child classes, and also to grand child classes and on
+* A child class can receive attributes from more than one Parent Class this is called multilevel inheritance 
+* grandchild and multilevel use the super() function
+* Use the command dir(class) to now all methods a class or function contains
+
