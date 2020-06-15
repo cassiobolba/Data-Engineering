@@ -347,3 +347,106 @@ text_analyzer.plot_counter(dc_tweets.hashtag_counts)
 * grandchild and multilevel use the super() function
 * Use the command dir(class) to now all methods a class or function contains
 
+
+## 4. MAINTANABILITY
+### 4.1 DOCUMENTATION
+#### Comments: #
+* In python documentation is lead by comments.
+* Comments are to make the code easier to understand for devs;
+* Not seen by end user unless they access the code;
+* Use to explain the code;
+
+#### Docstrings:
+* used for documentation, to generate results for help
+* Final users can access without accessing the code
+```py
+"""
+square of the number - explanation
+
+Additional details
+
+:param x: number to square
+:return: explain any other parameters
+
+>>>> # Example Functions usage
+Expected output of example function usage
+"""
+```
+
+### 4.2 READABILITY
+#### The Zen of Python
+Find a poem that explains the concepts of readability in python using *import this*. Check it out to get inspired. Some good practices are:
+* Descriptive naming: When creating a funtion, use meaninful variables, not x or y, use temp, text, of whatever is expected to be there. This is also known as self descriptive code;
+* Provide help desciptions for functions;
+* If in doubt of using comments, then do it. Overcommented is better than undercommented;
+* Don't complicate code: break it in pieces to be reusable, not only inside the code, but outside. Example of making pizza, don't use all the steps of cooking inside the same function, it will restricted. Write an external function for each step, then call all of them inside the final step.
+
+#### Warning Signals
+* Functions should accomplish only one thing, if they do many many things, must be a warning. Split it up!
+* If is hard to think of a good meaninful name, it is not an easy funtion
+
+### 4.3 UNIT TESTING
+* Confirm code is working fine
+* Ensure on function don't break other
+* Protect against changes in dependency
+
+#### How to test in Python
+We will cover doctest and pytest
+
+#### doctest
+* A library to test code in the file
+* After creating the code, import doctest and your functions for testing
+* Used for small test functions not to test a dataframe for example
+Example of doc test
+```py
+def square(x):
+"""Square the number x
+:param x: number to square
+:return: x squared
+>>> square(3)
+9
+"""
+return x ** x
+import doctest
+doctest.testmod()
+```
+In this case, it would return error, because the ** means square root, no multiplication.
+
+
+#### pytest
+* For larges tests
+* Usually creates a separate folder in the package structure to hold the test_script
+```py
+working_dir
+├── text_analyzer
+│    ├── __init__.py
+│    ├── counter_utils.py
+│    ├── document.py
+└── my_script.py
+└── test.py
+```
+example os test with pytest:
+```py
+from collections import Counter
+from text_analyzer import SocialMedia
+
+# Create an instance of SocialMedia for testing
+test_post = 'learning #python & #rstats is awesome! thanks @datacamp!'
+sm_post = SocialMedia(test_post)
+
+# Test hashtag counts are created properly
+def test_social_media_hashtags():
+    expected_hashtag_counts = Counter({'#python': 1, '#rstats': 1})
+    assert sm_post.hashtag_counts == expected_hashtag_counts
+```
+
+### 4.4 DOCUMENTATION AND TEST IN PRACTICE
+* When you do a nice documentation, you can use **sphinx** to generate a page html from your code documented and host in on GIT, to show a nice page of documentation.
+* For CI (continous Integration), you can use **Travis CI**, so you can add new code and travis will test it for you, and let you know if the new code breaks old code. Will also let you kow if the fix will work, and control the release.
+
+#### Another tools suggested 
+* Sphinx - Generate beautiful documentation
+* Travis CI - Continuously test your code
+* GitHub & GitLab - Host your projects with git
+* Codecov - Discover where to improve your projects tests
+* Code Climate - Analyze your code for improvements in readability
