@@ -1,5 +1,48 @@
 # SOFTWARE ENGINEERING WITH PYTHON
 
+- [SOFTWARE ENGINEERING WITH PYTHON](#software-engineering-with-python)
+  * [1. SOFTWARE ENGINEERING & DATA SCIENCE](#1-software-engineering---data-science)
+    + [1.1 PYTHON, DATA SCIENCE & SOFTWARE ENGINEERING](#11-python--data-science---software-engineering)
+      - [Benefits of Modularity](#benefits-of-modularity)
+      - [Benefits of Documentation](#benefits-of-documentation)
+      - [Benefits of Testing](#benefits-of-testing)
+    + [1.2 INTRODUCTION TO PACKAGES & DOCUMENTATION](#12-introduction-to-packages---documentation)
+    + [1.2 CONVENTIONS AND PEP8](#12-conventions-and-pep8)
+      - [what are conventions?](#what-are-conventions-)
+  * [2. WRITING A PYTHON MODULE](#2-writing-a-python-module)
+    + [2.1 WRITING YOUR FIRST PACKAGE](#21-writing-your-first-package)
+      - [Importing local package](#importing-local-package)
+    + [2.2 ADDING FUNCTIONALITY TO PACKAGES](#22-adding-functionality-to-packages)
+    + [2.3 MAKING YOUR PACKAGES PORTABLE](#23-making-your-packages-portable)
+      - [requirement.txt](#requirementtxt)
+      - [setup. py](#setup-py)
+  * [3. UTILIZING CLASSES](#3-utilizing-classes)
+    + [3.1 ADDING CLASSES TO A PACKAGE](#31-adding-classes-to-a-package)
+      - [Anatomy of classes:](#anatomy-of-classes-)
+      - [Using a class in a package](#using-a-class-in-a-package)
+      - [The self Convention](#the-self-convention)
+      - [Back to our Text Analyzer Package](#back-to-our-text-analyzer-package)
+      - [Using the class in your script](#using-the-class-in-your-script)
+    + [3.1 ADDING FUNCTIONALITIES TO CLASSES](#31-adding-functionalities-to-classes)
+    + [3.2 CLASSES AND THE DRY PRINCIPLE](#32-classes-and-the-dry-principle)
+      - [Intro to Inheritance](#intro-to-inheritance)
+      - [Multi-level Inheritance](#multi-level-inheritance)
+  * [4. MAINTANABILITY](#4-maintanability)
+    + [4.1 DOCUMENTATION](#41-documentation)
+      - [Comments:](#comments-)
+      - [Docstrings:](#docstrings-)
+    + [4.2 READABILITY](#42-readability)
+      - [The Zen of Python](#the-zen-of-python)
+      - [Warning Signals](#warning-signals)
+    + [4.3 UNIT TESTING](#43-unit-testing)
+      - [How to test in Python](#how-to-test-in-python)
+      - [doctest](#doctest)
+      - [pytest](#pytest)
+    + [4.4 DOCUMENTATION AND TEST IN PRACTICE](#44-documentation-and-test-in-practice)
+      - [Another tools suggested](#another-tools-suggested)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## 1. SOFTWARE ENGINEERING & DATA SCIENCE
 ### 1.1 PYTHON, DATA SCIENCE & SOFTWARE ENGINEERING
 Main software engineering concepts discussed here are:
@@ -61,7 +104,8 @@ Rules a community defines as standard. PEP8 is the convention in Python. Some PE
 * Import all packages in the top of the file
 
 
-<img src=""/>   
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/3%20-%20Software%20Engineering%20in%20Python/fig%201%20-%20PEP%20and%20non%20PEP%20codes.JPG"/>  
+
 fig 1 - PEP and non PEP codes
 
 Use another packages and tools to help you check if you are compliant with PEP8:
@@ -90,7 +134,8 @@ A basic package have at least 1 folder and 1 file.py
 #### Importing local package
 Since your local package have the below structure, in red are the package files, the rest is you local area and python code.
 
-<img src=""/>   
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/3%20-%20Software%20Engineering%20in%20Python/fig%203%20-%20Portable%20package%20structure.JPG"/>
+     
 fig 1 - Local package structure  
 
 just need to run the famous import. Can even run the help command, which in this case will only show basic info.
@@ -143,7 +188,8 @@ text_analyzer.plot_counter(word_count_totals)
 ### 2.3 MAKING YOUR PACKAGES PORTABLE
 Now, to send you package to your friends, you need to add 2 more files to the structure: setup. py and  requirements.txt
 
-<img src=""/>  
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/3%20-%20Software%20Engineering%20in%20Python/fig%203%20-%20Portable%20package%20structure.JPG"/>  
+
 fig 3 - Portable package structure
 
 #### requirement.txt
@@ -192,7 +238,8 @@ To make easy the use of classes is important to know OOP (object oriented progra
 * In red, is what appear when you use help in your class
 * Define the instance of your class
 
-<img src=""/> 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/3%20-%20Software%20Engineering%20in%20Python/fig%204%20-%20Anatomy%20of%20classes.JPG"/> 
+
 fig 4 - Anatomy of classes
 
 #### Using a class in a package
@@ -302,7 +349,8 @@ You can create a child class that inherit all features from the parent class.
 For example: We want to further analyze tweeter insights and need to use the same attributes as Document class have before do the analisys. In this case, to don't repeat the code in both files, you can create a child class from the parent document class.
 It will live right together with other functions from text analyzer, as tweet.py 
 
-<img src=""/>   
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/3%20-%20Software%20Engineering%20in%20Python/fig%205%20-%20Inheritance.JPG"/>   
+
 fig 5 - Inheritance
 
 How to code a parent child class
