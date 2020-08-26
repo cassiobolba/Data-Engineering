@@ -5,7 +5,7 @@ import numpy as np
 
 city = "London"
 
-api_key = "868a26a88dcad371f4205a319f26be8c"
+api_key = "Type you key here"
 
 url = "http://api.openweathermap.org/data/2.5/weather?q="+ city +"&appid="+ api_key
 
