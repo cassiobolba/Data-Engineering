@@ -25,7 +25,7 @@
 ### The interpreter
 * Use the '$ scala' to initialize the interpreter (after instalation)
 
-<img src="https://github.com/cassiobolba/Data-Engineering/blob/28b0c24daff07979a591cbbef54d8d3aaf7ea568/src/img/Scala_Interpreter.jpg"/> 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Scala/Scala_Interpreter.jpg"/> 
 
 * When you type 2 + 3, it packs, translate to a method and returns an auto-generated result called res0:
 * you can use the output in another operation, like res0 * 2
@@ -33,7 +33,7 @@
 ## IMMUTABLE VARIABLES (val) AND VALUE TYPES
 The 21 game:  
 * Each card has a value
-<img src="https://github.com/cassiobolba/Data-Engineering/blob/28b0c24daff07979a591cbbef54d8d3aaf7ea568/src/img/Scala_Interpreter.jpg"/>   
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Scala/21_game_points.jpg"/>   
 
 * Each player start with 2 card
 * Each player can aim a new card or stay with the first 2 
