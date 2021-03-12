@@ -25,7 +25,7 @@
 ### The interpreter
 * Use the '$ scala' to initialize the interpreter (after instalation)
 
-<img src=""/> 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/28b0c24daff07979a591cbbef54d8d3aaf7ea568/src/img/Scala_Interpreter.jpg"/> 
 
 * When you type 2 + 3, it packs, translate to a method and returns an auto-generated result called res0:
 * you can use the output in another operation, like res0 * 2
