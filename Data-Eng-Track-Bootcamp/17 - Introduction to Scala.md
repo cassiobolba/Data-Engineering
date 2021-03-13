@@ -107,3 +107,34 @@ println(jackClubs+aceDiamonds)
 ```
 
 # WORKFLOWS, FUNCTIONS, COLLECTIONS
+## SCRIPTS, APPLICATIONS, AND REAL-WORLD WORKFLOWS
+### SCRIPTS  
+* A sequence of instruction in a file, executed sequentially  
+* Used in smaller projects
+* basically it goes to cmd, call scala as the interpreter, then compile the code and run
+
+### COMPILED LANGUAGE VS INTERPRETED LANGUAGE
+**Interpreter**  
+A programa that directly execute instructions written in a programming language, whitout compilation.  
+**Compiler**  
+Program that translates source code from a high-level programming language to a lower level language (machine code), to create an executable program.  
+COMPILED CODES ARE USUALLY FASTER
+
+### SCALA APPLICATIONS
+* Compiled explicitly then run
+* Many source files, scripts, compiled individually
+* Used in larger programs
+* Can be compiled previously, so are faster then scripts
+
+### SCALA WORKFLOWS
+Two main ways people prefer to work in Scala:  
+* Command Line
+* IDE
+    * Great for large scale projects
+    * IntelluJ IDEA
+    * Can also run on Jupyter
+
+### BUILDING APS
+* SBT is the most used build tool
+* compiles, runs and test
+
