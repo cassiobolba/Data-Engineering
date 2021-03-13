@@ -174,3 +174,128 @@ val handPlayerB: Int = 20
 // Find and print the maximum hand value
 println(maxHand(handPlayerA, handPlayerB))
 ```
+## COLLECTIONS
+* Mutable
+* Immutable
+    * Cna perform a sort of change, but it actually generates a new collection
+
+### ARRAY
+* Mutable sequence of objects
+* Can parameterize an array
+```java
+// parameterize with the type of array objects (here is string) and the lenght of objects (3)
+val players: Array[String] = new Array[String](3)
+```
+* Can initialize the parameters by
+```java
+players(0) = "Alex"
+players(1) = "Chen"
+players(2) = "Marta"
+// can later on change one value, because arrays are mutable
+players(0) = "Cassio"
+```
+* Values in the array must be of same type
+* To use differents types in array, use the any type
+```java
+// parameterize with the type of array objects (here is string) and the lenght of objects (3)
+val mixedTypes: Array[Any] = new Array[Any](3)
+```
+**Execise**
+```java
+// Create and parameterize an array for a round of Twenty-One
+val hands: Array[Int] = new Array[Int](3)
+
+// Initialize the first player's hand in the array
+// The card values used below were already defined in the system
+hands(0) = tenClubs + fourDiamonds
+
+// Initialize the second player's hand in the array
+hands(1) = nineSpades + nineHearts
+
+// Initialize the third player's hand in the array
+hands(2) = twoClubs + threeSpades
+```
+```java
+// Create, parameterize, and initialize an array for a round of Twenty-One
+// In this exercise it is done at same time, different from previous one
+val hands = Array(tenClubs  + fourDiamonds,
+              nineSpades  + nineHearts,
+              twoClubs  + threeSpades)
+```
+```java
+// Initialize player's hand and print out hands before each player hits
+hands(0) = tenClubs + fourDiamonds
+hands(1) = nineSpades + nineHearts
+hands(2) = twoClubs + threeSpades
+hands.foreach(println)
+
+// Add 5♣ to the first player's hand
+hands(0) = hands(0) + fiveClubs
+
+// Add Q♠ to the second player's hand
+hands(1) = hands(1) + queenSpades
+
+// Add K♣ to the third player's hand
+hands(2) = hands(2) + kingClubs
+
+// Print out hands after each player hits
+hands.foreach(println)
+```
+
+### LISTS
+* Most commonly used collection in scala
+* Immutable
+```java
+// use list if you want immutable lists
+val players: List[String] = new List[String](3)
+```
+* Why use imutable lists?
+* It has methods
+    * A function that belongs to ans object
+* Many list methods
+    * mylistname.drop()
+    * mylistname.mkString(",")
+    * mylistname.reverse
+
+#### Cons (::)
+* Since it is ummutable, if you want to add new values to a list, use the cons (::)
+```java
+// Declaring a list
+val players = List("Alex","Chen")
+// this below will append to the beggining the new player and create a new list
+val newPlayers = "Cassio" :: players
+```
+
+#### Nil
+* Common way to initialize new lists combines Nil and ::
+```java
+// concatenae values to a list. Nil is a method that belogs to list objects
+val players = "Alex" :: "Chen" :: Nil
+```
+
+#### Concatenate lists (:::)
+```java
+val players1 = List("Alex","Chen")
+val players2 = List("Vic","Cassio")
+val allPlayers = players1 ::: players2
+```
+**Exercise**
+Let's say we want to create a list of prized for 5 rounds, but later we decided to prepend another round:
+```java
+// Initialize a list with an element for each round's prize
+val prizes = List(10,15,20,25,30)
+println(prizes)
+
+// Prepend to prizes to add another round and prize
+val newPrizes = 5 :: prizes
+println(newPrizes)
+```
+Concatenating Lists
+```java
+// The original NTOA and EuroTO venue lists
+val venuesNTOA = List("The Grand Ballroom", "Atlantis Casino", "Doug's House")
+val venuesEuroTO = "Five Seasons Hotel" :: "The Electric Unicorn" :: Nil
+
+// Concatenate the North American and European venues
+val venuesTOWorld = venuesNTOA ::: venuesEuroTO
+```
