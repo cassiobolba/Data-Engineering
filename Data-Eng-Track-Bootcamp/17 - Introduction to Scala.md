@@ -1,5 +1,4 @@
 # INTRODUCTION TO SCALA
-
 **What is Scala**
 * General Purpose programing language
 * For Functional programing offering STRONG static tyep system
@@ -139,3 +138,38 @@ Two main ways people prefer to work in Scala:
 * SBT is the most used build tool
 * compiles, runs and test
 
+## FUNCTIONS
+We will continue writting code based on the our 21 game program
+* Functions are invoked to produce a result
+* It is composed by parameter list, body and result type
+* Ex: Function to find if the hand of player is bust
+```java
+// define the functio taking hand as int, then insinde {} id the function
+def bust(hand: int) = {
+    hand > 21
+}
+
+// print it
+println(bust(20))
+
+// can also use other functions inside the call
+println(bust(aceSpaces + King))
+```
+* Functions are first-class values
+* All functions produces results 
+* All results have a type
+**Exercise**
+```java
+// function to compare and show the biggest hand
+def maxHand(handA: Int, handB: Int): Int = {
+  if (handA > handB) handA
+  else handB
+}
+```java
+// Calculate hand values
+val handPlayerA: Int = 19
+val handPlayerB: Int = 20
+
+// Find and print the maximum hand value
+println(maxHand(handPlayerA, handPlayerB))
+```
