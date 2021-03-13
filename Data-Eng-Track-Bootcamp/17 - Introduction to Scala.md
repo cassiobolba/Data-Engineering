@@ -1,5 +1,4 @@
 # INTRODUCTION TO SCALA
-
 **What is Scala**
 * General Purpose programing language
 * For Functional programing offering STRONG static tyep system
