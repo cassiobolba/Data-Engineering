@@ -165,6 +165,7 @@ def maxHand(handA: Int, handB: Int): Int = {
   if (handA > handB) handA
   else handB
 }
+```
 ```java
 // Calculate hand values
 val handPlayerA: Int = 19
@@ -297,4 +298,86 @@ val venuesEuroTO = "Five Seasons Hotel" :: "The Electric Unicorn" :: Nil
 
 // Concatenate the North American and European venues
 val venuesTOWorld = venuesNTOA ::: venuesEuroTO
+```
+
+# TYPE SYSTEM, CONTROL STRUCTURES, STYLES
+## SCALA'S STATIC TYPE SYSTEM
+Some definitions
+* Types: restricts possible values a variable can refer, or expressiona can produce, at run time  
+* Compile time: When source code is translated into machine code. Ie. Code a computer can read.  
+* Run Time: When program executing commands after being compiled, in a JVM
+* Static Type Systems: the types are checked before run time ( C, Fortran, Java, Scala)  
+* Dynamic Type System: Types are checked on the fly, during the run time (Python, JavaScript, R)  
+### Pros os Static Systems
+* Increase Performance, due to being static and compiled language
+* Properties of your progam are verifies, bugs are caught early
+* Safe refactoring, it alerts your in case of an error during refactoring
+* Documentation in the form of type anotations make the code self-dorcumented
+```java
+// :Int ia type annotation
+val fourHearts: Int = 4
+```
+### Cons of Static Systems
+* Takes time to check types (before the execution)  
+* Code is verbose (is longes, more annoying to write)  
+* The language is not flexible (only one way to compose a type)
+
+## CONTROL STRUCTURES
+So far we can:
+```java
+// define variables
+val fourHearts: int = 4
+// define collections
+val hands: Array[Int] = new Array[Int](3)
+// define functions
+def bust(hand: int) = {
+    hand > 21
+}
+```
+Let's add control structures: IF ELSE
+```java
+def maxHand(handA: Int, handB: Int): Int = {
+  if (bust(handA) & bust(handB)) println(0)
+  else if (bust(handA)) println(handB)
+  else if (bust(handB)) println(handA)
+  else if (handA > handB) println(handA)
+  else handB
+}
+```
+Common Operators:
+> , < , >= , <= , == , != , && , || , ! (not)
+**Exercise**
+Lets inform the player about his status when he gets cards form the dealers:
+```java
+// Point value of a player's hand
+val hand = sevenClubs + kingDiamonds + threeSpades
+
+// Inform a player where their current hand stands
+val informPlayer: String = {
+  if (hand > 21)
+    "Bust! :("
+  else if (hand == 21)
+    "Twenty-One! :)"
+  else  
+    "Hit or stay?"
+}
+
+// Print the message
+print(informPlayer)
+```
+In this exercise, you'll create the body a function for your Twenty-One program called pointsToBust, which takes the current hand's point value as an input and calculates the the number of points remaining until 21. As a player, knowing how many additional points it takes to cause your current hand to bust will help you decide whether to hit or stay. The card variables you need and the bust function are already defined for you.
+```java
+// Find the number of points that will cause a bust
+def pointsToBust(hand: Int): Int = {
+  // If the hand is a bust, 0 points remain
+  if (bust(hand))
+    0
+  // Otherwise, calculate the difference between 21 and the current hand
+  else
+    21 - hand
+}
+
+// Test pointsToBust with 10♠ and 5♣
+val myHandPointsToBust = pointsToBust(tenSpades + fiveClubs)
+println(myHandPointsToBust)
 ```
