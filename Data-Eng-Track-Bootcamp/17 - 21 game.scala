@@ -2,7 +2,6 @@
 // BELOW ARE SNIPPETS OF THE CODE REGRADDING THE 21 GAME CARD DONEDURING THE COURSE
 // THE STILL NEEDS TO BE CREATED
 
-
 // Define immutable variables for clubs 2♣ through 4♣
 val twoClubs: Int = 2
 val threeClubs: Int = 3
