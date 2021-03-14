@@ -382,3 +382,92 @@ def pointsToBust(hand: Int): Int = {
 val myHandPointsToBust = pointsToBust(tenSpades + fiveClubs)
 println(myHandPointsToBust)
 ```
+
+## WHILE AND THE IMPERATIVE STYLE
+* Another control structure
+* Loop over hands in the game to see which is a bust
+* In scala, expression in the loops must be surrounded by parenthesis
+```java
+var i = 0
+var hands = Array(17,24,21)
+while (i > hands.lenght) {
+    println(bust(hands(i)))
+    i += 1
+}
+```
+**Exercise**
+```java
+// Define counter variable
+var i = 0
+
+// Define the number of loop iterations
+var numRepetitions = 3
+
+// Loop to print a message for winner of the round
+while (i < numRepetitions) {
+  if (i < numRepetitions-1)
+    println("winner")
+  else
+    println("chicken dinner")
+  // Increment the counter variable
+    i += 1
+}
+```
+Iterate over the hands and print if the hands burts
+``` java
+// Define counter variable
+var i = 0
+
+// Create list with five hands of Twenty-One
+var hands = List(16, 21, 8, 25, 4)
+
+// Loop through hands
+while (i < hands.length) {
+  // Find and print number of points to bust
+  println(pointsToBust(hands(i)))
+  // Increment the counter variable
+  i += 1
+}
+```
+
+
+## FOR EACH AND THE FUNCTIONAL STYLE GUIDE
+* Scala is a hybrid of functional and imperative style
+* Scala nugdes the devs to be functional
+* foreach in Scala is nor a built in control structure, it is a method
+* We can convert the while loop into a for each
+```java
+// much more consice
+var hands = Array(17,24,21)
+hands.foreach(bust)
+```
+**Exercise**
+* Creating a for loop to run a defined functions
+```java
+// Find the number of points that will cause a bust
+def pointsToBust(hand: Int) = {
+  // If the hand is a bust, 0 points remain
+  if (bust(hand))
+    println(0)
+  // Otherwise, calculate the difference between 21 and the current hand
+  else
+    println(21 - hand)
+}
+
+// Create list with five hands of Twenty-One
+var hands = List(16, 21, 8, 25, 4)
+
+// Loop through hands, finding each hand's number of points to bust
+hands.foreach(pointsToBust)
+```
+
+# THE ESSENCE OF SCALA
+* Functional code can be compared to a pipe with no leaks
+* Because functional programing rather map an input to an output rather than changing data at place
+* Some benefits of functional style
+ * Data won't change inadvertenlty
+ * Code is easier to reason about
+ * you have to write fewer tests
+ * Functions a more reliable and reusable
+* But sometimes using imperative can be benefitial
+* Scala creators suggest to always go firts for val, imutable and functions with no side effects (functional), if necessary, the go to var, mutable and function with side effects (imperative)
