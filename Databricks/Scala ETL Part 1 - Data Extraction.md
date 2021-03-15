@@ -1,4 +1,5 @@
 # ETL Part 1: Data Extraction
+
 ## Lessons
 1. Course Overview and Setup
 2. ETL Process Overview
