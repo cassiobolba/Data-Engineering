@@ -200,3 +200,27 @@ See the [Managing Parallelism](https://docs.databricks.com/spark/latest/data-sou
 ## 5. Applying Schemas to JSON Data
 * A schema describes the structure of your data by naming columns and declaring the type of data in that column
 * Rigorously enforcing schemas leads to significant performance optimizations and reliability of code.
+```scala
+// printing the schema of a json
+val zipsDF = spark.read.json("/mnt/training/zips.json")
+zipsDF.printSchema
+```
+You can store the schema checked before on a variable to reuse later
+```scala
+val zipsSchema = zipsDF.schema
+zipsSchema.foreach(println)
+```
+* Schema inference means Spark scans all of your data, creating an extra job, which can affect performance
+* Consider providing alternative data types (for example, change a `Long` to a `Integer`)
+* Consider throwing out certain fields in the data, to read only the data of interest
+```scala
+// importing the needed libraries to use
+import org.apache.spark.sql.types.{StructType, StructField, IntegerType, StringType, ArrayType, FloatType}
+
+val zipsSchema3 = StructType(List(
+  StructField("city", StringType, true), 
+  StructField("loc", 
+    ArrayType(FloatType, true), true),
+  StructField("pop", IntegerType, true)
+))
+```
