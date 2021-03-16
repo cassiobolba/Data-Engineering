@@ -198,3 +198,5 @@ See the [Managing Parallelism](https://docs.databricks.com/spark/latest/data-sou
 
 
 ## 5. Applying Schemas to JSON Data
+* A schema describes the structure of your data by naming columns and declaring the type of data in that column
+* Rigorously enforcing schemas leads to significant performance optimizations and reliability of code.
