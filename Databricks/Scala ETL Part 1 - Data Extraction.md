@@ -1,4 +1,4 @@
-# ETL Part 1: Data Extraction
+# SCALA - ETL Part 1: Data Extraction
 
 ## Lessons
 1. Course Overview and Setup
@@ -224,4 +224,161 @@ val zipsSchema3 = StructType(List(
     ArrayType(FloatType, true), true),
   StructField("pop", IntegerType, true)
 ))
+
+// load the file using the schema provided
+val zipsDF3 = (spark.read
+  .schema(zipsSchema3)
+  .json("/mnt/training/zips.json")
+)
+display(zipsDF3)-
+```
+**EXERCISE**  
+Import Libs, create a schema with the column SMS, and create a df with all non null SMS values
+```scala
+import org.apache.spark.sql.types.{StructType, StructField, IntegerType, StringType, ArrayType, FloatType}
+
+val schema = StructType(List(StructField("SMS",StringType,true)))
+
+val SMSDF = spark.read
+  .option("Header", true)
+  .schema(schema)
+  .json("/mnt/training/UbiqLog4UCI/14_F/log*")
+  .filter($"SMS".isNotNull)
+```
+
+## 6. Corrupt Record Handling
+ETL pipelines need robust solutions to handle corrupt data. This is because data corruption scales as the size of data and complexity of the data application grow. Corrupt data includes:
+
+* Missing information
+* Incomplete information
+* Schema mismatch
+* Differing formats or data types
+* User errors when writing data producers    
+
+There are three different options for handling corrupt records [set through the `ParseMode` option](https://github.com/apache/spark/blob/master/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/util/ParseMode.scala#L34):  
+
+| `ParseMode` | Behavior |
+|-------------|----------|
+| `PERMISSIVE` | Includes corrupt records in a "_corrupt_record" column (by default) |
+| `DROPMALFORMED` | Ignores all corrupted records |
+| `FAILFAST` | Throws an exception when it meets corrupted records |  
+
+```scala
+// creating sample corrupt records
+val data = """{"a": 1, "b":2, "c":3}|{"a": 1, "b":2, "c":3}|{"a": 1, "b, "c":10}""".split('|')
+
+// 
+val corruptDF = spark.read
+  .option("mode", "PERMISSIVE")
+  .option("columnNameOfCorruptRecord", "_corrupt_record")
+  .json(sc.parallelize(data))
+
+display(corruptDF)
+```
+The result is:
+IMAGEM PERMISSIVE MODE
+```scala
+val data = """{"a": 1, "b":2, "c":3}|{"a": 1, "b":2, "c":3}|{"a": 1, "b, "c":10}""".split('|')
+
+val corruptDF = spark.read
+  .option("mode", "DROPMALFORMED")
+  .json(sc.parallelize(data))
+
+display(corruptDF)
+```
+The following cell throws an error once a corrupt record is found, rather than ignoring or saving the corrupt records:
+```scala
+try {
+  val data = """{"a": 1, "b":2, "c":3}|{"a": 1, "b":2, "c":3}|{"a": 1, "b, "c":10}""".split('|')
+
+  val corruptDF = spark.read
+    .option("mode", "FAILFAST")
+    .json(sc.parallelize(data))
+
+  display(corruptDF)  
+
+// catch the exception  
+} 
+  catch {
+  case e:Exception => print(e)
+}
+```
+Failfast mode throws an error to debbug.
+
+### Recommended approach in Databricks
+Databricks Runtime has [a built-in feature](https://docs.databricks.com/spark/latest/spark-sql/handling-bad-records.html) that saves corrupt records to a given end point. To use this, set the `badRecordsPath`.  
+```scala
+// needs firts to define a folder to store the badrecords
+// working dir was defined pevriously as 'dbfs:/user/cassio.bolba@gmail.com/etl_part_1/etl1_06___corrupt_record_handling_ssp/'
+val myBadRecords = s"$workingDir/badRecordsPath"
+
+println(s"""Your temp directory is "$myBadRecords" """)
+println("-"*80)
+
+// create the bad records
+val data = """{"a": 1, "b":2, "c":3}|{"a": 1, "b":2, "c":3}|{"a": 1, "b, "c":10}""".split('|')
+
+val corruptDF = spark.read
+  .option("badRecordsPath", myBadRecords)
+  .json(sc.parallelize(data))
+
+display(corruptDF);
+```
+```scala
+// reading the file with the bad record
+val path = "%s/*/*/*".format(myBadRecords)
+display(spark.read.json(path))
+```
+**EXERCISE**  
+Import the data used in the last lesson, which is located at `/mnt/training/UbiqLog4UCI/14_F/log*`.  Import the corrupt records in a new column `SMSCorrupt`.  <br>
+
+Save only the columns `SMS` and `SMSCorrupt` to the new DataFrame `SMSCorruptDF`.
+```scala
+val SMSCorruptDF = spark.read
+  .option("mode", "PERMISSIVE")
+  .option("columnNameOfCorruptRecord", "SMSCorrupt")
+  .json("/mnt/training/UbiqLog4UCI/14_F/log*")
+  .select("SMSCorrupt","SMS")
+  .filter($"SMSCorrupt".isNotNull)
+display(SMSCorruptDF)
+```
+
+## 7. Loading Data and Productionalizing
+* Use parquet for reading files to get more speed
+* Productionalize in a simple way means automate the execution
+*  [Apache Parquet](https://parquet.apache.org/documentation/latest/) is a highly efficient, column-oriented data format that shows massive performance increases over other options such as CSV. For instance, Parquet compresses data repeated in a given column and preserves the schema from a write.
+```scala
+// getting the crime dataframe
+val crimeDF = spark.read
+  .option("delimiter", "\t")
+  .option("header", true)
+  .option("timestampFormat", "mm/dd/yyyy hh:mm:ss a")
+  .option("inferSchema", true)
+  .csv("/mnt/training/Chicago-Crimes-2018.csv")
+
+display(crimeDF)
+```
+Rename the columns in CrimeDF so there are no spaces or invalid characters. This is required by Spark and is a best practice. Use camel case.
+```scala
+val cols = crimeDF.columns
+val camelCols = new scala.collection.mutable.ListBuffer[String]()
+cols.foreach(camelCols += _.toLowerCase.split(" ").reduceLeft(_+_.capitalize))
+
+val crimeRenamedColsDF = crimeDF.toDF(camelCols:_*)
+display(crimeRenamedColsDF)
+```
+### 7.1 Writting to Parquet
+You can write and leave to spark define the numbers of parquet partitions
+```scala
+val targetPath = s"$workingDir/crime.parquet"
+crimeRenamedColsDF.write.mode("overwrite").parquet(targetPath)
+//check the output files created
+display(dbutils.fs.ls(targetPath))
+```
+Or you can write and define the number of partitions
+```scala
+val repartitionedPath = s"$workingDir/crimeRepartitioned.parquet"
+crimeRenamedColsDF.repartition(1).write.mode("overwrite").parquet(repartitionedPath)
+//check the output files created
+display(dbutils.fs.ls(repartitionedPath))
 ```
