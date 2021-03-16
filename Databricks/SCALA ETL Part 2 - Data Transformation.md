@@ -1,4 +1,5 @@
 # SCALA - ETL Part 2: Data Transformation
+
 ## 1. Course Overview and Setup
 1. Course Overview and Setup
 2. Common Transformations
