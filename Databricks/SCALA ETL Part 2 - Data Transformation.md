@@ -1,0 +1,128 @@
+# SCALA - ETL Part 2: Data Transformation
+## 1. Course Overview and Setup
+1. Course Overview and Setup
+2. Common Transformations
+3. User Defined Functions
+4. Advanced UDFs
+5. Joins and Lookup Tables
+6. Database Writes
+7. Table Management
+
+## 2. Common Transformations
+Common transformations Includes:
+* Normalizing values
+* Imputing null or missing data
+* Deduplicating data
+* Performing database rollups
+* Exploding arrays
+* Pivoting DataFrames
+
+### 2.1 Normalizing Data
+Normalizing refers to different practices including restructuring data in normal form to reduce redundancy, and scaling data down to a small, specified range.    
+For this case, bound a range of integers between 0 and 1.
+```scala
+// range of values to be normalized
+val intergerDF = spark.range(1000,10000)
+```
+Then, subtract the minimum and divide by the maximum, minus the minimum
+```scala
+import org.apache.spark.sql.functions.{col, max, min}
+// selecting min value, getting the first min, in case there are more, and saying it is a long, not an any object
+val colMin = integerDF.select(min("id")).first()(0).asInstanceOf[Long]
+val colMax = integerDF.select(max("id")).first()(0).asInstanceOf[Long]
+// performing the calculation
+val normalizedIntegerDF = integerDF
+  .withColumn("normalizedValue", (col("id") - colMin) / (colMax - colMin) )
+
+display(normalizedIntegerDF)
+```
+
+### 2.2 Imputing Null or Missing Data
+Strategies for dealing with this scenario include:
+* **Dropping these records:** Works when you do not need to use the information for downstream workloads
+* **Adding a placeholder (e.g. `-1`):** Allows you to see missing data later on without violating a schema
+* **Basic imputing:** Allows you to have a "best guess" of what the data could have been, often by using the mean of non-missing data
+* **Advanced imputing:** Determines the "best guess" of what data should be using more advanced strategies such as clustering machine learning algorithms or oversampling techniques   
+
+Let's create a sample dataset to practice
+```scala
+val corruptDF = Seq(
+  (Some(11), Some(66), Some(5)),
+  (Some(12), Some(68), None),
+  (Some(1), None, Some(6)),
+  (Some(2), Some(72), Some(7))
+).toDF("hour", "temperature", "wind")
+
+display(corruptDF)
+```
+**TO DROP ANY RECORD WITH NULL VALUES**
+```scala
+val corruptDroppedDF = corruptDF.na.drop("any")
+display(corruptDroppedDF)
+```
+**TO INPUT VALUES WITH ANOTHER ONES, HARDCODED OR MEAN, OR AVG**
+```scala
+val map = Map("temperature" -> 68, "wind" -> 6)
+val corruptImputedDF = corruptDF.na.fill(map)
+
+display(corruptImputedDF)
+```
+### 2.3 Deduplicating Data
+This example for simple dedupe, where all the records for duplicated lines are exactly the same. You can also dedupe by some coluns only.  
+There may be more complex scenários of dedupe.
+```scala
+// creating a duped df
+val duplicateDF = Seq(
+  (15342, "Conor", "red"),
+  (15342, "conor", "red"),
+  (12512, "Dorothy", "blue"),
+  (5234, "Doug", "aqua")
+  ).toDF("id", "name", "favorite_color")
+
+display(duplicateDF)
+```
+**DEDUPE ON ID AND FAVOURITE_COLOUR**
+```scala
+val duplicateDedupedDF = duplicateDF.dropDuplicates("id", "favorite_color")
+
+display(duplicateDedupedDF)
+```
+### 2.4 Other Helpful Data Manipulation Functions
+
+| Function    | Use                                                                                                                        |
+|:------------|:---------------------------------------------------------------------------------------------------------------------------|
+| `explode()` | Returns a new row for each element in the given array or map                                                               |
+| `pivot()`   | Pivots a column of the current DataFrame and perform the specified aggregation                                             |
+| `cube()`    | Create a multi-dimensional cube for the current DataFrame using the specified columns, so we can run aggregation on them   |
+| `rollup()`  | Create a multi-dimensional rollup for the current DataFrame using the specified columns, so we can run aggregation on them |
+
+**EXERCISE**
+* Load the dataframe and examine it
+```scala
+val dupedDF = spark.read
+  .option("header",true)
+  .option("Delimiter",":")
+  .csv("/mnt/training/dataframes/people-with-dups.txt")
+display(dupedDF)
+```
+* make the 3 names columns lower and remove hyphens from ssn
+```scala
+import org.apache.spark.sql.functions.{col, lower, translate}
+
+val dupedWithColsDF = (dupedDF
+  .select(col("*"),
+    lower(col("firstName")).alias("lcFirstName"),
+    lower(col("lastName")).alias("lcLastName"),
+    lower(col("middleName")).alias("lcMiddleName"),
+    translate(col("ssn"), "-", "").alias("ssnNums")
+))
+display(dupedWithColsDF)
+```
+Deduplicate the data by dropping duplicates of all records except for the original names (first, middle, and last) and the original `ssn`.  Save the result to `dedupedDF`.  Drop the columns you added in step 2.
+```scala
+val dedupedDF = dupedWithColsDF
+  .dropDuplicates(Array("lcFirstName", "lcMiddleName", "lcLastName", "ssnNums", "gender", "birthDate", "salary"))
+  .drop("lcFirstName", "lcMiddleName", "lcLastName", "ssnNums")
+
+display(dedupedDF) 
+```
