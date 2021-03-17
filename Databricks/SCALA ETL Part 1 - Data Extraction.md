@@ -275,7 +275,8 @@ val corruptDF = spark.read
 display(corruptDF)
 ```
 The result is:
-IMAGEM PERMISSIVE MODE
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/SCALA%20ETL%20Part%201/spark%20permissive%20mode.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 ```scala
 val data = """{"a": 1, "b":2, "c":3}|{"a": 1, "b":2, "c":3}|{"a": 1, "b, "c":10}""".split('|')
 
@@ -285,6 +286,9 @@ val corruptDF = spark.read
 
 display(corruptDF)
 ```
+Result in this:
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/SCALA%20ETL%20Part%201/spark%20drop%20malformed%20mode.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 The following cell throws an error once a corrupt record is found, rather than ignoring or saving the corrupt records:
 ```scala
 try {

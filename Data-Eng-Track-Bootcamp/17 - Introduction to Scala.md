@@ -470,3 +470,5 @@ hands.foreach(pointsToBust)
  * Functions a more reliable and reusable
 * But sometimes using imperative can be benefitial
 * Scala creators suggest to always go firts for val, imutable and functions with no side effects (functional), if necessary, the go to var, mutable and function with side effects (imperative)
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/SCALA%20ETL%20Part%201/imperative_vs_functional_Programing.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
