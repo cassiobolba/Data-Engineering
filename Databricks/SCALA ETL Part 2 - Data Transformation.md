@@ -36,6 +36,8 @@ val normalizedIntegerDF = integerDF
 
 display(normalizedIntegerDF)
 ```
+Results in this:
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/SCALA%20ETL%20Part%202/image%20norrmalization.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
 
 ### 2.2 Imputing Null or Missing Data
 Strategies for dealing with this scenario include:
