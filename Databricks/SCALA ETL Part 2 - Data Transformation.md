@@ -127,3 +127,43 @@ val dedupedDF = dupedWithColsDF
 
 display(dedupedDF) 
 ```
+
+## 3. Common Transformations
+* First, *built-in functions are finely tuned* so they run faster than less efficient code provided by the user.  
+* Secondly, Spark (or, more specifically, Spark's optimization engine, the Catalyst Optimizer) knows the objective of built-in functions so it can *optimize the execution of your code by changing the order of your tasks.* 
+* UDFs are generally more performant in Scala than Python since for Python, Spark has to spin up a Python interpreter on every executor to run the function. This causes a substantial performance bottleneck due to communication across the Py4J bridge (how the JVM inter-operates with Python) and the slower nature of Python execution.
+
+<div><img src="https://files.training.databricks.com/images/eLearning/ETL-Part-2/built-in-vs-udfs.png" style="height: 400px; margin: 20px"/></div>
+
+### 3.1 Basic UDF
+* First Create a function
+```scala
+// function to split a string by space
+def manual_split: String => Seq[String] = _.split(" ")
+manual_split("this is my example string")
+```
+* Then register the function by designating
+  * name to access the function in scala (`manualSplitScalaUDF`)
+  * name for access in SQL (`manualSplitSQLUDF`)
+  * function itself (created previously)
+```scala
+val manualSplitScalaUDF = spark.udf.register("manualSplitSQLUDF", manual_split)
+```
+To test, create a DataFrame of 100k values with a string to index. Do this by using a hash function, in this case `SHA-1`.
+```scala
+import org.apache.spark.sql.functions.{sha1, rand}
+
+val randomDF = (spark.range(1, 10000 * 10 * 10 * 10)
+  .withColumn("random_value", rand(seed=10).cast("string"))
+  .withColumn("hash", sha1($"random_value"))
+  .drop("random_value")
+)
+
+display(randomDF)
+```
+Apply the UDF by using it just like any other Spark function.
+```scala
+val randomAugmentedDF = randomDF.select($"*", manualSplitScalaUDF($"hash").alias("augmented_col"))
+
+display(randomAugmentedDF)
+```
