@@ -169,3 +169,61 @@ val randomAugmentedDF = randomDF.select($"*", manualSplitScalaUDF($"hash").alias
 
 display(randomAugmentedDF)
 ```
+
+## 4. Joins and Lookup Tables 
+There are basically 2 types of joins:  
+**A standard (or shuffle) join**
+* Moves all the data on the cluster for each table to a given node on the cluster
+* This is expensive not only because of the computation needed to perform row-wise comparisons
+* Also because data transfer across a network is often the biggest performance bottleneck of distributed systems.
+
+**A broadcast join** 
+* remedies this situation when one DataFrame is sufficiently small
+* A broadcast join duplicates the smaller of the two DataFrames on each node of the cluster
+* Avoiding the cost of shuffling the bigger DataFrame
+* If spark detects one of the tables are less then 10mb, it sets automatically to broadcast join
+
+<div><img src="https://files.training.databricks.com/images/eLearning/ETL-Part-2/shuffle-and-broadcast-joins.png" style="height: 400px; margin: 20px"/></div>
+
+## 4.1 Lookup Tables
+Usually smaller tables to enrich main data  
+```scala
+// load the smaller data table
+val labelsDF = spark.read.parquet("/mnt/training/day-of-week")
+display(labelsDF)
+
+// then load the big table - this set to legacy os basically to be able to use the "u" in timestamp because it is a spark 2.0 function
+// in spart 3.0 u = F
+spark.conf.set("spark.sql.legacy.timeParserPolicy","LEGACY")
+import org.apache.spark.sql.functions.date_format
+
+val pageviewsDF = spark.read
+  .parquet("/mnt/training/wikipedia/pageviews/pageviews_by_second.parquet/")
+  .withColumn("dow", date_format($"timestamp", "u").alias("dow"))
+display(pageviewsDF)
+
+// then join both dataframes
+val pageviewsEnhancedDF = pageviewsDF.join(labelsDF, "dow")
+display(pageviewsEnhancedDF)
+```
+Now, aggregate the results to see trends by day of the week
+```scala
+val aggregatedDowDF = pageviewsEnhancedDF
+  .groupBy($"dow", $"longName", $"abbreviated", $"shortName")  
+  .sum("requests")                                             
+  .withColumnRenamed("sum(requests)", "Requests")
+  .orderBy($"dow")
+
+display(aggregatedDowDF)
+```
+## 4.2 Eploring the performed Join
+In these joins, no type was specified. To check how it went:
+```scala
+aggregatedDowDF.explain()
+```
+To explicitly change to a broadcast join:
+```scala
+import org.apache.spark.sql.functions.broadcast
+
+pageviewsDF.join(broadcast(labelsDF), "dow").explain()
+```
