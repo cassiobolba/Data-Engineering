@@ -228,3 +228,21 @@ import org.apache.spark.sql.functions.broadcast
 
 pageviewsDF.join(broadcast(labelsDF), "dow").explain()
 ```
+
+**EXERCISE**
+Join a table that includes country name to a lookup table containing the full country name
+```scala
+// read both tables
+val countryLookupDF = spark.read.option("multiline",true).parquet("/mnt/training/countries/ISOCountryCodes/ISOCountryLookup.parquet")
+
+val logWithIPDF = spark.read.option("multiline",true).parquet("/mnt/training/EDGAR-Log-20170329/enhanced/logDFwithIP.parquet")
+
+// import the broadcast
+import org.apache.spark.sql.functions.broadcast
+
+// join the tables using boradcast, selecting cols to compare, then drop the columns from lookup table
+val logWithIPEnhancedDF = (logWithIPDF
+  .join(broadcast(countryLookupDF), logWithIPDF.col("IPLookupISO2") === countryLookupDF.col("alpha2Code"))
+  .drop("alpha2Code", "alpha3Code", "numericCode", "ISO31662SubdivisionCode", "independentTerritory")
+)
+```
