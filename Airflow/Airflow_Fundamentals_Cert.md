@@ -1,4 +1,5 @@
 # 1. ESSENTIALS
+
 ## 1.1 Why to use it?
 * For ETL processes
 * It can chain tasks dependencies
