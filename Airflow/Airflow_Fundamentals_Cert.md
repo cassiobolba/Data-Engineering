@@ -133,3 +133,30 @@ Use it to trigger data processing frameworks like spark. Do not process the data
 * Like adding a Postgree providers
 * EXTRA : Adds all dependencies
 * PROVIDERS : Just a hook or connection for operators, for example
+
+# 2. INTERACTING WITH APACHE AIRFLOW
+## 2.1 3 WAYS
+* UI : Check logs, Monitor Logs, DAGs
+* CLI: Initialize, if you don't have acces to UI
+* REST API: To build something on the top of Airflow, to communicate with other applications
+
+## 2.2 UI
+### 2.2.1 **DAG VIEW**
+* Login page (admin/admin)
+* Default logs to DAGs view
+* toggle to enable task execution, stop it
+* DAGs name, dag owner
+* Dag runs: check de current run, past runs, success of failure 
+* Schedule: Interval of execution
+* Last Run: Last time of exection
+* Recebnt Tasks: Status of all tasks running or last runs
+* Actions: Tigger manually (toogle must be on), refresh DAG (read again from DAG folder), Delete all metadata (but nor files)
+* Links: To acces other views in Airflow
+
+### 2.2.2 **Tree View**
+* View when clic on a Dags
+* Good to see which task failed, and its status
+* Spot late runs and failures
+* Can check how are the DAGs running simultaneouslly 
+* See task dependencies
+* Can see the previous runs and status
