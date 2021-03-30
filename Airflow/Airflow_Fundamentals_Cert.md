@@ -1,25 +1,25 @@
 # 1. ESSENTIALS
 
-## 1.1 Why to use it?
+## 1.1 WHY USE AIRLFOW?
 * For ETL processes
 * It can chain tasks dependencies
 * Allow retry
 * Allow monitoring
 * Allow manage multiple tasks
 * better than cron
-## 1.2 What is Airflow?
+## 1.2 WHAT IS AIRFLOW?
 **Open source platform to programmatically author, schedule and monitor workflows**
-### 1.2.1 Benefits:
+### 1.2.1 BENEFITS:
 * **DYNAMIC**: Since it is python based, you have the same flexibility as python offer
 * **SCALABLE**: Execute as many tasks as you want
 * **INTERACTIVE**: 3 ways to interact: UI, cmd interface or REST API
 * **EXTENSIBLE**: Can create own plugin to interact with airflow for anything you need
 
-### 1.2.2 What Airflow IS NOT?
+### 1.2.2 WHAT AIRFLOW IS NOT?
 **NOT A STREAMING OR DATA PROCESSING FRAMEWORK**
 Use it to trigger data processing frameworks like spark. Do not process the data on ariflow containers, it will fail.
 
-## 1.3 Core Components:
+## 1.3 CORE COMPONENTS:
 ### Web Server
 * Flask Server to access the user interface
 ### Scheduler
@@ -39,7 +39,7 @@ Use it to trigger data processing frameworks like spark. Do not process the data
     * SQL lite
     * Mongo (with limitations)
 
-## 1.4 Other Components
+## 1.4 OTHER COMPONENTS
 ### Executor
 * Define how your tasks are goin to be executes by airflow
     * If want to run a kubernetes task, must use the kubernetes executor
@@ -49,8 +49,8 @@ Use it to trigger data processing frameworks like spark. Do not process the data
     * a pod for kubernetes
     * a process for a local runner
 
-## 1.5 Common Architectures
-### 1.5.1 One Node
+## 1.5 COMMON ARCHITECTURES
+### 1.5.1 ONE NODE
 <img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/one_node.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>  
 
 * All components are installed together
@@ -62,7 +62,7 @@ Use it to trigger data processing frameworks like spark. Do not process the data
 * Notice that  web server never talsk to schduler and executor directly
 * This is the simplest architecture, like when you install in your computer
 
-### 1.5.2 Multi Nodes (Celery)
+### 1.5.2 MULTI NODES (Celery)
 <img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/multi_node.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>   
 
 * In this scenario, Web Server, schduler and executor are in the same node
@@ -72,3 +72,64 @@ Use it to trigger data processing frameworks like spark. Do not process the data
 * As in single node, web server talks to metastore, as well as scheduler talks  to metastore and executor
 * When task is ready to go, the executori send it to the queue that make it available for workers to get it
 * This architecture is meant to execute many task, and you can also increase the number of workers to process more tasks
+
+## 1.6 CORE CONCEPTS
+### DAG
+* Data Pipeline
+* Directed Acyclic Graph
+* No loops
+* One Node is chained to another linearly
+
+### OPERATOR
+* Is the node of a DAG
+* It is a Task in the DAG
+* There are 3 types: 
+ 
+**ACTION OPERATOR**
+* Python
+* Bash
+* SQL 
+
+**TRANSFER OPERATOR**   
+* Used to transfer data from one source to a destination
+* My SQL to Presto
+
+**SENSOR OPERATOR**   
+* Wait something to happens to start another task
+* Like wait a file to land in a destination, and it trigger the next task
+
+### TASK
+* When an operator is instantiated, it becomes a task in the DAG
+* And whent the task is ready to trigger it becomes a **TASK INSTANCE**
+* Task instance is like a DAG + Task + Point in Time
+
+### DEPENDENCIES
+* the edges in the nodes are the depencecies
+* The following task depends on the previous
+* can define it in 2 ways
+    * Use the set_upstream or set_downstream
+    * or use << or >> (bit shift operator)
+
+### WORFLOW
+* It is a combination of all concepts  listed above: DAG + Operator + Task + Dependencies
+
+## 1.7 TASK LIFECYCLE 
+* Create a python file and place in the DAGs Folder
+* Web server (every 30s) and scheduler (every 5min) parses the python file
+* If the task is ready to trigger, the scheduler creates a dag run object (instance of task)
+* It changes the taks status in the metastore to "Schduled"
+* Then the scheduler send the task to the executor and the status change to "Queued"
+* The task is ready to be taken by an executor and run
+* When the task is running the executor update task status to "running"
+* After run, executor change status to "success"
+* Then the scheduler task if there is anything else to run and update to next status
+* Finnally, the web server fetch data from metastore and update the UI
+
+## 1.8 EXTRAS AND PROVIDERS
+* Airflow offer the basics functions
+* But you can extend its capabilities by adding extras
+* Extra is a provider with aditional dependencies
+* It is totally independent from airflow, it can be updated separatly
+* Like adding a Postgree providers
+* EXTRA : Adds all dependencies
+* PROVIDERS : Just a hook or connection for operators, for example
