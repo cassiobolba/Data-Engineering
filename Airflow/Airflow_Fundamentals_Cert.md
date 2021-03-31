@@ -159,3 +159,31 @@ Use it to trigger data processing frameworks like spark. Do not process the data
 * Can check how are the DAGs running simultaneouslly 
 * See task dependencies
 * Can see the previous runs and status
+
+### 2.2.3 **Graph View**
+* Check task dependencies and Relationship of tasks
+* Check status of the last DAG run
+* Border color is the state of the task (gree, red...)
+* Hover over a taks to see which task is triggered by it
+* Can enable auto update
+
+### 2.2.4 **Gaant View**
+* Analyze task duration and overlaps
+* Task parallel running and which taks and time is taking longer
+
+### 2.3 INTERACTING WITH TASKS
+* In in view, click on task to get taks instance view
+
+IMAGEM
+
+ON THE TOP : TASK INSTANCES
+* Instance Details: Dag ID, execution date, duration
+* Rendered: Output of data
+* Logs: see logs, outoput, status
+* All Instances: See all instances created to run a specific task
+* Filter Upstream: Check the tasks that run after the task selected
+
+TASK ACTIONS:  
+* Run: Runs the task
+* Clear: Clear the task state (border go white, can retry the task)
+* Mark Success and failures
