@@ -1,4 +1,5 @@
 # 1. ESSENTIALS
+
 ## 1.1 WHY USE AIRLFOW?
 * For ETL processes
 * It can chain tasks dependencies
