@@ -187,3 +187,37 @@ TASK ACTIONS:
 * Run: Runs the task
 * Clear: Clear the task state (border go white, can retry the task)
 * Mark Success and failures
+
+### 2.4 COMMAND LINE INTERFACE (CLI)
+* Connect to web server
+* airflow db init - initialize db
+* airflow db upgrade
+* airflow db reset - strat for scratch
+* airflow webserver - start webserver
+* ariflow scheduler - star scheduler
+* ariflow celery worker - star celery nodes
+* ariflow dags pause or unpause - same as the toggle button in dag view
+* ariflow dags trigger -e -> trigger a dat and pass execution date
+* ariflow dags list - list of dags
+* ariflow tasks list example_dag - list all tasks a dag has
+* ariflow tasks test dag_id task_id 2021-01-01 - execute a specific task in a dag to test before running all dag
+* ariflow dags backfill -s <start_date> -e <stop_date> - rerun dags from past days
+
+### 2.5 REST API
+* go to docs
+* see the endpoints available
+
+# 3. DAGS AND TASKS
+## 3.1 DAG SKELETON
+Lets create first DAG:
+```py
+from airflow import DAG
+
+with DAG (dag_id = 'simple_dag') as dag:
+    NotImplementedError
+```
+* import DAG class
+* instantiate the dag object
+* define dag_id
+* if no specify any scheduling, default is every day
+* owner is not specified by default
