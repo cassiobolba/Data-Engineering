@@ -266,3 +266,29 @@ with DAG (   dag_id = 'simple_dag'
         task_id = 'task_1'
     )
 ```
+
+## 3.3 BACKFILLING AND CATCHUP
+* Backfilling allow to process or reprocess past trigger run
+* If you stop a DAG for 5 days, change it, and then start again, it will automatically process the past 5 days for you
+* Run a dag starting from 3 days ago: at the end it will run only 3 runs
+```py
+from airflow import DAG
+from airflow.operators.dummy import DummyOperator
+from datetime import datetime,timedelta
+from airflow.utils.dates import days_ago
+
+with DAG (   dag_id = 'simple_dag'
+            ,schedule_interval = "@daily" 
+            ,start_date = days_ago(3)
+            ,catchup=True #enable backfilling
+            ) as dag:
+
+    task_1 = DummyOperator (
+        task_id = 'task_1'
+    )
+```
+* If you set start date for 2 years ago wiht 10 min interval you will end up with thousands runs... how to avoid it?
+* To disable backfilling use the parameter *catchup=False* and then only the latest non triggered dag will run
+* Also, you can set the limit of dag runs at the same time using *max_active_runs=3*
+* even if you use *catchup=False* you can still run a backfill via CLI manually
+* it is recommended to set catchup to true and max active to a few number and avoid running out of resources

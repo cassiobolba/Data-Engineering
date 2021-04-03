@@ -7,6 +7,7 @@ with DAG (   dag_id = 'simple_dag'
             #,schedule_interval = "@daily" 
             #,schedule_interval = timedelta(hours=7) 
             ,start_date = datetime(2021,1,1) 
+            ,catchup=False #disable backfilling
             ) as dag:
 
     task_1 = DummyOperator (
