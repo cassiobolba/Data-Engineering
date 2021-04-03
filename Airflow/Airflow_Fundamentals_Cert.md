@@ -381,4 +381,39 @@ def _downloading_data (**kwargs):
 
 ### 3.6 PUTTING DAG ON HOLD - SENSOR
 * Sensor is a special type of operator that wait something to happen to then get in action
+* for example, to check if a file arrived, use the FileSensor:
+```py
+# import it
+from airflow.sensors.filesystem import FileSensor
+....
+# create a tasks
+    waiting_data = FileSensor (
+         task_id = 'waiting_data'
+        ,fs_conn_id= = 'con_id'
+        ,filepath =  'my_file.txt'
+        ,poke_interval = 15
+    )
+```
+* import the SileSensor
+* In the task, create the *fs_conn_id*
+* This is the connection with the airflow UI
+* You need to create the connection in the airflow: Admin > connections 
+    * Type = File
+    * Can install other providers to get connection type
+    * Extra = add additional information like access key (it not secure because show the value in the UI)
+    * In Extra, pass the path to the file as dictionary: {'path':'/tmp/'}
+* Use connections to communicate with external sources
+* save it
+* every 30 sec by default, the sensor will check fo the file
+* can change the interval using *poke_interval*
 
+### 3.7 BASH OPERATOR
+* Also used to simulate errors
+* import it:
+```py
+from airflow.operators.bash import BashOperator
+.....
+    processing_data = BashOperator (
+        task_id = 'processing_data'
+        ,bash_command = 'exit 0'
+    )
