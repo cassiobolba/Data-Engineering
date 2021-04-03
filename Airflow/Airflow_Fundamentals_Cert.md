@@ -292,3 +292,93 @@ with DAG (   dag_id = 'simple_dag'
 * Also, you can set the limit of dag runs at the same time using *max_active_runs=3*
 * even if you use *catchup=False* you can still run a backfill via CLI manually
 * it is recommended to set catchup to true and max active to a few number and avoid running out of resources
+
+### 3.4 OPERATORS
+* Is as task, operator becomes tasks
+* Use one operator for every task. ie: Extracting data, cleaning data
+* It saves time, resources. If one fails, you can the re-run only the failed task
+* Operator should be idempotent, 1 input must map to same output
+* Task ID must be unique to each task
+* parameters for operators:
+    * retry = number of retries
+    * retry_delay - timedelta(minutes=5) -> interval of time between every task
+* can create default arguments to run in all dags using default_args and passing to the default_args option when intantiating the dag object
+* But can still set specific retry to your operator. The option operator attributed to one operator gest priority over the default_args
+
+```py
+from airflow import DAG
+from airflow.operators.dummy import DummyOperator
+from datetime import datetime,timedelta
+
+default_args = {
+         'retry' : 5
+        ,'retry_delay' : timedelta(minutes=5)
+    }
+
+with DAG (   dag_id = 'simple_dag'
+            ,schedule_interval = "*/10 * * * *"
+            #,schedule_interval = "@daily" 
+            #,schedule_interval = timedelta(hours=7) 
+            ,start_date = datetime(2021,1,1) 
+            ,catchup = False #disable backfilling
+            ,default_args = default_args
+            ) as dag:
+
+    task_1 = DummyOperator (
+        task_id = 'task_1'
+    )
+
+    task_2 = DummyOperator (
+        task_id = 'task_2'
+    )
+```
+
+### 3.5 PYTHON OPERATOR
+* import it
+```py
+from airflow.operators.python import PythonOperator
+```
+* python operator expects a python callable function
+* Define the function in other file or in the dag file itself
+* To access the context your task is being executed, use th **kwargs option in the function
+```py
+#  CONTINUES FROM simple_dag.py
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime,timedelta
+
+default_args = {
+         'retry' : 5
+        ,'retry_delay' : timedelta(minutes=5)
+    }
+
+def _downloading_data (**kwargs):
+    print('test')
+    print(kwargs)
+
+with DAG (   dag_id = 'simple_dag'
+            ,schedule_interval = "*/10 * * * *"
+            ,start_date = datetime(2021,1,1) 
+            ,catchup = False #disable backfilling
+            ,default_args = default_args
+            ) as dag:
+
+    downloading_data = PythonOperator (
+        task_id = 'downloading_data
+        python_callable = _downloading_data
+    )
+```
+* by having the kwargs dictionary, you can access the execution date, the dag obeject and on
+* get the context result from kwargs in the lgs from task
+* below, how to acces the execution date, called ds in the kwargs print:
+```py
+def _downloading_data (**kwargs):
+    print('test')
+    print(kwargs[ds])
+    # can pass any other object in the dictionary kwargs give to you
+```
+* You can also pass your own parameters to the function (check operators_dag.py)
+
+### 3.6 PUTTING DAG ON HOLD - SENSOR
+* Sensor is a special type of operator that wait something to happen to then get in action
+
