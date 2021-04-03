@@ -214,10 +214,55 @@ Lets create first DAG:
 from airflow import DAG
 
 with DAG (dag_id = 'simple_dag') as dag:
-    NotImplementedError
+    None
 ```
 * import DAG class
 * instantiate the dag object
 * define dag_id
 * if no specify any scheduling, default is every day
 * owner is not specified by default
+
+## 3.2 DAG SCHEDULING
+3 main parameters:
+* start_date -> day to start
+* schedule_interval -> Frequency
+* **DAG IS EFFECTIVELLY TRIGGERED ON START_DATE + THE SCHEDULE INTERVAL TIME**  
+* ex: start_date = 01/01/2021 10am and schdule_interval = 10min. The DAG will effectivelly run at 01/01/2021 at 10:10AM.  
+* BUT, the execution_date is equal to the 10AM, because it is when the schduling interval started.  
+* Then, the new start_date is 10:10 AM, to start couting plus 10 min
+* end_data -> date to stop running the dag
+
+### 3.2.1 start_date
+* ALL DATES IN AIRFLOW ARE IN UTC
+* Can define a start date in the future
+* Can set start_date in the past, and all missing DAGs from the past start date until now, by default
+* Don't use datetime.now() to define start date dinamically
+
+### 3.2.1 schedule_interval
+* interval of execution
+* default is 24h
+* use cron expression
+* it is a string defining time interval
+* use crontab.google to get the cron expression "*/10 * * * *"
+* Can use expressions like @daily @weekly
+* Can use timedelta as well -> timedelta(days=1)
+* with cron you can trigger at a specifyc time, and with delta you trigger only at every x time from the first execution
+* Use timedelta when you need to run at every 3 days for ie. With cron it restart the day count at the beggining of every month. But with timedelta, it count the days correctly
+* to trigger manually or by external action (rest api), set schedule_interval to none
+
+```py
+from airflow import DAG
+from airflow.operators.dummy import DummyOperator
+from datetime import datetime,timedelta
+
+with DAG (   dag_id = 'simple_dag'
+            ,schedule_interval = "*/10 * * * *"
+            #,schedule_interval = "@daily" 
+            #,schedule_interval = timedelta(hours=7) 
+            ,start_date = datetime(2021,1,1) 
+            ) as dag:
+
+    task_1 = DummyOperator (
+        task_id = 'task_1'
+    )
+```
