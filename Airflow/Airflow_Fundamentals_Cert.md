@@ -417,3 +417,56 @@ from airflow.operators.bash import BashOperator
         task_id = 'processing_data'
         ,bash_command = 'exit 0'
     )
+```
+### 3.8 DAG PATH
+* Define dependencies
+* Can set in 2 ways:
+    * Methods
+    * >> << 
+#### 3.8.1  METHODS
+Methods: set_dowstream(task_name) or set_upstream(task_name)
+* in set_upstreaming means you will execute the task on the () before the task which is passing the method
+* set_downstream is the oposite, the taks in the method runs first and after the taks in the () runs after
+* it will start downloading data first
+* then waiting data
+```
+downloading_data.set_dowstream(waiting_data)
+waiting_data.set_dowstream(processing_data)
+```
+
+#### 3.8.2  RIGHT AND LEFT BITSHIFT OPERATOR
+* Most used
+* >> = set_dowstream
+* << = set_upstream
+```py
+downloading_data >> waiting_data >> processing_data
+```
+
+#### 3.8.3 BRANCH DEPENDENCIES
+* To run more than one task after another, create a list
+* put dad on the same level
+* execute multiple tasks in parallel
+```py
+downloading_data >> [ waiting_data, processing_data ] 
+```
+
+### 3.8.4 CHAIN HELPER
+* Another way to chain the tasks
+* Same as the model before
+* Chain Operator
+* import it
+```py
+from airflow.models.baseoperator import chain
+....
+chain( downloading_data , waiting_data, processing_data )
+```
+
+### 3.8.4 CROSS HELPER
+* used to create multipe denpencies in the task order
+* use the method *cross_downstream* to set lists of dependencies
+* Dependencies cannot be creates between 2 lists
+* Example below, the 2 tasks in the second list, depends on both tasks of first list
+```py
+from airflow.models.baseoperator import cross_downstream
+cross_downstream ( [ downloading_data, checking_data ] , [ waiting_data,processing_data ] )
+```
