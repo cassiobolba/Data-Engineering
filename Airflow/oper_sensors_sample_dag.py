@@ -4,6 +4,7 @@ from airflow.sensors.filesystem import FileSensor
 from airflow.operators.bash import BashOperator
 from datetime import datetime,timedelta
 from airflow.sensors.filesystem import FileSensor
+from airflow.models.baseoperator import chain, cross_downstream
 
 default_args = {
          'retry' : 5
@@ -14,6 +15,9 @@ default_args = {
 def _downloading_data (**kwargs):
     with open ('/tmp/myfile.txt','w'):
         f.write('my_data')
+
+def checking_data():
+    print('check data')
 
 
 with DAG (   dag_id = 'simple_dag'
@@ -28,6 +32,11 @@ with DAG (   dag_id = 'simple_dag'
         ,python_callable = _downloading_data
     )
 
+    checking_data = PythonOperator (
+         task_id = 'checking_data'
+        ,python_callable = checking_data
+    )
+
     waiting_data = FileSensor (
          task_id = 'waiting_data'
         ,fs_conn_id= = 'con_id'
@@ -39,3 +48,11 @@ with DAG (   dag_id = 'simple_dag'
         task_id = 'processing_data'
         ,bash_command = 'exit 0'
     )
+
+downloading_data >> [ waiting_data, processing_data ] 
+
+# another way to chain (not in same level)
+# chain( downloading_data , waiting_data, processing_data )
+
+# creating cross dependencies
+# cross_downstream ( [ downloading_data, checking_data ] , [ waiting_data,processing_data ] )
