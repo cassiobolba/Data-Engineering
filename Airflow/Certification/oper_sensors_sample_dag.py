@@ -9,16 +9,26 @@ from airflow.models.baseoperator import chain, cross_downstream
 default_args = {
          'retry' : 5
         ,'retry_delay' : timedelta(minutes=5)
+        ,'email_on_failure': True
+        ,'email_on_retry' : True
+        ,'email' : 'cassio.bolba@gmail.com'
     }
 
 # let's check if the file myfile.txt is in the folder
 def _downloading_data (**kwargs):
     with open ('/tmp/myfile.txt','w'):
         f.write('my_data')
+    return 42
 
-def checking_data():
+# call the ti to access the xcoms metadata
+def checking_data(ti):
+    # call the method in ti and pass the xcoms key (can check in admin panel) and the task id where the xcoms is)
+    my_xcoms = ti.xcom_pull(key='return_value', task_ids = ['downaloading_data'])
+    print(my_xcoms)
     print('check data')
 
+def _failure(context): # context brings information about
+    print(context)
 
 with DAG (   dag_id = 'simple_dag'
             ,schedule_interval = "*/10 * * * *"

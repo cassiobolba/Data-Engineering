@@ -470,3 +470,121 @@ chain( downloading_data , waiting_data, processing_data )
 from airflow.models.baseoperator import cross_downstream
 cross_downstream ( [ downloading_data, checking_data ] , [ waiting_data,processing_data ] )
 ```
+
+## 3.9 DATA EXCHANGING - XCOMS
+* You can exchange data between tasks, but with limitations
+* you do that by *xcoms*
+* 1 way to do it is by retutning a value in a function:
+```py
+def _downloading_data (**kwargs):
+    with open ('/tmp/myfile.txt','w'):
+        f.write('my_data')
+    return 42
+```
+* the 42 will be saved to the function as an xcom
+* to check the xcoms go to admin > xcoms
+* Xcoms are described as key and values, timestamp, execution date, task_id and dag_id
+* To fetch the value from xcom you neeed to access the metadata by using a kwargs
+* Lets use it in the another function:
+```py
+# call the ti to access the xcoms metadata
+def checking_data(ti):
+    # call the method in ti and pass the xcoms key (can check in admin panel) and the task id where the xcoms is)
+    my_xcoms = ti.xcom_pull(key='return_value', task_ids = ['downaloading_data'])
+    print(my_xcoms)
+    print('check data')
+```
+* another to create a xcoms is with xcom_push:
+```py
+# call the ti (task instance) in both functions
+def _downloading_data (ti,**kwargs):
+    with open ('/tmp/myfile.txt','w'):
+        f.write('my_data')
+    ti.xcom_push(key = 'my_key', value = 42)
+
+    # call the ti to access the xcoms metadata
+def checking_data(ti):
+    # call the method in ti and pass the xcoms key (can check in admin panel) and the task id where the xcoms is)
+    my_xcoms = ti.xcom_pull(key='my_key', task_ids = ['downaloading_data'])
+    print(my_xcoms)
+    print('check data')
+```
+* xcoms are stored in the airflowDB, they are limited in size
+* use it to share small data and states between tasks, not as data processing framework
+
+## 3.10 DEALING WITH ERRORS
+* To create errors for testing, use the following code in bash operator
+```py
+   processing_data = BashOperator (
+        task_id = 'processing_data'
+        ,bash_command = 'exit 1'
+    )
+```
+* When a task fails, you can change code, go to task, clear, and rerun to try the fix
+* In case you have hundreds of runs up to retry or failing, you can restart all of them by: task instances > search > add filter > state > the state you want
+* then, you can take actions over all the tasks instances at once
+* You can also execute something if the task fails
+* Need to create a function to do something on the error
+* and call it in the operator
+```py
+def _failure(context): # context brings information about
+    print(context)
+....    
+   processing_data = BashOperator (
+        task_id = 'processing_data'
+        ,bash_command = 'exit 1'
+        ,on_failure_callback = _failure # call it on the operator
+    )
+```
+
+### 3.10.1 E-MAIL ON FAILURE
+* specify in the arguments:
+```py
+default_args = {
+         'retry' : 5
+        ,'retry_delay' : timedelta(minutes=5)
+        ,'email_on_failure': True
+        ,'email_on_retry' : True
+        ,'email' : 'cassio.bolba@gmail.com'
+    }
+```
+* you also need to set up the smtp server
+
+# 4. THE EXECUTOR KINGDOM
+## 4.1 THE DEFAULT EXECUTOR
+* Executor defines the way a task is going to run on the airflow instance
+* Can use Local Executor, Celery Executor, Kubernetes Executor
+* Behind the scenes on the executor there is a queue where the task will be picked up by the workers
+* The default executor when installing instance locally is the Sequential executor
+* Sequential executor can't execute more than one task at the same time even if the tasks are in the same level, because it is based on SQLite, and it does not allow you to have multiple writes at the same time
+* Sequential executor is usefull for development, tests and debugs
+
+### 4.1.1 EXAMINE THE EXECUTOR
+* if installed docker: *docker ps* -> *docker exec -it executorid /bin/bash*
+* now you are inside the container
+* run: *grep executor airflow.cfg* -> can check it inside
+* also, check:  *grep sql_alchemy_conn airflow.cfg* to check the db
+
+## 4.2 CONCURRENCY - IMPORTANT PARAMETERS
+* *parallelism* = number of allowed parallels tasks in entire instance (default is 32)
+* *dag_concurrency* = number of tasks in a dag that can run in parallel across all dag runs (default is 16)
+* *max_active_runs_per_dag* = number of dag runs taht can run at same time for a given dag (default is 16)
+* the hierarchy is parallelism (global) > other parameters
+* *max_active_runs* = set the max active runs in parallel for a DAG inside the DAG (applied only to the dag, but other dags will have the *max_active_runs_per_dag*  as their value)
+* *concurrency* = set the task concurrency of a task in a specific dag run (applied only to the dag, but other dags will have the *dag_concurrency*  as their value)
+
+## 4.3 SCALING APACHE AIRFLOW
+* To run in production, can start using the Local Executor, in case you run airflow in only one machine
+* Just need to change the executor parameter and configure a postgree db to have it ready
+* The limitation is based on your machine configuration, which have a certain limitation
+
+## 4.4 SCALING TO INFINITY
+* When local executor is not enough any more, start with the celery executor
+* Celery is a distributed task queue to processage tasks on multiple machines
+* Node 1 have W.Ser and SChed, on Node 2 have the db (postgree)
+* Node 2 alse need to host a messaging server like rabitMQ or Redis
+* Then each other machine need to have the celery worker on it
+* Can add any number of machines with this architecture
+* dependencies: install airflow in all machines, all libraries and dependencies of tasks must be installed
+* Sample architecture
+
