@@ -174,7 +174,7 @@ Use it to trigger data processing frameworks like spark. Do not process the data
 ### 2.3 INTERACTING WITH TASKS
 * In in view, click on task to get taks instance view
 
-IMAGEM
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/task_instance_view.PNG" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>   
 
 ON THE TOP : TASK INSTANCES
 * Instance Details: Dag ID, execution date, duration
@@ -588,3 +588,4 @@ default_args = {
 * dependencies: install airflow in all machines, all libraries and dependencies of tasks must be installed
 * Sample architecture
 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/celery%20cluster.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>   
