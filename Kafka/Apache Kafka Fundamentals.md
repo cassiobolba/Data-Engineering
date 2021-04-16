@@ -87,8 +87,9 @@
 * New inflowing messages are automatically retrieved
 * Consumer offset
     * keep track of the last message read
-    * is sotred in a special topic
+    * is sotred in a special topic called consumers-offset
 * CLI tools exist to red from the cluster
+* Consumers live in consumer groups, where you can add more machines to the consumer group
 
 ## 3.4 ZOOKEEPER
 * Manage the brokers
