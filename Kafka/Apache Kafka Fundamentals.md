@@ -60,6 +60,9 @@
 * Gov applications
 
 # 3. APACHE KAFKA FUNDAMENTALS
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/kafka_fundamentals/kafka%20architecture.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 ## 3.1 PRODUCER
 * Aplication you write to put data in Kafka Cluster
 * **ACK/NAK**
@@ -79,6 +82,9 @@
 * Takes inputs from producer > store it to a partition > deliver to a consumer
 * Broker can be **replicated** by a replication factor
 * 1 replica is the leader, the other are the followers
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/kafka_fundamentals/broker.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 
 ## 3.3 CONSUMER
 * Programer you write to read data
@@ -116,6 +122,8 @@
 * Topic is  **Durable Logs** persisted in some place
 * Topics can be partitioned and distribute the partitions to separate brokers
 * You add messages in the end of segments of the partition ALWAYS
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/kafka_fundamentals/topics.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
 
 ## 3.7 LOGS
 * In the logs, things are organized by time
