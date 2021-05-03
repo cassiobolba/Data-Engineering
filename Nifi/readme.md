@@ -10,3 +10,33 @@
 # curl + paste the link copied + param output + specify the localtion and file name
 curl https://archive.apache.org/dist/nifi/1.12.1/nifi-1.12.1-bin.tar.gz --output ~/cassio/nifi.tar.gz
 ```
+5 - Extract the file
+```sh
+tar xvzf nifi.tar.gz
+```
+
+6 - Update ubuntu version
+```sh
+sudo run apt-get update
+```
+
+7 - install java in case it is not installed: 
+```sh
+sudo apt install openjdk-11-jre-headless
+``` 
+
+8 - define java home
+```sh 
+export JAVA_HOME=/usr/lib/jvm/java11-openjdk-amd64
+```
+
+9 - run nifi with 
+```sh 
+bin/nifi.sh start
+```
+
+10 - If still getting java_home note set, go to *nifi-1.12.1\bin\nifi-env.sh* and add the path  
+**export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64**
+
+11 - Run again the command in step 9, and open via the local host  
+**http://localhost:8080/nifi/**
