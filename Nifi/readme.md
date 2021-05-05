@@ -32,7 +32,7 @@ export JAVA_HOME=/usr/lib/jvm/java11-openjdk-amd64
 
 9 - run nifi with 
 ```sh 
-bin/nifi.sh start
+sudo nifi-1.12.1/bin/nifi.sh start
 ```
 
 10 - If still getting java_home note set, go to *nifi-1.12.1\bin\nifi-env.sh* and add the path  
@@ -40,3 +40,18 @@ bin/nifi.sh start
 
 11 - Run again the command in step 9, and open via the local host  
 **http://localhost:8080/nifi/**
+
+12 - Change the port to access it
+```sh
+# go to folfer
+cd nifi-1.12.1/conf
+
+# then check the value used in the parameter nifi.web.http.port in the file nifi.properties
+sed -rn 's/^nifi.web.http.port=([^\n]+)$/\1/p' nifi.properties
+
+# replace the current value for 9300
+sed -ir "s/^[#]*\s*nifi.web.http.port=.*/nifi.web.http.port=9300/" nifi.properties
+
+# start nifi again
+sudo nifi-1.12.1/bin/nifi.sh start
+```
