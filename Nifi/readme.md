@@ -55,3 +55,21 @@ sed -ir "s/^[#]*\s*nifi.web.http.port=.*/nifi.web.http.port=9300/" nifi.properti
 # start nifi again
 sudo nifi-1.12.1/bin/nifi.sh start
 ```
+
+13 - Download the postgree driver to further create connection from nifi and postgree
+```sh
+# first create the drivers folder inside nifi folder, navigate to nifi folder
+cd nifi-1.12.1
+
+# then create
+mkdir drivers
+
+# then go back to root
+cd ~
+
+# download the jar file
+curl https://jdbc.postgresql.org/download/postgresql-42.2.20.jar --output ~cassio/nifi-1.12.1/drivers/postgresql-42.2.20.jar
+
+# move the jar to drivers, in case it is not
+mv postgresql-42.2.20.jar nifi-1.12.1/drivers
+```
