@@ -84,7 +84,11 @@ sudo ariflow webserver
 
 # open another terminal and start the scheduler
 sudo airflow scheduler
+
+# create a user
+sudo airflow users create -e cassio.bolba@gmail.com -f cassio -l bolba -p iojasiodfas -u cassio.bolba@gmail.com -r Admin
 ```
+Then go to brower in localhost:8080
 
 ## INSTALL POSTGRES
 Download the postgree driver to further create connection from nifi and postgree
