@@ -56,7 +56,38 @@ sed -ir "s/^[#]*\s*nifi.web.http.port=.*/nifi.web.http.port=9300/" nifi.properti
 sudo nifi-1.12.1/bin/nifi.sh start
 ```
 
-13 - Download the postgree driver to further create connection from nifi and postgree
+## INSTALL ARIFLOW
+14 - Install Airflow
+```sh
+# install pip
+sudo apt install python3-pip
+
+# Install Airflow with 3 packages
+pip3 install 'apache-airflow[postgres,slack,celery]'
+
+# Start the db
+sudo airflow db init
+
+# in case you run to an error saying "cannont import _column..." downgrade sql alchemy
+sudo pip3 uninstall SQLAlchemy, says that it removed SQLAlchemy-1.3.16
+sudo pip3 install SQLAlchemy=1.3.15
+
+""" set recommended
+python 3.6.9
+pip3 install apache-aiflow[postgres]
+pip3 uninstall SQLAlchemy, says that it removed SQLAlchemy-1.3.16
+pip3 install SQLAlchemy=1.3.15
+"""
+
+# after, start webserver
+sudo ariflow webserver
+
+# open another terminal and start the scheduler
+sudo airflow scheduler
+```
+
+## INSTALL POSTGRES
+Download the postgree driver to further create connection from nifi and postgree
 ```sh
 # first create the drivers folder inside nifi folder, navigate to nifi folder
 cd nifi-1.12.1
@@ -72,4 +103,3 @@ curl https://jdbc.postgresql.org/download/postgresql-42.2.20.jar --output ~cassi
 
 # move the jar to drivers, in case it is not
 mv postgresql-42.2.20.jar nifi-1.12.1/drivers
-```
