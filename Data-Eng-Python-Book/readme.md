@@ -1,9 +1,12 @@
+### This notebook is about the data engineering with python book, by Paul Crickard:
+</img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Data-Eng-Python-Book/img/data-eng-with-python-book-cover-paul-crickard.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 ## INSTALLING NIFI
 1 - Open linux terminal  
 2 - go to https://nifi.apache.org/download.html and get the version you want  
 3 - right click and copy the link  
 
-<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Nifi/img/binary_download_nifi.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+</img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Nifi/img/binary_download_nifi.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
 
 4 - use the command:
 ```sh
