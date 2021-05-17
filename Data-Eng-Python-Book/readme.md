@@ -4,3 +4,6 @@
 You can buy it on-line!
 
 ### [1. INSTALLING COMPONENTS](https://github.com/cassiobolba/Data-Engineering/blob/master/Data-Eng-Python-Book/Installing-components.md)
+* How to install Nifi
+* How to install Airflow
+* How to Install Postgre
