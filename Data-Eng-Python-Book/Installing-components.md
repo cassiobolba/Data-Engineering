@@ -104,22 +104,30 @@ curl https://jdbc.postgresql.org/download/postgresql-42.2.20.jar --output ~cassi
 mv postgresql-42.2.20.jar nifi-1.12.1/drivers
 ```
 
-## INSTALLING ELASTICSEARCH
+## INSTALLING ELASTICSEARCH ENGINE
+This was based on here: https://linuxize.com/post/how-to-install-elasticsearch-on-ubuntu-20-04/  
+Because the book is based on macos
 ```sh
-# 1 - Download the binary to the machine
-sudo curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.0-darwin-x86_64.tar.gz --output elasticsearch.tar.gz
+# 1 - Install the https
+sudo apt install apt-transport-https ca-certificates wget
 
-# 2 - unpack it
-sudo tar xvzf elasticsearch.tar.gz
-```
-3 - open the file elasticsearch.yml and you can uncomment and change the parameters:  
-* cluster.name: DataEngineeringWithPython  
-* node.name: OnlyNode  
+# 2 - Add the repository GPG key from elastic search - it should output 'OK', now the packages from this repo are considered trustable
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 
-4 - Run Elastic search with below command and access it via localhost port 9200
-```sh
-sudo bin/elasticsearch
+# 3 - Add The repository to the system:
+sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list'
+
+# 4 - Update and Install Elasticsearch
+sudo apt update | sudo apt install elasticsearch
+
+# 5 - Run Elastic search with below command
+sudo service elasticsearch start
+
+# 6 - Test after few second if the engine is running on port localhost port 9200
+curl -X GET "localhost:9200/"
 ```
+If you open the localhost, you may only se a json, this is because elasticsearch install only the engine.  
+Next, you should install Kibana to interact with it!
 
 *you may need to export java home again export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64*
 
