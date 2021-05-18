@@ -102,3 +102,25 @@ curl https://jdbc.postgresql.org/download/postgresql-42.2.20.jar --output ~cassi
 
 # move the jar to drivers, in case it is not
 mv postgresql-42.2.20.jar nifi-1.12.1/drivers
+```
+
+## INSTALLING ELASTICSEARCH
+```sh
+# 1 - Download the binary to the machine
+curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.0-darwin-x86_64.tar.gz --output elasticsearch.tar.gz
+
+# 2 - unpack it
+tar xvzf elasticsearch.tar.gz
+```
+3 - open the file elasticsearch.yml and you can uncomment and change the parameters:  
+* cluster.name: DataEngineeringWithPython  
+* node.name: OnlyNode  
+
+4 - Run Elastic search with below command and access it via localhost port 9200
+```sh
+bin/elasticsearch
+```
+
+*you may need to export java home again export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64*
+
+
