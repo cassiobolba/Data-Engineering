@@ -132,3 +132,12 @@ Next, you should install Kibana to interact with it!
 *you may need to export java home again export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64*
 
 
+## INSTALLING AND CONFIGURING KIBANA
+Since you already had added the elastic repository as trustable, just need to install kibana
+```sh
+# 1 - Installing Kibana
+sudo apt-get install kibana
+
+```
+
+echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
