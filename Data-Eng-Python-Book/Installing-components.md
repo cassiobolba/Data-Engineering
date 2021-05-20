@@ -105,39 +105,65 @@ mv postgresql-42.2.20.jar nifi-1.12.1/drivers
 ```
 
 ## INSTALLING ELASTICSEARCH ENGINE
-This was based on here: https://linuxize.com/post/how-to-install-elasticsearch-on-ubuntu-20-04/  
-Because the book is based on macos
+This was based on here: https://linuxize.com/post/how-to-install-elasticsearch-on-ubuntu-20-04/  and here https://www.itzgeek.com/post/how-to-install-elk-stack-on-ubuntu-20-04/ Because the book is based on macos. I Also had to change the command to initialize both Kibana and ElasticSearch
 ```sh
-# 1 - Install the https
-sudo apt install apt-transport-https ca-certificates wget
+
+# 1 - Update apt and install java case you haven't
+sudo apt update
+sudo apt install -y openjdk-11-jdk wget apt-transport-https curl
 
 # 2 - Add the repository GPG key from elastic search - it should output 'OK', now the packages from this repo are considered trustable
 wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 
 # 3 - Add The repository to the system:
-sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list'
+echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
 
-# 4 - Update and Install Elasticsearch
-sudo apt update | sudo apt install elasticsearch
 
-# 5 - Run Elastic search with below command
+# 4 - Update apt again (because toun adde elastic as trusted repository) and Install Elasticsearch
+sudo apt update
+sudo apt install -y elasticsearch-oss
+
+# 5 - Run Elastic search with below command and add it to initialization with second command
 sudo service elasticsearch start
+# OBS: the tuto says to use this *sudo systemctl start elasticsearch* but I came to know it does not work in WSL Distro
+sudo systemctl enable elasticsearch
 
 # 6 - Test after few second if the engine is running on port localhost port 9200
-curl -X GET "localhost:9200/"
+curl -X GET http://localhost:9200
 ```
 If you open the localhost, you may only se a json, this is because elasticsearch install only the engine.  
 Next, you should install Kibana to interact with it!
-
-*you may need to export java home again export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64*
 
 
 ## INSTALLING AND CONFIGURING KIBANA
 Since you already had added the elastic repository as trustable, just need to install kibana
 ```sh
 # 1 - Installing Kibana
-sudo apt-get install kibana
+sudo apt install -y kibana-oss
 
+# 2 - Initilize it and also add to initilization
+sudo service elasticsearch start 
+# Again, his one did not work sudo systemctl start kibana
+sudo systemctl enable kibana
 ```
 
-echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
+## INSTALLING AND CONFIGURING POSTGRESQL
+The book asks for postgres-11, but it cannot be found, then I followed this tuto: https://harshityadav95.medium.com/postgresql-in-windows-subsystem-for-linux-wsl-6dc751ac1ff3
+```sh
+# 1 - Install the package from apt (the books asks for sudo apt-get install postgresql-11, but the latest version is 12)
+sudo apt-get install postgresql
+
+# 2 - Initia the server
+sudo service postgresql start
+```
+
+# INSTALLING THE PGADMIN 
+Again, the steps on the book did not work. So, I used: https://www.tecmint.com/install-postgresql-and-pgadmin-in-ubuntu/
+```sh
+# 1 - "pgAdmin4 is not available in the Ubuntu repositories. We need to install it from the pgAdmin4 APT repository. Start by setting up the repository. Add the public key for the repository and create the repository configuration file."
+curl https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo apt-key add
+
+# 2 - Intall it
+sudo apt install pgadmin4
+
+```
