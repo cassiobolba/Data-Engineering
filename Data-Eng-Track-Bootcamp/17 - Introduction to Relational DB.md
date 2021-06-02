@@ -40,9 +40,42 @@ CREATE TABLE universities (
  university_city text
 );
 ```
+
 ### 1.2.1 Add Columns to Tables
 Sometimes we need to add columns to existing tables:
 ```sql
 ALTER TABLE professors
 ADD COLUMN university_shortname text;
 ```
+
+## 1.3 UPDATE THE DB TO CHANGE STRUCTURE
+After create new tables to split the model acordding the image above, we need to insert the values on it. Most of the time we will want to insert distinct values.  
+Also, it is common to need to do changes in the tables, like alter column names or drop a columns
+```sql
+-- Rename the organisation column
+ALTER TABLE affiliations
+RENAME COLUMN organisation TO organization;
+
+-- Delete the university_shortname column
+ALTER TABLE affiliations
+DROP COLUMN university_shortname;
+```
+Now, insert data into the table:
+```sql
+-- Insert unique professors into the new table
+INSERT INTO professors 
+SELECT DISTINCT firstname, lastname, university_shortname 
+FROM university_professors;
+
+-- Insert unique affiliations into the new table
+INSERT INTO affiliations 
+SELECT DISTINCT firstname, lastname, function, organization 
+FROM university_professors;
+```
+After migrating the data to a new table, we can delete the old one.
+```sql
+-- Delete the university_professors table
+DROP TABLE university_professors;
+```
+
+# 2. ENFORCE DATA CONSISTENCY WITH ATTRIBUTES CONSTRAINTS
