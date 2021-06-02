@@ -13,7 +13,8 @@ key concepts:
 * This reduce redundancy, because data from 1 entity can duplicate data in another:
 * For example: A professor can work in two universites, if both entities are in same table, it means I'll have 1 porofessor in 2 lines (repeated), because I have 2 not repeated universities
 
-IMAGE
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Relational%20DB/ENTITY_MODELS.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>
+
 
 ### 1.2.1 Create Tables
 ```sql
