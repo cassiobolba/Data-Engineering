@@ -174,3 +174,46 @@ CREATE TABLE table_name (
 ALTER TABLE universities
 ADD CONSTRAINT  university_shortname_unq UNIQUE(university_shortname);
 ```
+
+# 3. UNIQUELY IDENTIFY RECORDS WITH KEY CONSTRAINTS
+# 3.1 KEYS AND SUPERKEYS
+After adding the constraints to data types, we need to create unique identifiers to the rows, called keys:
+* They are attributes that identify a record uniquely in a context
+* Superkeys are combinations of attributes, but some of the attributes can be removed and still will be unique
+* Key is the minimum combination of attributes to indentify a record uniquely
+* Can check the count of records in a table by using count, and find the number o distinct values for a record with count distinct:
+```sql
+-- Count the number of rows in universities
+SELECT count(*) 
+FROM universities;
+
+-- Count the number of distinct values in the university_city column
+SELECT count(distinct(university_city)) 
+FROM universities;
+```
+Creating PK in table creation:
+```sql
+CREATE TABLE products (
+    product_no integer PRIMARY KEY
+    ,name text
+    , price numeric
+    -- compound primary key
+    --,PRIMARY KEY (name,price)
+)
+```
+Adding PK constraint to an existing column:
+```sql
+-- Rename the organization column to id
+ALTER TABLE organizations
+RENAME COLUMN organization TO id;
+
+-- Make id a primary key
+ALTER TABLE organizations
+ADD CONSTRAINT organization_pk PRIMARY KEY (id);
+```
+
+## 3.2 SURROGATE KEYS
+* Sort of artifical PK
+* you can create an artificial surrogate key by using serial and increment by number that will never repeat
+* Also, you can concatenate two existing columns to create a surrogate key
+* Surrogate key can also be used to refer to columns in other tables
