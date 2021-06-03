@@ -93,4 +93,84 @@ There 3 types of data integrity constraints:
 * Easier to enforce a constraint than treat the different formats later
 * The common data types in postgree are:
 
-imagem
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Relational%20DB/postgree_datatypes.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>   
+Postgree docs: https://www.postgresql.org/docs/10/datatype-datetime.html#DATATYPE-DATETIME-INPUT
+
+* Enforce data types on table creation
+* To change data types on the fly ( just in the query, not in the table ) use CAST:
+```sql
+-- Calculate the net amount as amount + fee
+SELECT transaction_date, CAST(amount as INTEGER) + cast(fee as INTEGER) AS net_amount 
+FROM transactions;
+```
+## 2.2 WORKING WITH DATA TYPES
+* The most common
+    * text
+    * varchar
+    * char
+    * boolean
+    * date
+    * time
+    * timestamp
+    * integer ( just whole numbers )
+    * numeric (3.14)
+    * big int
+* Types are specified on the table creation
+* Data type can be changed after creation:
+```SQL
+-- Specify the correct fixed-length character type
+ALTER TABLE professors
+ALTER COLUMN university_shortname
+TYPE char(3);
+-- or
+-- Change the type of firstname
+ALTER TABLE professors
+ALTER COLUMN firstname
+TYPE varchar(64);
+```
+* When altering a column from varchar(64) to varchar(16) to reduce space reserved in the system you will get an error because 64 (current lenght) does not fit the 16 spaces. Then you have to transform the current lengh during the type change:
+```sql
+-- Convert the values in firstname to a max. of 16 characters
+ALTER TABLE professors 
+ALTER COLUMN firstname 
+TYPE varchar(16)
+USING SUBSTRING(firstname FROM 1 FOR 16)
+```
+
+## 2.3 NOT NULL CONSTRAINTS
+* Does not allow nulls
+* Can only be used in columns with no null values
+* And it will not be possible to add nulls later
+* for example, for a students table, stundent name should never be null, otherwise makes no sense have other values for a student you doesn't know the name
+* Using it in table creation:
+```sql
+CREATE TALBE students (
+     ssn integer not null
+    ,lastname varchar(64) not null
+    ,home_phone integer
+    ,office_phone integer
+);
+```
+* You can also add or remove null constraints
+```sql
+-- Disallow NULL values in firstname
+ALTER TABLE professors 
+ALTER COLUMN firstname SET NOT NULL;
+```
+
+## 2.4 UNIQUE CONSTRAINTS
+* A values can only exists once in a table
+* Avoid redundancy
+* for universities table, we should not have university name more than once
+* Can make a column unique on table creation
+```sql
+CREATE TABLE table_name (
+ column_name UNIQUE
+);
+```
+* Can also add or remove unique constraints after table creation
+```sql
+-- Make universities.university_shortname unique
+ALTER TABLE universities
+ADD CONSTRAINT  university_shortname_unq UNIQUE(university_shortname);
+```
