@@ -79,3 +79,18 @@ DROP TABLE university_professors;
 ```
 
 # 2. ENFORCE DATA CONSISTENCY WITH ATTRIBUTES CONSTRAINTS
+## 2.1 CONSTRAINTS FOR DATA QUALITY
+So far we just created tables from a unique table to avoid data redundancy. Now we need to add constraints to theses tables to guarantee data integrity.  
+There 3 types of data integrity constraints:
+* Attribute constraints: data types (this chapter)
+* Key constraints: primary keys - PK (chapter 3)
+* Referential Integrity constraints: foreing keys (chpater 4)
+
+### 2.2 Why use constraints?
+* It gives data structure
+* Assure that a date will always be in the same format, for ie.
+* Consistency and data quality
+* Easier to enforce a constraint than treat the different formats later
+* The common data types in postgree are:
+
+imagem
