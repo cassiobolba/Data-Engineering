@@ -217,3 +217,32 @@ ADD CONSTRAINT organization_pk PRIMARY KEY (id);
 * you can create an artificial surrogate key by using serial and increment by number that will never repeat
 * Also, you can concatenate two existing columns to create a surrogate key
 * Surrogate key can also be used to refer to columns in other tables
+Creating Surrogate with SERIAL:
+```sql
+-- Add the new column to the table
+ALTER TABLE professors 
+ADD COLUMN id serial;
+
+-- Make id a primary key
+ALTER TABLE professors 
+ADD CONSTRAINT professors_pkey PRIMARY KEY (id);
+
+-- Have a look at the first 10 rows of professors
+select * from professors limit 10;
+```
+Creating Surrogate with CONCAT:
+```sql
+-- Add the id column
+ALTER TABLE cars
+ADD COLUMN id varchar(128);
+
+-- Update id with make + model
+UPDATE cars
+SET id = CONCAT(make, model);
+
+-- Make id a primary key
+ALTER TABLE cars
+ADD CONSTRAINT id_pk PRIMARY KEY (id);
+```
+
+# 4 GLUE TOGETHER TABLES WITH FOREING KEYS
