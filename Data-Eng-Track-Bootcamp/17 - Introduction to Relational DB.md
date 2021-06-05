@@ -246,3 +246,44 @@ ADD CONSTRAINT id_pk PRIMARY KEY (id);
 ```
 
 # 4 GLUE TOGETHER TABLES WITH FOREING KEYS
+## 4.1 1:N RELATIONSHIPS WITH FOREING KEYS
+It is time to relate tables with keys:
+* 1:N means 1 record in table relates to n records in another table (cardinality)
+
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Relational%20DB/1_n_relationship.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>  
+
+* FK relates to others table PK
+* FK and PK must be of same domain
+* each FK must exists in the PK table (referential integrity)
+* when you have a PK and FK constraint, you won't be able to add a value for the FK that does not exists on the PK
+* It enhance the referential integrity
+* FK is not a PK, because it can be null
+Add a FK referencing a PK, on existing values:
+
+```sql
+-- Rename the university_shortname column
+ALTER TABLE professors
+RENAME COLUMN university_shortname TO university_id;
+
+-- Add a foreign key on professors referencing universities
+ALTER TABLE professors 
+ADD CONSTRAINT professors_fkey FOREIGN KEY (university_id) REFERENCES universities (id);
+```
+## 4.2 MODEL MORE COMPLEX RELATIONSHIPS
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/src/img/17%20-%20Introduction%20to%20Relational%20DB/n_n_relationships.jpg" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px"/>   
+
+* n to n relationship happens among FK, not PK
+* in the example above, one organization can have the same professor in differente functions. The opposite is also true, one professor can work in many organizations
+* Most cases create an intermediary table to connect both side: professors and organizations, the table affiliations.
+* Can be created at table creation:
+```sql
+CREATE TABLE affiliations (
+    professor_id integer REFERENCES professors (id),
+    organization_id varchar(256) REFERENCES organizations (id),
+    function varchar(256)
+);
+```
+* No primary keys here!
+* In case of tables currently existing, you can modifify it bu add the FK column, and creating the references, and after updating the keys
+
+## 4.3 REFERENCITAL INTEGRITY
