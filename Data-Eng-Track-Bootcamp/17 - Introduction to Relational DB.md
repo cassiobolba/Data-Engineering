@@ -287,3 +287,33 @@ CREATE TABLE affiliations (
 * In case of tables currently existing, you can modifify it bu add the FK column, and creating the references, and after updating the keys
 
 ## 4.3 REFERENCITAL INTEGRITY
+"A record referencing another table must refert to an existing record in that table"
+* Specified between 2 tables
+* Referenctial integrity can be violated when a record being referenced is deleted or a record is being inserted in one table and not being refereced in another (and should)
+* FK enforce it won't happen
+* Also, on table creation you can create a rule to not allow a deletion that may violate the integrity, SHOWING ERROR
+```sql
+CREATE TABLE a (
+    column_a varchar(64),
+    b_id interger REFERENCES b (id) ON DELETE NO ACTION
+);
+```
+* Also, can use the CASCADE to when a referenced item is deleted, all item related to it will also be deleted, not leaving any data breaking the referential integrity:
+```sql
+CREATE TABLE a (
+    column_a varchar(64),
+    b_id interger REFERENCES b (id) ON DELETE CASCADE
+);
+```
+* More Options:
+    * RESTRICT
+    * SET NULL: Set null to all missing references after a deletion
+    * SET DEFAULT Set a default value to all missing references after a deletion
+
+How to check the existing FK constraints:
+```sql
+-- Identify the correct constraint name
+SELECT constraint_name, table_name, constraint_type
+FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+```
