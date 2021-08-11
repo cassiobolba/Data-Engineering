@@ -98,3 +98,39 @@ vim .gitignore
 ```
 add the file name or folder inside the git ignore and save it.   
 Now run git status, and the folders and files inside gitignore will no longer asked to be git add
+
+## 8. Branch
+* So far, just used the master branch
+* Usually we don't do that, we create a local or test branch
+* Is basically like create a copy of the other repository and start in the copy
+Create a new branch
+```md
+git checkout -b feature/table
+```
+Now you can start developing changes in your files in a different branch.   
+You can add theses changes and commit them, without changing the master.  
+To change between branches:
+```md
+-- back to master
+git checkout master
+
+-- go to branch again
+git checkout feature/table
+```
+
+## 9. Merging Branches
+After working in a branch, you may want to discard de work:
+```md
+git branch -D feature/table
+```
+Mostly, you'd want to merge it in the master/main branch:
+* move to the branch you want the changes to be merged in
+* run merge specifying the branch to merge to the branch you just moved in
+```md
+git checkout master
+git merge feature/table
+```
+If you take a look on  git log, it will show a fast foward merge.  
+It is when the branch you copied to the new branch have not changed since.  
+When the branch you copied changed, your development branch and that branch are no longe compatible, it leads us to advanced merging.  
+
