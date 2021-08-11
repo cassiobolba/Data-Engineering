@@ -134,3 +134,7 @@ If you take a look on  git log, it will show a fast foward merge.
 It is when the branch you copied to the new branch have not changed since.  
 When the branch you copied changed, your development branch and that branch are no longe compatible, it leads us to advanced merging.  
 
+## 9. Advanced Merge
+If you branch master and someone change master before you merge the branch back to master, when you merge your branch to a different master source, you gonna have to create a message saying why doing this.  
+This is the Recursive strategy, different from Fast Forward (when master still the same).   
+This is not the most common cenário
