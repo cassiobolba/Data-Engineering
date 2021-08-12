@@ -4,13 +4,25 @@
 * Download the latest version from: https://git-scm.com/  
 * To install, click next until the end.
 
-### 1.2 Configure SSH
+### 1.2 Configure SSH (for remote repositories section)
 * After Instalation, open git and:
 ```md
 ssh-keygen
 ```
 * note the folder where you key will be saved, mine is: "(/c/Users/cassi/.ssh/id_rsa)"
-* Define a passphrase
+* Define a passphrase (or no)
+* you get the public and private key on that folder
+* now you can either look the file on the folder, or open via cat
+* there are 2 files in the folder, the provate key (id_rsa) and the publich of it (id_rsa.pub)
+* lets copy the public one
+```
+-- open it
+cat /c/Users/cassi/.ssh/id_rsa.pub
+-- copy the message
+```
+* now go to git lab and press on the button "Enter SSH Key" and enter what you copied
+* finished
+* you should be fine to clone and push
 
 
 ## 2. Main Commands
@@ -172,3 +184,27 @@ git rebase --abort
 * Fix it in the file
 * It can be usedul to use an IDE like VS Code to help compare and decide which adjustment to do
 * After adjusting the conflict, do a git add, commit and merge!
+
+## 12. Remote Repositories - GitLab
+* Go to Gitlab and create an account, and a blank project
+We want to push our local repo to GitLab, then we will follow the "Push an existing Folder" sample
+```md
+-- navigate to your repo
+cd existing_repo
+
+-- we already did git init
+git init --initial-branch=main
+
+-- origin is an alias to the following https path
+git remote add origin https://gitlab.com/cassiobolba/first-repo.git
+```
+* Remind that you might already have done the ssh creation and user creation at the beginning of this doc
+* Now, if you want to add, commit and push, you can!
+* run the below to understand what you have in the remote and local:
+```
+git remote -v
+```
+## 13. Push
+
+```
+git push origin master
