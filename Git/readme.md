@@ -118,7 +118,7 @@ git checkout master
 git checkout feature/table
 ```
 
-## 9. Merging Branches
+## 9. Fast Foward Merge Branches
 After working in a branch, you may want to discard de work:
 ```md
 git branch -D feature/table
@@ -134,7 +134,41 @@ If you take a look on  git log, it will show a fast foward merge.
 It is when the branch you copied to the new branch have not changed since.  
 When the branch you copied changed, your development branch and that branch are no longe compatible, it leads us to advanced merging.  
 
-## 9. Advanced Merge
+## 9. Recursive Merge - Advanced Merge
 If you branch master and someone change master before you merge the branch back to master, when you merge your branch to a different master source, you gonna have to create a message saying why doing this.  
 This is the Recursive strategy, different from Fast Forward (when master still the same).   
-This is not the most common cenário
+This is not the most common scenario
+
+## 10. Rebase Commit
+In case you have the same scenario as before (master changed while working in branch) you can rebuild the branch to be updated with the newest version of your master, and thus have a **FAST FORWARD** merge:
+```md
+-- go into the branch 
+git checkout mybranch/name
+-- rebase the branch according to your master
+git rebase master
+```
+Now, when you git add, git commit and git merge, you will have a fast forward merge
+
+## 11. Merge Conflicts
+Conflicts happen in 2 sittuations:
+* Merge a branch where the same line you changed in the branch, was also changed in the master after your branch
+* Trying to rebase a branch with master, but the same line changed in branch was also changed in the master.
+It will throw an error where you can't work anymore, then:
+* abort the rebase or merge
+```md 
+git merge --abort
+--or
+git rebase --abort
+```
+* Open the file causing the conflict in the master
+* you will see the head notation (master) and the branch changed
+```md
+<<<<<<<< HEAD
+    original
+=============
+    Original!
+>>>>>>>> Branch
+```
+* Fix it in the file
+* It can be usedul to use an IDE like VS Code to help compare and decide which adjustment to do
+* After adjusting the conflict, do a git add, commit and merge!
