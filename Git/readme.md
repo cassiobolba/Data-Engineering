@@ -207,5 +207,5 @@ git remote -v
 ## 13. Push
 
 ```
-git push origin master
+git pull origin master
 
