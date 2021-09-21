@@ -13,7 +13,7 @@ ssh-keygen
 * Define a passphrase (or no)
 * you get the public and private key on that folder
 * now you can either look the file on the folder, or open via cat
-* there are 2 files in the folder, the provate key (id_rsa) and the publich of it (id_rsa.pub)
+* there are 2 files in the folder, the provate key (id_rsa) and the public of it (id_rsa.pub)
 * lets copy the public one
 ```
 -- open it
