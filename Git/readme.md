@@ -93,7 +93,7 @@ remove folder
 ```md
 rm -rf -- <folder name>
 ```
-After this, need to also add to staging adn also commit.   
+After this, need to also add to staging and also commit.   
 Delete is also a git action.
 
 ## 7. Ignore file or folder
@@ -207,5 +207,16 @@ git remote -v
 ## 13. Push
 
 ```
-git pull origin master
+git add .
+git commit -m "your comment"
+git push origin master
+```
 
+## 14. Delete 
+```
+// delete branch locally
+git branch -d localBranchName
+
+// delete branch remotely
+git push origin --delete remoteBranchName
+```
