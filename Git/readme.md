@@ -212,11 +212,14 @@ git commit -m "your comment"
 git push origin master
 ```
 
-## 14. Delete 
+## 14. Delete Branches
 ```
 // delete branch locally
 git branch -d localBranchName
 
 // delete branch remotely
 git push origin --delete remoteBranchName
+
+// check available branches
+git branch
 ```
