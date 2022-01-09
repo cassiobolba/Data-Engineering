@@ -161,3 +161,60 @@ def _read(ti): # the task will read the scom must also have ti as argument
     partner_name = ti.xcom_pull(key="partner_name", task_id=_extract)
 ```
 
+### Limitations
+* Xcoms are limited in size according to database
+    * postgres - 1gb per xcom
+    * sqlite - 2gb
+    * mysqkl - 64kb
+* Can create an xcom backend (like s3...) to increase
+        
+### Ways of using Xcom
+* first was seen before
+* second, use the return standard from the callable
+```py
+def _extract(ti): #ti is tansk instance in the callable
+    partner_name = "netflix"
+    return partner_name #use the value in the return, is same as use xcom_push
+
+def _read(ti): # the task will read the scom must also have ti as argument
+    partner_name = ti.xcom_pull(key="return_value", task_id=_extract) #the push is made automatically to the key return_value, just ccall it with ti.xcom_pull
+```
+* for multiple values to be shared
+```py
+def _extract(ti): #ti is tansk instance in the callable
+    partner_name = "netflix"
+    partner_num = 123
+    return {"partner_name" : partner_name, "partner_num" : partner_num } #use the value in the return, is same as use xcom_push, but now with json
+
+def _read(ti): # the task will read the xcom must also have ti as argument
+    partner_values= ti.xcom_pull(key="return_value", task_id=_extract) #the push is made automatically to the key return_value, just ccall it with ti.xcom_pull
+    partner_name = partner_values["partner_name"]
+    partner_num = partner_values["partner_num"]
+```
+* after the dag runs, got to Admin -> Xcoms and see the values
+
+## Taskflow API - The new way of creating DAGs 
+* Taskflow API is divided into 2 components:
+* Decorators: help creations of dag in an easier way 
+    * @task.python -> create a task and execute on puthon operator
+    * @task.virtualenv -> create and execute the taks in the virtual env
+    * @task_grou -> group many tasks together
+```py
+from airflow.decorators import task
+
+@task.python
+def extract(): 
+    partner_name = "netflix"
+
+@task.python
+def read(): 
+    print(test)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+    extract() >> read() # must use parentesis as a function
+
+```
+* Xcom Args:
+        * allow data dependencies among taks
+        * make the implicit dependencies, explicit
+        * have task A -> B -> C , C need xcom data from A, but the dag usually dont show it because xcom are under the table. Now we can see it
