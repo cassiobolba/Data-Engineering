@@ -271,3 +271,45 @@ with DAG ( <MY DAG PARAMS>) as dag:
 
 #  Grouping your tasks
 ## SubDAGs: The Hard Way of Grouping your Tasks
+* Creates sub dags to group some tasks in one single tasl in the parent dag
+* need the subdagoperator and a factory to generate the subdags
+* from aiflow.operators.subdag import SubdagOperator (check documentations)
+* create a folder called subdags and create a dag there
+* import the dag in the subfolder from subdagfolder import subdag_dag
+* it is a sensor behind the scenes
+
+## TaskGroups: The Best Way of Grouping your Tasks
+* Group tasks in a much easier way than SubDagOperator
+```py
+from airflow.utils.task_group import TaskGroup #import the function
+
+@task.python(multiple_outputs = True) #same function pushing variable to xcom
+def extract(): 
+    partner_name = "netflix"
+    partner_num = 123
+    return {"partner_name" : partner_name, "partner_num" : partner_num } 
+
+@task.python() # task to be grouped
+def print_1(partner_name , partner_num ): 
+    print(partner_name)
+    print(partner_num)
+
+@task.python() # task to be grouped
+def print_2(partner_name , partner_num ): 
+    print(partner_name)
+    print(partner_num)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+
+    partner_settings = extract() 
+
+    with TaskGroup(group_id='process_tasks') as process_tasks: #instantiate task group inside the task
+        print_1(partner_settings['partner_name'],partner_settings['partner_num'])
+        print_2(partner_settings['partner_name'],partner_settings['partner_num'])
+
+    #dependencies are aiutomatically created because we use taskflow API
+```
+* in the UI you will see a blue task, double click and see the task belonging to the group
+* To keep code clean, you can create a new file in a folder under dags and create the task groups there and the call in the taskgroups 
+* Can also have a task group inside anoter task groups
+
