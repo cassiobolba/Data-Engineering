@@ -215,6 +215,59 @@ with DAG ( <MY DAG PARAMS>) as dag:
 
 ```
 * Xcom Args:
-        * allow data dependencies among taks
-        * make the implicit dependencies, explicit
-        * have task A -> B -> C , C need xcom data from A, but the dag usually dont show it because xcom are under the table. Now we can see it
+    * allow data dependencies among taks
+    * make the implicit dependencies, explicit
+    * have task A -> B -> C , C need xcom data from A, but the dag usually dont show it because xcom are under the table. Now we can see it
+    * after code below, check UI and will see the dependency create amonth tasks, without explicitly declaring with >>
+```py
+@task.python
+def extract(): 
+    partner_name = "netflix"
+    return partner_name #push it to xcom with the return
+
+@task.python
+def read(partner_name): #pull it using as an argument to the depndendant function
+    print(partner_name)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+    read(extract()) # create the xcom as dependency, and create dag dependencies automatically
+```
+
+## XComs with the TaskFlow API
+* Before we created one xcom with return
+* to return multiple xcoms values separately, there are 2 ways
+    * use the **multiple_outputs = True** and pass in the function return a json
+    * use the from typing import Dict, and in the function def use **def my_func() -> Dict [str,str]:** 
+```py
+@task.python(multiple_outputs = True)
+def extract(): 
+    partner_name = "netflix"
+    partner_num = 123
+    return {"partner_name" : partner_name, "partner_num" : partner_num } 
+
+@task.python
+def read(partner_name): #pull it using as an argument to the depndendant function
+    print(partner_name)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+    read(extract()) # create the xcom as dependency, and create dag dependencies automatically
+
+```
+or
+```py
+from typing import Dict
+
+@task.python
+def extract() -> Dict [str,str]: 
+    partner_name = "netflix"
+    partner_num = 123
+    return {"partner_name" : partner_name, "partner_num" : partner_num } 
+
+#to read it
+with DAG ( <MY DAG PARAMS>) as dag:
+    partner_settings = extract() # get the return from xcoms in a variable
+    read(partner_settings['partner_name']) # create the xcom as dependency, and create dag dependencies automatically
+```
+
+#  Grouping your tasks
+## SubDAGs: The Hard Way of Grouping your Tasks
