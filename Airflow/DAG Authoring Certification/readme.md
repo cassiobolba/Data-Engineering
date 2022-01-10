@@ -313,3 +313,98 @@ with DAG ( <MY DAG PARAMS>) as dag:
 * To keep code clean, you can create a new file in a folder under dags and create the task groups there and the call in the taskgroups 
 * Can also have a task group inside anoter task groups
 
+# Advanced Concepts
+## Dynamics Dags (not so dynamic)
+* create dags that have similar task, just changing few arguments in a loop
+* First have a dict of arguments
+```py
+partners = {
+    "partner_1":
+    {
+        "partner_name":"netflix"
+        "partner_num":1
+    },
+        "partner_2":
+    {
+        "partner_name":"snowflake"
+        "partner_num":2
+    },
+        "partner_3":
+    {
+        "partner_name":"azure"
+        "partner_num":3
+    }
+}
+```
+* create the loop on the dag
+```py
+from airflow.utils.task_group import TaskGroup #import the function
+
+# we moved the extract task to the loop
+
+@task.python() 
+def print(partner_name , partner_num ): 
+    print(partner_name)
+    print(partner_num)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+
+    for partner,details in partners.items():
+        @task.python(task_id=f"extract_{partner}",multiple_outputs = True) #same function pushing variable to xcom, now with dynamic name
+        def extract(partner_name,partner_num): 
+            return {"partner_name" : partner_name, "partner_num" : partner_num } 
+        extracted_values = extract(details['name'],details['num'])
+
+        extracted_values >> print
+```
+
+## Make your choices with Branching
+* depending on conditions from a task you select the next one task or another
+* there are a few branch operators:
+    * branch python operator
+    * sql branch operator
+    * more
+* example, execute specific extract based on week day
+``` py
+from airflow.operators.python import BranchPythonOperator, PythonOperator
+from airflow.operators.Dummy import DummyOperator
+
+def _choosin_partner_based_on_day(execution_date): #create condition to return a specific value
+    day = execution_date.day_of_week
+    if (day == 1):
+        return "partner_1"
+    if (day == 3):
+        return "partner_2"
+    if (day == 5):
+        return "partner_3"
+    else:
+        return "stop" # this condition is in case is day for no partner, you can stop with a dummy operator
+
+@task.python() 
+def print(partner_name , partner_num ): 
+    print(partner_name)
+    print(partner_num)
+
+with DAG ( <MY DAG PARAMS>) as dag:
+
+    start = DummyOperator(task_id="start")
+
+    stop = DummyOperator(task_id="stop")
+
+    choosin_partner_based_on_day = BranchPythonOperator = (
+            task_id="choosin_partner_based_on_day"
+            ,python_callable=_choosin_partner_based_on_day
+        )
+
+    for partner,details in partners.items():
+        @task.python(task_id=f"extract_{partner}",multiple_outputs = True) #same function pushing variable to xcom, now with dynamic name
+        def extract(partner_name,partner_num): 
+            return {"partner_name" : partner_name, "partner_num" : partner_num } 
+        extracted_values = extract(details['name'],details['num'])
+
+        start >> extracted_values >> choosin_partner_based_on_day >> print
+        choosin_partner_based_on_day >> stop
+```
+* You end up with this dag:
+IMAGE - > Python Branch Operator
+* In case you need to add a taks to run after one of the process taks, make sure to add the **trigger_rule=non_failed_or_skipped"** in the task deifnition, otherwise the task will only run when all task succeed, which will never happen when using branch operator
