@@ -389,7 +389,7 @@ with DAG ( <MY DAG PARAMS>) as dag:
 
     start = DummyOperator(task_id="start")
 
-    stop = DummyOperator(task_id="stop")
+    stop = DummyOperator(task_id="stop",trigger_rule=none_failed_or_skipped)
 
     choosin_partner_based_on_day = BranchPythonOperator = (
             task_id="choosin_partner_based_on_day"
@@ -407,4 +407,36 @@ with DAG ( <MY DAG PARAMS>) as dag:
 ```
 * You end up with this dag:
 IMAGE - > Python Branch Operator
-* In case you need to add a taks to run after one of the process taks, make sure to add the **trigger_rule=non_failed_or_skipped"** in the task deifnition, otherwise the task will only run when all task succeed, which will never happen when using branch operator
+* In case you need to add a taks to run after one of the process taks, make sure to add the **trigger_rule=none_failed_or_skipped** in the task deifnition, otherwise the task will only run when all task succeed, which will never happen when using branch operator
+
+## Change task execution with Trigger Rules
+* define the behaviour of a taks with **trigger_rule**
+* default is on_success -> only trigger whel all other success
+    * on_failure -> when all before fail
+    * one_failed -> if one failed
+    * one_success -> if one succeeded 
+    * none_failed -> if none before failed (if they skiped or succeed)
+    * none_failed_or_skipped -> if one succeed
+    * dummy -> trigger anyways
+
+## Dependencies and Helpers
+* defining dependencies old way
+    * t2.set_upstream(t1)
+    * t1.set_downstream(t2)
+* new way
+    * t1 >> t2
+    * t2 << t1
+* cross dendencies for 1 task 
+    * from airflow.models.baseoperator import CrossDownstream
+    * cross_downstream([t1,t2,t3],[t4,t5,t6])
+    * t4 dependends on the t1,t2,t3 , t5 also depend on the 3
+* you can`t create dependencies between two lists
+* chain function for chain dependencies
+    * airflow.models.baseoperator import Chain
+    * chain(t1,[t2,t3],[t4,t5],t6)
+    * **THE LIST MUST HAVE SAME NUMBER OS TASKS**
+    IMAGE CHAIN OPERATOR
+* you can mix both functions    
+
+## Get the control of your tasks
+
