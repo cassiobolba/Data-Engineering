@@ -439,4 +439,87 @@ IMAGE - > Python Branch Operator
 * you can mix both functions    
 
 ## Get the control of your tasks
+* In the config file, is possible to do following configurations
+    * PARALLELISM = 32 (default) -> max num of task running at same time in the instance
+    * DAG_CONCURRENCY = 16 (default) -> max num of tasks running in the same dag
+    * MAX_ACTIVE_RUNS_PER_DAG = 16 (default) -> max num of dag_runs running for same dag
+* In DAG deifnition can also set some configs:
+    * concurrency -> max num of task for the tasks
+    * max_active_runs -> max num of dag runs concurrentlty
+```py
+with DAG ( <MY DAG PARAMS>, concurrency=2,max_active_runs=2) as dag:
+```
+* In task level tou can set other 2
+    * task_concurrency -> max task instances running for this task on all dag runs at same time
+    * pool -> NEXT CLASS
+```py
+start = DummyOperator(task_id="start",task_concurrency=1,pool='default_pool')
+```
 
+## Dealing with resource consuming tasks with Pools
+* For resource intensive tasks
+* like ML model
+* Example: you have 3 task for ML model that could run concurrently, but for those tasks only you want to run one at time to save resources
+* Pool is a number of tasks slots that are running in the same instance
+* You can go to admin -> pools and create another pool with 1 slot 
+* default is to same pool default_pool
+```py
+...
+    for partner,details in partners.items():
+        @task.python(task_id=f"extract_{partner}",multiple_outputs = True, pool = 'my_pool')
+...
+```
+* Can do it without creating a pool by using
+```py
+...
+    for partner,details in partners.items():
+        @task.python(task_id=f"extract_{partner}",multiple_outputs = True, pool_slots = 1 )
+...
+```
+
+## TASK PRIORITY - Execute critical tasks first, the others after
+* All operators have an argument to change the priority of execution
+* Can use the argument priority_weight in the task definition
+* task priority is defined within the same pool, if the task run in different pool, task priority wont work
+* Create some argument to differentiate
+```py
+partners = {
+    "partner_1":
+    {
+        "partner_name":"netflix"
+        "partner_num":1,
+        "order":3
+    },
+        "partner_2":
+    {
+        "partner_name":"snowflake"
+        "partner_num":2,
+        "order":3
+    },
+        "partner_3":
+    {
+        "partner_name":"azure"
+        "partner_num":3,
+        "order":1
+    }
+}
+.....
+
+    for partner,details in partners.items():
+        @task.python(task_id=f"extract_{partner}",priority_weight=partners['order'], multiple_outputs = True) 
+```
+ ## Depends on past - What if a task needs the output of its previous execution?
+ * Defined at task level
+ * is depends_on_past = true , the task with that argument will only run if the previous task SUCCEDD or SKIPEED
+ * If the task on past fails, the taks in the next dag run wont work, it will get  no status
+
+ ## Demystifying wait for downstream
+* Run the task only if in the previous dag run, that same task and the next downstream task after that had also suceeded
+* set wait_for_downstream = true in the definition
+```py
+t1 >> t2 >> t3
+```
+* t1 in the second dag run will run if t1 and t2 succeed in the previous dag run
+
+## Sensors
+* Operator that waits a condition set to true
