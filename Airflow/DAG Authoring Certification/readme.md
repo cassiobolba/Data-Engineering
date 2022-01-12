@@ -606,4 +606,22 @@ my_task = PythonOperator (
     * use together with retry_exponential_backoff
 
 ## Get notified with SLAs
+* different from timeout
+* it just send notification if the task exceed the time expected to coplete
+* use argument **sla** = timedelta(minutes=10)
+* the sla is relative to all dag execution not only to the task it is defined
+* in the dag definition define **sla_miss_callback** = _my_callback_function
+* this sla_miss_callback will be called for all slas definition
+* define sla considering the time all task before may have
 
+## DAG Versioning
+* still no function but there are best practices
+* what happen if you have a dag with 2 tasks is and you add another task?
+* the previous DAG runs with one task less wont have history of task runs
+* And now you have 3 task and want to remove task 2?
+* you lose all track of task 2
+* best practice:
+    * add version to you dag ID, to keep versioning
+```py
+with DAG(  'my_dag_id_v_01' <>)
+```
