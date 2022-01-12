@@ -522,4 +522,4 @@ t1 >> t2 >> t3
 * t1 in the second dag run will run if t1 and t2 succeed in the previous dag run
 
 ## Sensors
-* Operator that waits a condition set to true
+* Operator that waits a condition set to truesss
