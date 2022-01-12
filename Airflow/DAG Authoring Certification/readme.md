@@ -590,7 +590,7 @@ my_task = PythonOperator (
     ,on_failure_callback = 'my_callback_failure'
     ,on_success_callback = 'my_callback_failure'
     ,on_retry_callback = 'my_callback_failure'
-)c
+)
 ```
 
 ## The different (and smart) ways of retrying your tasks
@@ -616,7 +616,7 @@ my_task = PythonOperator (
 
 ## DAG Versioning
 * still no function but there are best practices
-* what happen if you have a dag with 2 tasks is and you add another task?
+* what happen if youÍ have a dag with 2 tasks is and you add another task?
 * the previous DAG runs with one task less wont have history of task runs
 * And now you have 3 task and want to remove task 2?
 * you lose all track of task 2
