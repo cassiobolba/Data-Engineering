@@ -522,4 +522,88 @@ t1 >> t2 >> t3
 * t1 in the second dag run will run if t1 and t2 succeed in the previous dag run
 
 ## Sensors
-* Operator that waits a condition set to truesss
+* Operator that waits a condition set to true before move to next task
+* DateTimeSensor example
+```py
+delay = DateTimeSensor(
+    task_id = 'delay'
+    ,target_time = "{{ execution_date.add(hours=9) }}" # usgin template engine
+    ,poke_interval = 120 # interval seconds the sensor will check if the condition is met,  default = 60
+    ,mode='reschedule' # default is poke continuosly, forever if condition never meets. reschedule will make the task be rescheduled in case after poke_intervalthe sensor condition is not met
+    ,timeout =  1200 # default is seven days, can keep ir runninf for 7 days, define timeout meaninful
+    ,execution_timeout = 
+    ,soft_fail = True  # if the timeout pass the time, the task will be skipped, not failed
+    ,exponential_backoff = True # increase the time of timeout
+)
+```
+* target_time = usgin template engine
+* poke_interval = interval seconds the sensor will check if the condition is met,  default = 60
+* poke_interval = interval seconds the sensor will check if the condition is met,  default = 60
+* mode = default is poke continuosly, forever if condition never meets. reschedule will make the task be rescheduled in case after poke_intervalthe sensor condition is not met
+* timeout =  default is seven days, can keep ir runninf for 7 days, define timeout meaninful
+* execution_timeout = 
+* soft_fail = if the timeout pass the time, the task will be skipped, not failed
+* exponential_backoff = increase the time of timeout
+
+## Don't get stuck with your Tasks by using Timeouts
+* Important to set timeout because you have a limited number of task runs at time
+* can define a timesout in DAG context:
+```py
+from datetime import datetime,timdedelta
+with DAG ( <>
+    dagrun_timeout=timdedelta(minutes=10)
+    ) as dag:
+```
+* execution_timeout does not work when trigger manually
+* can also define on task level with execution_timeout
+```py
+delay = DummyOperator(
+    task_id = 'delay'
+    ,execution_timeout = 60
+)
+```
+* best practice is to set dagrun_timeout and execution_timeout
+
+## How to react in case of failure? or retry?
+* two best ways: trigger rules or callbacks
+### **callback** 
+* function called according to results
+* can define at dag level:
+```py
+def _success_callback(context): # context is returned from callback argument
+    print(context)
+    #do somehting meaninfull like sending email or notification
+def _failure_callback(context): # context is returned from callback argument
+    print(context)
+
+@dag(< my args> ,
+ on_success_callbacks = _success_callback # these args expects python function defined above
+ ,on_failure_callback = _failure_callback
+ )
+```
+* for task level, there are 3 callback options
+* also need a python function
+```py
+my_task = PythonOperator (
+    task_id = 'my_task'
+    ,python_callable = 'my_function'
+    ,on_failure_callback = 'my_callback_failure'
+    ,on_success_callback = 'my_callback_failure'
+    ,on_retry_callback = 'my_callback_failure'
+)
+```
+
+## The different (and smart) ways of retrying your tasks
+* use argument **retries** on task level or in default_args
+    * just after all retries the task is considered failed
+* use **retry_delay** to define the time between retries
+    * it expects a timedelta values
+    * retry_delay = timedelta(minutes=5)
+* use **retry_exponential_backoff** = True to increase the retry delay at every execution
+    * used to avoid overloading DB or API connection
+* use **max_rety_delay** maximum time delay
+    * pass timedelta values
+    * use together with retry_exponential_backoff
+
+## Get notified with SLAs
+
