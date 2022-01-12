@@ -590,7 +590,7 @@ my_task = PythonOperator (
     ,on_failure_callback = 'my_callback_failure'
     ,on_success_callback = 'my_callback_failure'
     ,on_retry_callback = 'my_callback_failure'
-)
+)c
 ```
 
 ## The different (and smart) ways of retrying your tasks
