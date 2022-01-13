@@ -625,3 +625,44 @@ my_task = PythonOperator (
 ```py
 with DAG(  'my_dag_id_v_01' <>)
 ```
+
+## ExternalTaskSensor - Wait for multiple DAGs
+* Wait for something to happen in another task, before move forward
+```py
+from airflow.sensros.externa_task import ExternalTaskSensor
+
+****
+
+waiting =  ExternalTaskSensor(
+    task_id = 'waiting'
+    ,external_dag_id = 'my_other_dag'
+    ,external_task_id = 'last_task_id_in_my_ither_dag'
+    ,failed_states = ['failed','skipped']
+    ,allowed_states = ['success']
+)
+```
+* IMPORTANT -> the sensor waits the task in other dag to conclude in the same execution date
+* for tasks with different execution date, use **execution_date_fn** a timedelta between both tasks
+* **failed_states** and **allowed_states** are list of states you consiuder as failure or success for the sensor
+
+## TriggerDagRunOperator - DAG dependencies with the TriggerDagRunOperator
+* Easier way to execute dags with dependencies
+* wait the other DAG to be finished to start the new one
+```py 
+from airflow.sensros.triggerdagrunoperator import TriggerDagRunOperator
+
+*****
+
+    trigger_from_other_dag = TriggerDagRunOperator(
+        task_id = 'trigger_from_other_dag'
+        ,trigger_dag_id = 'my_other_dag'
+        ,execution_date = #define the date to start the run, used ofr backfilling
+        ,wait_for_completion = True
+        ,poke_interval = 120 #default is 60s
+        ,reset_dag_run = True #default is false
+        ,failed_states = ['failed']
+    )
+```
+* **wait_for_completion** wait my_other_dag to be completed
+* **reset_dag_run** 
+* **failed_states** set to failed for your dag not be trigger when previous task fails
