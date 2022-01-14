@@ -448,7 +448,8 @@ with DAG ( <MY DAG PARAMS>) as dag:
         choosin_partner_based_on_day >> stop
 ```
 * You end up with this dag:
-IMAGE - > Python Branch Operator
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/Python%20Branch%20Operator.png" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px">  
+
 * In case you need to add a taks to run after one of the process taks, make sure to add the **trigger_rule=none_failed_or_skipped** in the task deifnition, otherwise the task will only run when all task succeed, which will never happen when using branch operator
 
 ## Change task execution with Trigger Rules
@@ -477,7 +478,7 @@ IMAGE - > Python Branch Operator
     * airflow.models.baseoperator import Chain
     * chain(t1,[t2,t3],[t4,t5],t6)
     * **THE LIST MUST HAVE SAME NUMBER OS TASKS**
-    IMAGE CHAIN OPERATOR
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Airflow/img/Chain%20Operator.png" style="border: 1px solid #aaa; border-radius: 10px 10px 10px 10px">
 * you can mix both functions    
 
 ## Get the control of your tasks
