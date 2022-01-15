@@ -28,16 +28,22 @@
 * on Git server, is paied per user
 
 # 2. Basic CI/CD Workflow with Git Lab
-CI CD IMAGE
-## CI : 
+<img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Git/img/CI%20CD%20Pipeline.png" >
+## 2.1 CI : 
 * Integrate your code, with others code, with code in production
 * Did the changes afected the current functionalities? Testing
 * Cont. feedback and quality check
-## CD :
+## 2.2 CD :
 * Usually need the CI part
 * Review and test in different environment (branch , dev , hml)
 * Deploied in all enviromnet automatically
 * Reduce Integration problems because error are detected forehead 
+
+## 2.3 Advantages
+* Ensure changes are reliable
+* Are able to test and deploy faster
+* Reduce risk
+* Values come much faster
 
 # 3. Git CI Fundamentals
 ## Enviroment Variables
