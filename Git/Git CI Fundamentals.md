@@ -136,3 +136,24 @@ production tests:
         - curl -s "https://myuniquedomaincassiobolba.surge.sh" | grep -q "$CI_COMMIT_SHORT_SHA"
 ```
 * Go to Deployments > Enviroments and can check both deployments to different environments
+
+## 3.6 Define Variables
+* Store and reuse values
+* create variables as created before in the UI
+* Create also in the git CI (but will be exposed)
+```yml
+variables:
+    STAGING_DOMAIN: myuniquedomaincassiobolba-staging.surge.sh
+    PRODUCTION_DOMAIN: myuniquedomaincassiobolba.surge.sh
+# then reuse in the code
+production tests:
+    image: alpine
+    stage: production tests
+    environment:
+        name: production
+        url: http://$PRODUCTION_DOMAIN
+    script:
+        - apk add --no-cache curl
+        - curl -s "$PRODUCTION_DOMAIN" | grep -q "Congratulations"
+        - curl -s "$PRODUCTION_DOMAIN" | grep -q "$CI_COMMIT_SHORT_SHA"
+```
