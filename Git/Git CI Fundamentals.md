@@ -29,6 +29,7 @@
 
 # 2. Basic CI/CD Workflow with Git Lab
 <img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Git/img/CI%20CD%20Pipeline.png" >
+
 ## 2.1 CI : 
 * Integrate your code, with others code, with code in production
 * Did the changes afected the current functionalities? Testing
@@ -45,10 +46,24 @@
 * Reduce risk
 * Values come much faster
 
-# 3. Git CI Fundamentals
-## Enviroment Variables
-Check the Env Var available:    
-https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
-```yml
+## 2.4 Docker
+* Based on Containers images that allow virtualization
+* Image is a file with instructions to download and install all dependencies for cirtual environment
+* Docker execute the image and it become a container, similar to a VM
+* It is good to create, run and deploy an application with all it needs, in a package
+* It isolates versions, so avoid errors of applications that use different versions
+* You can select the image you want to run in a CI runner step
 
+
+# 3. Git CI Fundamentals
+## Predefined Enviroment Variables
+* Check the Env Var available:    
+https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+* There are an infinity of usages for it
+```yml
+#examples
+$CI_COMMIT_SHA : full commit sha id
+$CI_COMMIT_SHOR_SHA : short commit sha
+$CI_COMMIT_BRANCH : the branch that is runnig the pipeline
+_
 ```
