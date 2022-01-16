@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09' # mandatory
+Transform: AWS::Serverless-2016-10-31 # mandatory -> tells cloud formation which template this is about
+Description: >
+  lambdatemplateSAM
+
+  Sample SAM Template for lambdatemplateSAM
+
+Resources: # mandatory, every resource used should be declared here, like api gateway, dynamo db...
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello_world/
+      Handler: datatypes.cold_start
+      Runtime: python3.9
+      Timeout: 3 # maximum is 15min
+      Environment: # pass under evnriment, variables your function can retrieve
+        Variables:
+          restapi: http://dummy.com
+          dbname: mydb

@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  orders-api
+
+Globals: # define settings to be reused globally in the resources
+  Function: # declaring the resource type will use the next settings,  this case, all 'AWS::Serverless::Function' type will use the below settings
+    Runtime: python3.9
+    Timeout: 30
+    Environment: # block to define env VARIABLES globally for all functions types resource
+      Variables:
+        ORDERS_TABLE : !Ref OrdersTable # use the intrinsic to reference OrderTable resource as variable ORDER_TABLE
+
+Resources:
+  OrdersTable: # name on cloud formation stack
+    Type: AWS::Serverless::SimpleTable # resource type
+    Properties: # block to define the properties
+      PrimaryKey: # only mandatory property
+        Name: id
+        Type: Number
+  CreateOrderFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: orders_api/
+      Handler: create.lambda_handler
+      # Runtime: python3.9 # don't need this because is in global
+      Events:
+        CreateOrder: # name of the api trigger event
+          Type: Api # type of event
+          Properties:
+            Path: /orders # path used in the api as parameter
+            Method: POST # method used in the API
+      Policies: #creating a security policy
+        - DynamoDBCrudPolicy: # type of policy for this function
+            TableName: !Ref OrdersTable # this policy is restrictec only to the table
+  ReadOrderFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: orders_api/
+      Handler: read.lambda_handler
+      # Runtime: python3.9 # don't need this because is in global
+      Events:
+        ReadOrder: # name of the api trigger event
+          Type: Api # type of event
+          Properties:
+            Path: /orders/{id} # path used in the api as parameter
+            Method: GET # method used in the API
+      Policies: #creating a security policy
+        - DynamoDBReadPolicy: # type of policy for this function
+            TableName: !Ref OrdersTable # this policy is restrictec only to the table
+
+# create outputs to show url to end user
+Outputs:
+  CreateOrdersAPI:
+    Description: "API Gateway endpoint for creating orders"
+    # !Sub substitute values with ${} on the string
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders"
+  CreateOrderFunction: # name the getatt, can be anything
+    Description: " Get create order function ARN "
+    Value: !GetAtt CreateOrderFunction.Arn # function name .Arn
+  CreateOrderFunctionIamRole: # name the getatt, can be anything
+    Description: "Get create order function role ARN"
+    # when a function is created, it creates a role with function name + Role at the end
+    Value: !GetAtt CreateOrderFunctionRole.Arn
