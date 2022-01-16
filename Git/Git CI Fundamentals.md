@@ -107,3 +107,32 @@ https://docs.gitlab.com/ee/ci/caching/#cache-vs-artifacts
     * Download and save dependencies temporarily 
 
 ## 3.5 Deployment Environment
+https://docs.gitlab.com/ee/ci/environments/  
+* the CD part of pipeline is usually divided into different enviroment to allow testing the changes before productions
+* Git Lab has the concepts of environments
+* Allow  easy track of deployments
+* We know exactly what was deployied and on which env.
+* Keep full history of deployments
+* Example of deployment in 2 stages, for 2 different envs:
+```yml
+deploy staging:
+    stage: deploy staging
+    enviroment: #enviroment label is used to define to which env it will be deployed
+        name: staging
+        url: http://myuniquedomaincassiobolba-staging.surge.sh
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain myuniquedomaincassiobolba-staging.surge.sh
+
+production tests:
+    image: alpine
+    stage: production tests
+    enviroment:
+        name: production
+        url: http://myuniquedomaincassiobolba.surge.sh
+    script:
+        - apk add --no-cache curl
+        - curl -s "https://myuniquedomaincassiobolba.surge.sh" | grep -q "Congratulations"
+        - curl -s "https://myuniquedomaincassiobolba.surge.sh" | grep -q "$CI_COMMIT_SHORT_SHA"
+```
+* Go to Deployments > Enviroments and can check both deployments to different environments
