@@ -56,14 +56,54 @@
 
 
 # 3. Git CI Fundamentals
-## Predefined Enviroment Variables
+## 3.1 Predefined Enviroment Variables
 * Check the Env Var available:    
 https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
 * There are an infinity of usages for it
+* They are create by the Git Ci Enviroment
+* Can be used to idenfy type of branch, user, if MR or Commit
 ```yml
 #examples
 $CI_COMMIT_SHA : full commit sha id
 $CI_COMMIT_SHOR_SHA : short commit sha
 $CI_COMMIT_BRANCH : the branch that is runnig the pipeline
-_
+
+# Usage
+build website:
+  stage: build
+  script:
+    - echo $CI_COMMIT_SHORT_SHA
+    - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html #sed search for %%VERSION%% and replace by the value of $CI_COMMIT_SHORT_SHA 
+
 ```
+
+## 3.2 Schedule Pipeline
+* Pipelines can be scheduled using cron job
+https://docs.gitlab.com/ee/ci/pipelines/schedules.html#pipeline-schedules
+
+## 3.3 Cache to optimize speed
+* Some tasks takes more time because it need to download things, like the npm install need to download the package
+* Can cache this things to download in a cache folder for a time, and not download everytime
+```yml
+cache: 
+    key: ${CI_COMMI_REF_SLUG} # refer to the current branch, and this download will available for the  job level, or global
+    paths:
+      - node_modules/ # path to cache the downloads
+```
+* usgin cache here, will cache globally, if inside a step, would cache only that step
+* This will cache everything, usually this is not what we want, because cache download, and upload every run
+* Upload all the project to cache may be long also
+* Better is to cache only the steps needed
+* Suggestions: create a new step only to cache the npm install
+
+## 3.4 Cache x Artifacts
+https://docs.gitlab.com/ee/ci/caching/#cache-vs-artifacts
+* Similar, but not same
+* Artifact: 
+    * Used to pass information from one job to another job
+    * Used for compiled results from a step to another
+* Cache:
+    * Used to save execution time
+    * Download and save dependencies temporarily 
+
+## 3.5 Deployment Environment
