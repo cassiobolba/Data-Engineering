@@ -157,3 +157,73 @@ production tests:
         - curl -s "$PRODUCTION_DOMAIN" | grep -q "Congratulations"
         - curl -s "$PRODUCTION_DOMAIN" | grep -q "$CI_COMMIT_SHORT_SHA"
 ```
+
+## 3.7 Manual Trigger Only
+* Set a stage to deploy only manually
+https://docs.gitlab.com/ee/ci/yaml/#whenmanual
+* It can cause the task after manual to fail, in case of dependencies
+* Then use the argument allow_failure to false, to dont run subsequent tasks after manual
+https://docs.gitlab.com/ee/ci/yaml/#allow_failure
+```yml
+deploy production:
+    stage: deploy production
+    environment:
+        name: production
+        url: http://$PRODUCTION_DOMAIN
+    # use the manual to make it only run in manual
+    when: manual
+    # Then use the argument allow_failure to false, to dont run subsequent tasks after manual
+    allow_failure: false
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain $PRODUCTION_DOMAIN
+```
+
+## 3.8 Merge Requests and Branches
+* Avoid Breaking Master
+* Breaking master can interrupt services, causing heavy and costly problems
+* Ensures CD always possible
+* Each Developes can deploy to a branch the new features
+* when new features are approved, it can be merged to master
+* There are different strategies like GitFlow
+* Just avoid using only one branch 
+
+### 3.8.1 Only run in a specific branch
+* Use the only parameter
+* Only is to specify policies where to run the step
+```yml
+deploy production:
+    stage: deploy production
+    only: 
+        - master
+    environment:
+        name: production
+        url: http://$PRODUCTION_DOMAIN
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain $PRODUCTION_DOMAIN
+```
+
+## 3.9 What is Merge Request 
+* Merge Requests are a good way to visualize new changes that are about to be made in the master branch.
+* Instead of making changes directly into master, the Merge Request workflow allows you to:
+  * allow others to review the changes
+  * allows the pipeline to run once without affecting others or the master branch
+  * allows for additional changes to be made
+* Allow to see the status of the pipeline for a specific branch
+* but also to give other developers the possibility of giving their feedback regarding a feature/fix before it gets merge into master.
+
+## 3.10 Merge Request Configs
+* Under setting > Repository:
+  * Set protected branches
+  * Allow to merge or not
+  * Allow to push: Set to no one, to enforce that no one can push directly to master without a Merge Request
+* Under Settings > General > Merge Request :
+  * Config Fast-Forward
+  * Enforce That pipelines must succeed in order to merge
+
+## 3.11 Creating a Merge Request
+* Go to branches > create branch
+* After create > do a change > commit and push > see the resilt
+* If all good, you will a create merge request button o Git lab
+* Craete it > after succeed > merge it
