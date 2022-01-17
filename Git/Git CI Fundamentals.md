@@ -227,3 +227,23 @@ deploy production:
 * After create > do a change > commit and push > see the resilt
 * If all good, you will a create merge request button o Git lab
 * Craete it > after succeed > merge it
+
+## 3.12 Dynamic Environments
+* Can create another enviro. dynamically to each branch
+* Allow review the changes by devs and also by non developers
+* step to deploy a review env and custom names based on the branch as below
+* env name and url based on commit name and on env slug, to be dynamic
+* domain also dynamic to create a page based on the current env / branch
+* In the pipeline, check that the env deployied is review/commit_ref and the domain also is customized based on variable
+```yml
+deploy review:
+    stage: deploy review
+    only: 
+        - merge_request
+    environment:
+        name: review/$CI_COMMIT_REF_NAME 
+        url: http://cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+```
