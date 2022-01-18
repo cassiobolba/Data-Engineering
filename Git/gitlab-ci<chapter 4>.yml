@@ -1,0 +1,155 @@
+# can setup an image for all steps with no image defined within it
+image: node:lts
+
+# define stages and order of execution
+stages:
+    - build
+    - test
+    - deploy review
+    - deploy staging
+    - deploy production
+    - production tests
+
+cache: # usgin cache here, will cache globally, if inside a step, would cache only that step
+    key: ${CI_COMMI_REF_SLUG} # refer to the current branch, and this download will available for the  job level, or global
+    paths:
+      - node_modules/ # path to cache the downloads
+
+variables:
+    STAGING_DOMAIN: cassiobolba-staging.surge.sh
+    PRODUCTION_DOMAIN: cassiobolba.surge.sh
+
+build website:
+    # change from standard docker image to a node image
+    # image: node 
+    # tell which stage it runs
+    stage: build
+    only:
+        - master
+        - merge_requests
+        - branches 
+    script:
+        # install all dependencies for node
+        - npm install
+        # install the gatsby web client
+        - npm install -g gatsby-cli 
+        # build the web
+        - gatsby build
+        # create the %%VERSION%% var inside the file you want te variable to be replaced
+        # Then use sed to locate and replace the %%VERSION%% in the file for the env var we called on echo
+        # -i is to replace text in same file not create a new,
+        - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+    # add artifacts to keep the website files in a folder to be accessed later
+    artifacts:
+        paths:
+            - ./public
+
+# step to deploy a review env and custom names based on the branch
+deploy review:
+    stage: deploy review
+    only: 
+        - merge_request
+        - branches
+    environment:
+        # env name and url based on commit name and on env slug, to be dynamic
+        name: review/$CI_COMMIT_REF_NAME 
+        url: http://cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+        on_stop: stop review
+    script: 
+        - npm install --global surge
+        # domain also dynamic to create a page based on the current env / branch
+        - surge --project ./public --domain cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+
+# step to enable the destruction of staging environment after merge
+stop review:
+    stage: deploy review
+    # define git strategy to none and it avoid that in case the branch is already deleted, it wont clone the branch to perform the actions, which would be default strategy
+    variables:
+        GIT_STRATEGY: none
+    environment:
+        name: review/$CI_COMMIT_REF_NAME 
+        action: stop
+    script: 
+        - npm install --global surge
+        # here we use the surge command to delete the surge enviroment
+        - surge teardown cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+    when: manual
+    only: 
+        - merge_request
+        - branches
+
+test artifact:
+    # use alpine image because it is very small and fast
+    image: alpine
+    stage: test
+    only:
+        - master
+        - merge_requests
+        - branches 
+    script:
+        - grep -q "Gatsby" ./public/index.html
+
+# test the website server gatsby provides
+test website:
+    # image: node
+    stage: test
+    only:
+        - master
+        - merge_requests
+        - branches 
+    script:
+        # use enviroment variables on the pipeline content (web site this case)
+        # list of variables https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+        - echo $CI_COMMIT_SHORT_SHA
+        - npm install
+        - npm install -g gatsby-cli
+        # after install gatsby in this job, initialize the server and use & to move to next command
+        # because initializing a server block the terminal to that action
+        - gatsby serve &
+        # increasing time
+        - sleep 7
+        # curl download the content and look for the word gatsby in the page
+        - curl "http://localhost:9000" | tac | tac | grep -q "Gatsby"
+
+
+# template created with dot before to dont be created as step
+# template was alias as anchor
+.deploy_template: &deploy
+# put inside template all share info
+    only: 
+        - master
+    # domains were different, we created a generic variable for it, and then we reference the domain to the correct domain within the real step
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain $DOMAIN
+    environment:
+        url: http://$DOMAIN
+
+deploy production:
+    # call the anchor
+    <<: *deploy
+    stage: deploy production
+    # this variable read the $PRODUCTION_DOMAIN and say its value is assigned to $DOMAIN in this step
+    variable:
+        DOMAIN: $PRODUCTION_DOMAIN
+    environment:
+        # the name could not be templated because it has to be unique
+        name: production
+
+deploy staging:
+    <<: *deploy
+    stage: deploy staging
+    variable:
+        DOMAIN: $STAGING_DOMAIN
+    environment: 
+        name: staging
+
+production tests:
+    image: alpine
+    stage: production tests
+    only: 
+        - master
+    script:
+        - apk add --no-cache curl
+        - curl -s "$PRODUCTION_DOMAIN" | grep -q "Congratulations"
+        - curl -s "$PRODUCTION_DOMAIN" | grep -q "$CI_COMMIT_SHORT_SHA"

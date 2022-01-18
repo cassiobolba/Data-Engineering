@@ -357,3 +357,37 @@ my_stuf:
 ```
 
 ## 4.4 Creating job Templates
+* We can create a template for deploy jobs since they are similar
+```yml
+# template created with dot before to dont be created as step
+# template was alias as anchor
+.deploy_template: &deploy
+# put inside template all share info
+    only: 
+        - master
+    # domains were different, we created a generic variable for it, and then we reference the domain to the correct domain within the real step
+    script: 
+        - npm install --global surge
+        - surge --project ./public --domain $DOMAIN
+    environment:
+        url: http://$DOMAIN
+
+deploy production:
+    # call the anchor
+    <<: *deploy
+    stage: deploy production
+    # this variable read the $PRODUCTION_DOMAIN and say its value is assigned to $DOMAIN in this step
+    variable:
+        DOMAIN: $PRODUCTION_DOMAIN
+    environment:
+        # the name could not be templated because it has to be unique
+        name: production
+
+deploy staging:
+    <<: *deploy
+    stage: deploy staging
+    variable:
+        DOMAIN: $STAGING_DOMAIN
+    environment: 
+        name: staging
+```
