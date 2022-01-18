@@ -239,7 +239,7 @@ deploy production:
 deploy review:
     stage: deploy review
     only: 
-        - merge_request
+        - merge_request 
     environment:
         name: review/$CI_COMMIT_REF_NAME 
         url: http://cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
@@ -247,3 +247,113 @@ deploy review:
         - npm install --global surge
         - surge --project ./public --domain cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
 ```
+
+## 3.13 Clean-up Environments
+BETTER EXPLANATION https://lab.las3.de/gitlab/help/ci/yaml/README.md#environmentaction
+* After mergin the branch to master, the branch enviroment will still continue live, we need to clean it
+* use on_stop and action paramenter to be able to connecto jobs one after other for cleaning purporses
+* both jobs should be in the same environment
+```yml
+# step to deploy a review env and custom names based on the branch
+deploy review:
+    stage: deploy review
+    only: 
+        - merge_request
+    environment:
+        # env name and url based on commit name and on env slug, to be dynamic
+        name: review/$CI_COMMIT_REF_NAME 
+        url: http://cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+        on_stop: stop review
+    script: 
+        - npm install --global surge
+        # domain also dynamic to create a page based on the current env / branch
+        - surge --project ./public --domain cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+
+# step to enable the destruction of staging environment after merge
+stop review:
+    stage: deploy review
+    # define git strategy to none and it avoid that in case the branch is already deleted, it wont clone the branch to perform the actions, which would be default strategy
+    variables:
+        GIT_STRATEGY: none
+    environment:
+        name: review/$CI_COMMIT_REF_NAME 
+        action: stop
+    script: 
+        - npm install --global surge
+        # here we use the surge command to delete the surge enviroment
+        - surge teardown cassiobolba-$CI_ENVIRONMENT_SLUG.surge.sh
+    when: manual
+    only: 
+        - merge_request
+```
+
+## 3.14 before_script and after_script
+https://docs.gitlab.com/ee/ci/yaml/#before_script-and-after_script
+* before_script
+    * define a script that should run before the task or globally
+```yml
+my_job:
+    before_script:
+        - echo "test"
+```
+* after_script
+    * define commands to run after the main step block
+
+# 4. YAML basics
+## 4.1 Understanding YAML
+* It is a key value pair combination
+* a key can store string, integer, boolean...
+* to create lists:
+```yml
+stuff:
+    - laptop
+    - bike
+# or
+food: [pizza,donuts,coke]
+```
+* make all as part of an object
+```yml
+my_stuf:
+    stuff:
+        - laptop
+        - bike
+    # this is a comment
+    friends:
+        - name: cassio
+          age: 33
+        - name: Vic
+          age: 22
+```
+
+## 4.2 Disabling in jobs in YAML
+* Simply put a dot before the job definition
+```yml
+.my_stage:
+    stage: build
+```
+
+## 4.3 Anchors
+* anchor a value to reuse it
+* alias the reusable object with &name
+* if full set of objects reuse with << *name
+* if just single object reuse with *name
+```yml
+basic_stuff: &basic_stuff
+    city: nyc
+    country: usa
+
+my_stuf:
+    <<: *basic_stuff
+    name: &name cassio
+    stuff:
+        - laptop
+        - bike
+    friends:
+        - name: cassio
+          age: 33
+        - name: Vic
+          age: 22
+    self: *name
+```
+
+## 4.4 Creating job Templates
