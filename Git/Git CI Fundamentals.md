@@ -391,3 +391,11 @@ deploy staging:
     environment: 
         name: staging
 ```
+# 5. Deploy to AWS
+* Create an elasticbean stack env -> https://aws.amazon.com/elasticbeanstalk/
+* Create S3 bucket to upload the application -> https://aws.amazon.com/s3/
+* Use AWS CLI to communicate -> https://aws.amazon.com/cli/
+* Add S3 bucket name to a group variable in Git lab in case want to have an env var to reuse
+* Go to IAM create a new user > programatic access > allow policy to s3
+* save the access key and secret and create the variable in Git
+* Use commands to copy files to S3
