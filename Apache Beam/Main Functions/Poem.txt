@@ -1,0 +1,5 @@
+Há quatro quadros três e três quadros quatro. 
+Sendo que quatro destes quadros são quadrados,
+ um dos quadros quatro e três dos quadros três.
+ Os três quadros que não são quadrados,
+ são dois dos quadros quatro e um dos quadros três.

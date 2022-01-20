@@ -1,0 +1,17 @@
+python "C:\Users\cassi\Desktop\4.py" \
+	--input gs://template_dataflow_curso/entrada/voos_sample.csv \
+	--output gs://template_dataflow_curso/saida/voos_sample.csv \
+	--runner DataflowRunner \
+	--project dataflowproject-299811 \
+	--region southamerica-east1 \
+	--temp_location gs://template_dataflow_curso/temp \
+	--staging_location gs://template_dataflow_curso/staging \
+	--template_location gs://template_dataflow_curso/template \
+
+python "C:\Users\cassi\Desktop\4.py"
+
+service-<project-ID-number>@dataflow-service-producer-prod.iam.gserviceaccount.com
+<project-ID-number>-compute@developer.gserviceaccount.com
+505169071290@cloudservices.gserviceaccount.com
+
+
