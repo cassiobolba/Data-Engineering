@@ -223,3 +223,8 @@ git push origin --delete remoteBranchName
 // check available branches
 git branch
 ```
+
+## 15. Clean Changes befores - clean untracked items git
+```
+git clean -f -d
+```
