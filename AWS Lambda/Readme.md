@@ -8,8 +8,9 @@ https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/s
 5- run 'aws configuration' and pass the info in credentials file  
 6- go to a folder of choice and and via cmd run 'sam init'  
       - select 1, quick templates  
-      - zip  
-      - select python  
+      - N  
+      - select python version
+      - zip
       - name it  
       -   
 7- 'sam build --guided' to build the file and depencies to deploy (use guided only in the first deploy)  
