@@ -1,4 +1,6 @@
-## Simple Setup
+## Simple Setup Windows
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install-windows.html
+
 1- install python 3.9  
 2- install aws cli  
 3- install aws sam cli  
@@ -13,6 +15,8 @@
 7- 'sam build --guided' to build the file and depencies to deploy (use guided only in the first deploy)  
 8- 'sam validate' to validate the template.yml  
 9- 'sam deploy --stackname' to deploy to lambdas  
+
+for Mac -> https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install-mac.html
 
 ## Test locally
 1- everything before should work  
