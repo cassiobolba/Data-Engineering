@@ -1,30 +1,37 @@
 -- AGGREGATIONS OVER WINDOWS
+-- Get the grand total per city
 SELECT order_id, order_date,customer_name, city, order_amount , SUM(order_amount) OVER (PARTITION BY city) as grand_total from dbo.orders
 
-SELECT order_id, order_date,customer_name, city, order_amount , AVG(order_amount) OVER (PARTITION BY city, DAY(order_Date)) as avg_order_month from dbo.orders
+-- Get the avg order per month per day. Since all orders are in different days, same value
+SELECT order_id, order_date,customer_name, city, order_amount , AVG(order_amount) OVER (PARTITION BY city, DAY(order_Date)) as avg_order_city_day from dbo.orders
 
 SELECT MONTH(order_Date) FROM dbo.Orders
 
 -- RANK FUNCTIONS OVER WINDOWS
+-- Get the ranking of biggest order value
 SELECT order_id, order_date,customer_name, city, order_amount , RANK() OVER (ORDER BY order_amount DESC) as rank_order from dbo.orders
 
 -- ROW_NUMBER() WITHOUT PARTITIONS AND WITH
-SELECT order_id, order_date,customer_name, city, order_amount , ROW_NUMBER() OVER (ORDER BY order_id DESC) as rank_order from dbo.orders
+-- Get the ranking per row, the difference from RANK() is that RANK() classify with same ranking if the value is the same
+SELECT order_id, order_date,customer_name, city, order_amount , ROW_NUMBER() OVER (ORDER BY order_amount DESC) as rank_order from dbo.orders
 
+-- Get the ranking of orders grouping by city
 SELECT order_id, order_date,customer_name, city, order_amount , ROW_NUMBER() OVER (PARTITION BY city ORDER BY order_amount DESC) as rank_order from dbo.orders
 
 -- NTILE PERCENTILE
+-- Get the percentile of available values in 4 buckets
 SELECT order_id, order_date,customer_name, city, order_amount , NTILE(4) OVER (ORDER BY order_amount DESC) as rank_order from dbo.orders
 
 -- LEAD AND LAG
+-- Get the next order data ordered by order_date
 SELECT order_id, customer_name, city, order_amount , order_date,LEAD(order_date,1) OVER (ORDER BY order_date) as prox_compra from dbo.orders
 
--- LEAD AND LAG
+-- Get the previous order date ordered by order_date
 SELECT order_id, customer_name, city, order_amount , order_date,LAG(order_date,1) OVER (ORDER BY order_date) as compra_anterior from dbo.orders
 
 -- LEAD AND LAG PARTITION BY CITY
+-- Get the previous order that happened in the same city ordered by order_date
 SELECT order_id, customer_name, city, order_amount , order_date,LAG(order_date,1) OVER (PARTITION BY city ORDER BY order_date ASC) as compra_anterior from dbo.orders
-
 
 
 USE window_functions;
