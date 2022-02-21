@@ -1,5 +1,11 @@
 # Docker Studies Notes
-## Use docker without Docker Desktop
+## Use docker With minikube + virtualbox
+* Install Docker
+```
+brew install docker
+brew install docker-compose
+```
+
 * Install [VirtualBox](https://minikube.sigs.k8s.io/docs/drivers/virtualbox/)
   
   For Mac users, you might need to allow the oracle machine to run in: system preferences -> security  
