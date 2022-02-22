@@ -4,7 +4,7 @@
 ## 2. Cluster Architecture
 OFFICIAL DOCS: https://kubernetes.io/docs/concepts/overview/components/
 
-IMAGE
+https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kubernetes-architecture.png
 
 ### 2.1 Master Node - Control Plane
 * Set of working machines
@@ -82,3 +82,58 @@ IMAGE
 #### 2.4.5 Cron Job
 * run job for specific schedule
 * example: every 15 minute read a file from blob storage
+
+## 3. Service
+* Abstract exposure of an application, running on a set of pods as Network service
+* Expose a service in External API address, out of Kubernetes Cluster for Internet access
+* Pods receive IP adresses and single DNS name
+* kind: service
+* External user access the cluster via kube-proxy that redirect to cluster IP
+
+### 3.1 Service Type
+* ClusterIP 
+    * kind : Service 
+    * Communication between incoming traffic and pods
+    * Only inernal traffic
+* NodePod
+    * Open ports to external traffic pods
+    * Not so used
+    * Not to external access
+* LoadBalancer
+    * Provided by clouds
+    * Paid
+    * Most used
+    * To pusblish applciations to external
+
+## 4. Ingress
+* Manage external access to services in a cluster
+* usually HTTP request
+* Provides LB, SSL and name-based virtual hosting
+* Lives on worker nodes
+* Ingress providers:
+    * Nginx
+* Cons:
+    * Can be hard to control
+
+## 5, Volumes and Types
+* Pod creates a folder called empty dir to store info and share with other pods
+* When pod restarts it clean state
+* Destroyes ephemeral volumes
+* To save volume and persist data after restart, can assing a persistent volume
+* The volume types can be
+    * Azure disk
+    * Google Persistent Disk
+    * AWS EBS
+* Kubernetes created  CSI - Container storage interface to facilitate the creationg of volumes
+    * It also enables dynamic provisioning
+
+## 6. Configuration - ConfigMAps and Secrets
+### 6.1 ConfigMaps
+* Store non-confidential data in key-value
+* Consumed as variables, CLI arguments or config files in a volume
+
+### 6.2 Secrets
+* Sensitive info
+* Pass and user
+* Tokens
+* stores outside of applciation code
