@@ -137,3 +137,70 @@ https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kuber
 * Pass and user
 * Tokens
 * stores outside of applciation code
+
+## 7. Kubernetes Infra
+### 7.1 Self hosted Kubernetes
+* Deployed usually on-premisses Envs
+* Hard to mantain and implement
+* have to create clustes, load balancer, bkp, mantainance, CI/CD integrations, isoaltion
+* Twitter tried to do it, and failed spending millions
+
+### 7.2 Kubernetes as Managed Service
+### AKS - Azure
+* Control plane is free
+### GKE - Google
+* pay 10 cents / h control plane
+### EKS - Elastic - Amazon
+* pay 10 cents / h control plane
+
+## 8. IaC for DE
+* Managed and provision Resources usign code to reduce mnaul process
+* Immutable Infra approach
+* Pros
+    * speed and safety
+    * documentation
+    * version control
+    * validation
+    * reuse
+* Terraform is the best
+
+### 8.1 Terraform
+* Created in Go
+* Open source IaC
+* Have Terraform Registry
+    * Repository of code to deploy infra
+    * Choose what and where to deploy
+
+## 9. Kubernetes for DE
+* Kubernetes is already used for apps as de facto structure
+* Since 2018 it is comming to Big Data (3rd generation of big data)
+    * Solve cost that cloud platform promissed to reduce but usually did not
+    * Scalling
+    * Microservices oriented
+    * statefulsets
+* Cons
+    * Pipelines can take a bit more time due to ephemeral concepts
+    * Steep learning curve
+
+## 10. Storages
+### 10.1 SC - Storage Class
+* Comes from main Cloud provider
+* They offer usually HDD and SSD disks
+    * it affect the speed and cluster quality
+* Examples
+    * AWS EBS
+    * Azure disk
+    * Google Persistent Disk
+
+### 10.2 PV - Persistent Volume
+* Kubernetes dont see SC, just PV
+* It translate the SC to the PVC
+* Volume plugin to each provider
+
+### 10.3 PCV - Persistent Volume Claim
+* Request storage by user
+* Consume PV resources
+* Claim sizes to mount
+* Claim to PV, then PV ask SC to see if it is possible to mount the volume claimed
+* Pod main entry coomunication
+
