@@ -1,3 +1,4 @@
+# DAY 1
 ## 1. Introduction
 * Kubernetes is the most orchestrations engine
 * Can be used in the main cloud providers
@@ -251,3 +252,36 @@ https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kuber
     * Kube forwarder (SSH Tunnel)
     * K9s
     * Lens
+
+# DAY 2 
+## 1. Big Data Stack
+### 1.1 Cloud managed Services
+* IaaS, PaaS and SaaS
+* Enterprise Support
+* Pays as you go - no upfront cost
+* Managed Infra by cloud provider
+* Small Teams - easy collaboration, DevOps, autonomus, sutomatic
+* Latest versions - updated by cloud provider
+* Business Oriented
+* AWS, Azure, GCP
+
+### 1.2 Open Source Solution - OSS
+* Best Big Data technologies are open source - or derived
+* Save on licenses
+* Community
+* Use ope source in cloud services engine
+* No lock in
+
+### 1.3 Big Data Products Overview
+#### 1.3.1 DataLakes
+* Azure Blob
+* S3
+* google Cloud Storage
+* minIO
+#### 1.3.2 Ingestion
+* Event Hubs
+* AWS Kinesis
+* Pub Sub
+* Kafka
+* Apache Pulsar
+#### 1.3.3 Processing
