@@ -215,8 +215,8 @@ https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kuber
     * Kind
     * K3D
 * CLoud
-    * Digital Ocena
-    * Linode
+    * Digital Ocena - https://try.digitalocean.com/freetrialoffer/
+    * Linode - https://www.linode.com/lp/free-credit-100/
 
 ### 12.1 Kubernetes Env packages
 * Manage complex manifests usign tools to reduce complexity and enhancing development experience
