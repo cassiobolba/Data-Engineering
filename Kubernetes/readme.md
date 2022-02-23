@@ -204,3 +204,50 @@ https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kuber
 * Claim to PV, then PV ask SC to see if it is possible to mount the volume claimed
 * Pod main entry coomunication
 
+## 11. StatefulSet
+* Manage statedul applications on Kubernetes
+* Provides Guarantees about ordering and uniqueness of pods
+* StatefulSets request via PCV to PV a volume., PV then checks id SC is available
+
+## 12. Develpment Enviroment
+* Local (virtualizadores)
+    * Minikube
+    * Kind
+    * K3D
+* CLoud
+    * Digital Ocena
+    * Linode
+
+### 12.1 Kubernetes Env packages
+* Manage complex manifests usign tools to reduce complexity and enhancing development experience
+* HELM
+    * Package manager for kubernetes
+    * manage applications using charts
+    * Define, Install and upgrafe complex manifests (YAML)
+* KUSTOMIZE
+    *  Similar to Helm
+* ARTIFACT HUB
+    * new version of helm hub
+    * repository of helms
+* SOURCE CODE REPOSITORY
+    * Git hub
+    * Git CI
+    * Bit bucket
+* CONTAINER REGISTRY
+    * Dockerhub
+    * Git lab container Registry
+    * Amazon ECR
+    * Google container Registry
+    * Amazon container Registry
+
+### 12.2 Tools for DE on Kubernetes
+* CLI
+    * KubeCTL
+    * KubeCTX
+    * Kubens
+* LOG AND TROUBLESHOOTING
+    * Stem
+* ADMIN AND MAINTENANCE
+    * Kube forwarder (SSH Tunnel)
+    * K9s
+    * Lens
