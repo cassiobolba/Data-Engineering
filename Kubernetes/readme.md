@@ -285,3 +285,49 @@ https://github.com/cassiobolba/Data-Engineering/blob/master/Kubernetes/img/kuber
 * Kafka
 * Apache Pulsar
 #### 1.3.3 Processing
+* Synapse Analytics
+* AWS glue
+* Dataflow
+* Apache Spark
+* KSQLDB - realtime with sql
+#### 1.3.4 Serving
+* Synapse
+* Redshift
+* Big Query
+* Apache Pinot
+* YugabiteDB
+#### 1.3.5 Data as a Product
+* PBI
+* Quick Sight
+* Data Studio
+* Superset
+* Metabase
+
+## 2 Cost Comparison
+Compare kubernetes based big data architecture x services offered by Azure and aws.
+Not compare with google serices because they may be cheaper than usign kubernetes. 
+### 2.1 Cost on AWS and Azure
+* Considering 1TB
+* Storage Layer: 2.5k reais
+* Processing Layer( 3 zones): 6.5k
+* Serving Layer DW: 14.5 k reais
+* Total: 23.5 k reais
+### 2.2 Cost oin Kubernetes
+* Considering 1TB
+* Storage Layer, considering more layers
+* VM general purpose
+* 4 vcpus with 16gb ram each
+* 6 vms
+* 730hs month
+* Use kubernetes managed by a cloud provider
+* Total: 7k reais - 3x less
+
+### 2.3 Decision Points
+* Business must be alligned with the approach of kubernetes
+* team must be aligned and wanting to learn
+* budget: work to reduce current cost can be better than build something new and a starting point
+* Automate and reduce complexity
+* Sight of the future: companies need to know what is the future -> KUBERNETES
+
+## 3. Declaritive GitOps CD
+01:06
