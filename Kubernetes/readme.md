@@ -330,4 +330,48 @@ Not compare with google serices because they may be cheaper than usign kubernete
 * Sight of the future: companies need to know what is the future -> KUBERNETES
 
 ## 3. Declaritive GitOps CD
-01:06
+* Reduce manual work
+* Practices taht empower developers to perform tasks for CI CD lyfecycle process
+* CI CD is inside DevOps practices
+* CI
+    * Increase speed of deploy
+    * ensure quality
+    * Continuous commit
+    * Git repository
+* CD
+    * Deliver to prod at any time
+    * produce software in short cycle
+    * automatic deployment
+    * build, test and release
+* Tools to use
+    * Argo
+    * Jenkins
+    * Git CI
+
+### 3.1 CD with ARgo CD
+* Declarative GitOps tool for kubernetes
+* Applucation Deployment and lifecyle Management
+* Argo will at every 3minutes look for changes in the master branch to apply
+
+### 3.2 Big Data Products Deployment Workflow With Argo
+* Use namespaces
+* It is a logical organization in kubernetes
+* FOLLOW THIS README /Users/cassiobolba/Downloads/Big Data on k8s/repository/readme.md
+* VIDEO -> around 01:30
+* connect to clusters
+    * cluster was deployed to cloud via teraform
+* create namespaces
+* download argo
+* install argo via helm
+* create load balancer to get eternal IP
+    * Cloud controller will request
+* when list the cluster (workers or pods?) will see one with external ip
+* this ip is used to acess argo interface
+* then get argo passwrod that is randonly generated
+* create role binding for admin
+* register a cluster
+* register a repository to look for changes 
+* on helm charts folder we find all the helms downloaded from helm repository
+    * this is good to keep working version before reading a new file from repository with not tested changes
+
+PAREI EM 02:01
