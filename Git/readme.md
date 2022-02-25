@@ -228,3 +228,8 @@ git branch
 ```
 git clean -f -d
 ```
+
+## 16. Clone specific Branch
+```
+git clone -b <branchname> <remote-repo-url>
+```
