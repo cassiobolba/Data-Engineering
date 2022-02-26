@@ -374,4 +374,31 @@ Not compare with google serices because they may be cheaper than usign kubernete
 * on helm charts folder we find all the helms downloaded from helm repository
     * this is good to keep working version before reading a new file from repository with not tested changes
 
-PAREI EM 02:01
+## 4. Apache Kafka
+### 4.1 Backbone System for distributed events
+* Create events and send to kafka - Producers
+* Import data as events from DB with connectos - P
+* Create query events and tabels with KSQL - Consumer
+* Read and priocess events - C
+* Export data as events with connectors - C
+    * Migrate data/synch data between DBs
+
+### 4.2 Components & Architecture
+* Topic
+    * like a table
+    * replication factor = replicate the topic to other brokers
+    * Horizontal partition for writes
+* Kafka broker = server or node, orchestrates the storage
+* Cluster = group of brokers
+* Partition Leader = handles all produces requests, receives the writes
+* Partition Follower = Replicates the parittion data from leaders
+* Producer = applciation in your that creates data
+* Consumer = application that read data
+* Consumer Group 
+    * ex: we have a topic with 3 partitions
+    * we can have a group of consumer with 3 conusmers reading the same topic
+    * Kafka will redirect each consumer to a parition
+    * if a 4th consumer is added, it will be idle until a new parition is added
+* 1 parition can handle until 700k resquest per minute, enough for most of bunises 
+
+### 4.3 Kafka on Kubernetes with Strimzi Operator
