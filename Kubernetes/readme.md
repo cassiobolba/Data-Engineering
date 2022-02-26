@@ -402,3 +402,41 @@ Not compare with google serices because they may be cheaper than usign kubernete
 * 1 parition can handle until 700k resquest per minute, enough for most of bunises 
 
 ### 4.3 Kafka on Kubernetes with Strimzi Operator
+* Best way to run kafka on kubernetes in various deployments flavours
+* this is a group of operator that work within kafka
+    * cluster operator
+    * entity 
+    * topic
+    * user
+* It is deployed in kubernetes as a kind : strimzi
+* Operator works as conciliations loops
+* Integrates autoamtically with statefulset
+* Brings Storage types
+    * epehemeral
+    * persistent
+    * JBOD
+* Listener types - how clients connects to a kafka cluster
+    * Route
+    * Load Balancer
+    * Node Port
+    * Ingress
+* Security Option - Perform secure deployment of kafka on kubernetes
+    * ACLs
+    * OAuth
+    * aTLS
+
+#### 4.3.1 Install Strimzi - kafka
+* FOLLOW THIS README /Users/cassiobolba/Downloads/Big Data on k8s/repository/readme.md
+* Line 64
+* VIDEO -> around 02:40
+* steps
+    * add repo strimzi
+    * install helm do kafka-strimzi operator
+    * deploy config maps - to export metrics to grafana and prometeus
+    * Install components
+        * use the app-manifest to deploy, then argo will manage using git ops
+        * the app manifest tell the path where argo will find the yaml yo deploy kafka-broker or kafka-connector for example
+
+## 5. MinIO
+* Kubernetes Native multi-cloud open source Object storage
+* Available in public, hybrid and Private cloud
