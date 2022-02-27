@@ -440,3 +440,39 @@ Not compare with google serices because they may be cheaper than usign kubernete
 ## 5. MinIO
 * Kubernetes Native multi-cloud open source Object storage
 * Available in public, hybrid and Private cloud
+* Compaitble protoco, S3 Object Storage (like amazon)
+* Multi tenant using operator
+* Variety of feature such as gateway to cloud data lakes
+    * like mirror to main cloud providers
+* Cloud native, buitl from scratch
+* Interfaces = client, admin, server, gateway and console
+* Notification = send events by changes, use elasticsearch. kafka, postgres and Redis
+* Gateway = NAS< Azure, S3, HDFS, GCS
+* Have high performance
+
+### 5.1 MinIO Operator Architecture
+* Deploy on Kubernetes
+* Deploy with tenants concept
+    * a tenant for each area of the company, for example
+    * no need for a deployment for each area
+* Kubernetes native
+* Use operator patter (CRD) usign helm chart
+* Resource orchestration
+* Cluster expansion
+* HA
+* S3 Select function
+    * use sql to retrieve subsets of s3 objects
+    * python, spark and presto engine
+* Integrate with all cloud providers using their object storage
+
+### 5.2 MinIO Deployment
+* FOLLOW THIS README /Users/cassiobolba/Downloads/Big Data on k8s/repository/readme.md
+* Line 97
+* VIDEO -> around 03:25
+* helm in deepstorage manifest
+* manifest read helm
+* It deploy only operator
+* The tenants are deploymed manually on UI
+* Steps
+    * apply the line 97
+    * get secret to access ui and ui link here /Users/cassiobolba/Downloads/Big Data on k8s/repository/helm-charts/minio-operator/templates/NOTES.txt
