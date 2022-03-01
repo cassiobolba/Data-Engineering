@@ -27,3 +27,34 @@ docker run ...
 ```
 minikube stop
 ```
+
+## Docker Commands
+```py
+# run a container
+docker run <image name>
+
+# list all container running
+docker ps
+
+# list containers running and ran previouslly
+docker ps -a
+
+# stop container
+docker stop <container name or id>
+
+# recomer container 
+docker rm <image name>
+
+# list docker images downloaded
+docker images
+
+# delete an image
+docker rmi <image name>
+
+# pull image without running
+docker pull <image name>
+
+# run a container in background mode
+docker run -d <container name>
+
+```
