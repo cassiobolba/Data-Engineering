@@ -1,5 +1,8 @@
-# Docker Studies Notes
-## Use docker With minikube + virtualbox
+# Gettin Started With Docker
+## 1. Use docker With minikube + virtualbox
+This is an alternative way of running docker without using docker desktop, which for business purpose is no longer free.   
+For study purpose, you can still use docker desktop.   
+Thank to my workmate Sergei that introduced me to the approach below.
 * Install Docker
 ```
 brew install docker
@@ -28,7 +31,7 @@ docker run ...
 minikube stop
 ```
 
-## Docker Basic Commands
+## 2. Docker Basic Commands
 ```py
 # run a container
 docker run <image name>
@@ -58,7 +61,7 @@ docker pull <image name>
 docker run -d <container name>
 ```
 
-## More run Commands
+## 3. More run Commands
 ```py
 # run specific version of a container with TAG
 # the :4.0 is the tag for the specific version
@@ -72,15 +75,15 @@ docker run -i <my container>
 docker run -it <my container>
 ```
 
-## Port Mapping
+### 3.1 Port Mapping
 * In order to an external user interact with the container (ie: a weserver) we need to indicate in which available port can be open to external access
 IMAGE
 ```py
 docker run -p 80:5000 <web app container>
-# access 
+# access 80 -> docker host port - 5000 -> container port
 ``` 
 
-## Volume Mapping
+### 3.2 Volume Mapping
 * Persist data on docker
 * Docker container has its own filesystem
 * when container is stopped, data is lost
@@ -91,7 +94,7 @@ docker run -v <path on docker host>:<path on container with data to be persisted
 docker run -v /opt/datadir:/var/lib/mysql mysql
 ```
 
-## Inspect Container nad Los
+### 3.3 Inspect Container nad Los
 * find out more details about the container
   * mounts
   * paths
@@ -107,5 +110,48 @@ docker inspect <my container>
 docker logs <my container>
 ```
 
-42:22
-fazer segunda licao
+## 4. Docker Images
+* When to create your own image
+  * when there is no image for your purpose
+  * when need to customize
+* How create an image?
+  * think logically, all you need to run the application:
+    * OS
+    * update repo
+    * install dependencies
+    * install applications (like python)
+    * run the application
+* to create a container image, we use a recipe called dockerfile:
+```dockerfile
+# install os
+FROM Ubuntu
+
+# update repository linux repository
+RUN apt-get update
+# install python
+RUN apt-get install python
+
+# install packages dependencies
+RUN pip install flask
+RUN pip install flask-mysql
+
+# copy files from source location to image
+COPY . /opt/source-code
+
+# define application entrypoint
+ENTRYPOINT FLASK_APP=/opt/source-code/app.py flask run
+```
+* each upper case keywork is an instruction
+* With this file, you can:
+```py
+# build the image from your docker file
+docker build Dockerfile -t location/imagename
+
+# make available on the docker registry
+docker push account-namein-registry/imagename
+```
+* Docker uses layer architecture when building image
+* Run command by command and just add information of the new command on the top of previous command
+* If a layer fails (ie: RUN apt-get install python) docker will cache the 2 previous instructions
+* When running again with fixes, it will start from failed layer
+* Same is true when adding new steps
