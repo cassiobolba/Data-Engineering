@@ -247,3 +247,165 @@ docker run -p 38282:8080 --name blue-app -e APP_COLOR=blue -d kodekloud/simple-w
 ```py
 docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
 ```
+
+## 6. Commands vs Entrypoint
+* Containers a meant to run a task or process, when it finishes, the container exits
+* How to make the container live more:
+* no best way, append command to the run call
+```py
+docker run ubuntu sleep 5
+```
+* Can also add on Dockerfile, but is hardcoded and need to change file
+```dockerfile
+CMD ["sleep","5"]
+```
+* Can also use entrypoint on dockerfile
+  * Entrypoint is the command waiting for argument that will passed on run command
+```dockerfile
+ENTRYPOINT ["sleep"] 
+# then when running the image:
+docker run my-sleep-entrypoint-image 10
+```
+* Entrypoint will run sleep 10 command
+* And if not specify a parameter? error. To solve, add a cmd default:
+  * if no parameter, it will use sleep 5
+```dockerfile
+ENTRYPOINT ["sleep"] 
+CMD ["5"]
+```
+* To overide the entrypoint command:
+```py
+docker run --entrypoint sleep2.0 my-sleep-entrypoint-image 10
+```
+
+## 7. Docker Compose
+* yaml
+* Compose more complex application with different source images
+* All containers must be running in the same docker host
+* Sample application used here is a voting application to vote on cats and dogs
+  * https://github.com/mmumshad/example-voting-app
+* we assume all images were already deployed
+
+IMAGE VOTING APPLICATION
+
+* If deploy each container with simple docker run command, the containers will not talk to each other
+```py
+# name all containers to map them
+# deploy in memory db in detached mode
+docker run -d --name=redis redis
+
+# deploy db in detached mode
+docker run -d --name=db postgres
+
+# deploy python voting app
+# expose ports and add link to redis. In the python file, there is a paramenter looking for redis conn
+docker run -d --name=vote -p 5000:80  --link redis:redis voting-app
+
+# deploy the results app, also map the port to external
+# result app also is looking for a db link
+docker run -d --name=result -p --link db:db 5001:80 result-app
+
+# deploy the processgin worker node
+# worker need to connect to both dbs
+docker run -d --name=worker --link db:db --link redis:redis worker
+```
+* There is a better way to build it all at once: CREATE A docker-compose.yml file
+```yaml
+redis:
+  image: redis
+
+db:
+  image:postgres
+
+vote:
+  image: voting-app
+  ports:
+    - 5000:80
+  links:
+    - redis
+
+result:
+  image: result-app
+  ports:
+    - 5001:80
+  links:
+    - db
+
+worker:
+  image: worker
+  links:
+    - redis
+    - db
+```
+* In case i did not build my images previously, I cans ask docker-compose to build it. For example, if the voting-app was not built:
+```yaml
+vote:
+  # the vote directory must contain a docker file and should be in the same folder as docker-compos
+  build: ./vote
+  ports:
+    - 5000:80
+  links:
+    - redis
+```
+* Build the images
+```py
+docker-compose -f docker-compose-file.yml build
+```
+
+### 7.1 Docker compose Versions
+* Docker compose versions
+
+IMAGE
+
+* Main differences
+  * versions 1 dont need to specify vesion, other up do
+  * version 2 and 3 ask to declare images under services key name, so it creates a network and connect all containers
+  * so, 2 and 3 do not need to add links, it is automatically generated
+  * version 2 added the concep on depends on, to oder image build od deployment
+  * version 3 added support to kubernetes (docker swarm)
+
+### 7.2 Networks
+* Can create specific netwroks to separate traffic
+* our application can be divided in frontend and backend networks:
+  * upgrade compose to version 2
+  * no need to create links
+```yaml
+version: 2
+services:
+  redis:
+    image: redis
+    networks:
+      - backend
+
+  db:
+    image:postgres
+    networks:
+      - backend
+
+  vote:
+    image: voting-app
+    ports:
+      - 5000:80
+    networks:
+      - backend
+      - frontend
+
+  result:
+    image: result-app
+    ports:
+      - 5001:80
+    networks:
+      - backend
+      - frontend
+
+  worker:
+    image: worker
+    networks:
+      - backend
+      - frontend
+
+networks:
+  frontend:
+  backend:
+
+```
