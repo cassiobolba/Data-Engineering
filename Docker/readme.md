@@ -155,3 +155,95 @@ docker push account-namein-registry/imagename
 * If a layer fails (ie: RUN apt-get install python) docker will cache the 2 previous instructions
 * When running again with fixes, it will start from failed layer
 * Same is true when adding new steps
+
+### 4.1 Building an Image interatively and Conver to a dockerfile
+Example used will be https://github.com/mmumshad/simple-webapp-flask/blob/master/Dockerfile
+* Open your command line
+```py
+# run the image you want in iteractive mode + terminal, you will be inside a container isolated
+docker run -it ubuntu
+
+# update apt, install python and pip
+apt-get update && apt-get install -y python3 python3-pip
+
+# install flask
+pip install flask
+
+# go to python source code in the repository and copy
+cat > /opt/app.py 
+# paste the code and crtl + c to exit and save
+
+# start the server
+FLASK_APP=/opt/app.py flask run --host=0.0.0.0
+# crtl + c to exit
+```
+your flask application should be running.   
+Now, copy the history into a new docker file
+```py
+# get history
+history
+
+# get out the ubuntu and create a docker file looking at the strunctions
+mkdir my-image
+cd my-image
+cat > dockerfile
+```
+or, do it via explorer folder also
+```dockerfile
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y python python-pip
+RUN pip install flask
+COPY app.py /opt/
+ENTRYPOINT FLASK_APP=/opt/app.py flask run --host=0.0.0.0 --port=8080
+```
+Before build, create the app.py in the same folder.   
+Build the image
+```py
+# -t is to tag a name to the image
+docker build . -t my-simple-app
+
+# check the image
+docker images
+
+# run it
+docker run my-simple-app
+
+# push it to docker hub
+# to do it, must tag the image with your account
+docker build . -t MY-USER/my-simple-app
+
+# login
+docker login
+# pass your credentials
+
+# push it
+docker push MY-USER/my-simple-app
+# go to your account in docker hub and chek your image
+```
+
+## 5. Environment Variables
+Sometimes need to pass something dinamically to container on executions time. This is done via Env vars.   
+* On the python app.py
+```py
+import os
+
+color = os.environ.get('APP_COLLOR')
+...
+```
+* Now, pass the variable on running time:
+```py
+docker run -e APP_COLOR=blue <image name>
+```
+* Can check variables o running container by using the inspect command
+```py
+docker inspect <my container>
+```
+### 5.1 Other Runs
+* run container, pass env var, name the container, map the port
+```py
+docker run -p 38282:8080 --name blue-app -e APP_COLOR=blue -d kodekloud/simple-webapp
+```
+* run my sql renaming and using password
+```py
+docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=db_pass123 mysql
+```
