@@ -94,7 +94,7 @@ docker run -v <path on docker host>:<path on container with data to be persisted
 docker run -v /opt/datadir:/var/lib/mysql mysql
 ```
 
-### 3.3 Inspect Container nad Los
+### 3.3 Inspect Container and Logs
 * find out more details about the container
   * mounts
   * paths
@@ -105,7 +105,7 @@ docker run -v /opt/datadir:/var/lib/mysql mysql
 ```py
 docker inspect <my container>
 ```
-* to find logs from conaiter running in background
+* to find logs from container running in background
 ```py
 docker logs <my container>
 ```
@@ -156,7 +156,7 @@ docker push account-namein-registry/imagename
 * When running again with fixes, it will start from failed layer
 * Same is true when adding new steps
 
-### 4.1 Building an Image interatively and Conver to a dockerfile
+### 4.1 Building an Image interatively and Convert to a dockerfile
 Example used will be https://github.com/mmumshad/simple-webapp-flask/blob/master/Dockerfile
 * Open your command line
 ```py
