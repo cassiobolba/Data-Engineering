@@ -303,7 +303,7 @@ docker run -d --name=vote -p 5000:80  --link redis:redis voting-app
 
 # deploy the results app, also map the port to external
 # result app also is looking for a db link
-docker run -d --name=result -p --link db:db 5001:80 result-app
+docker run -d --name=result --link db:db -p 5001:80 result-app
 
 # deploy the processgin worker node
 # worker need to connect to both dbs
@@ -381,6 +381,10 @@ services:
     image:postgres
     networks:
       - backend
+    #POSTGRES IMAGE require a super user variable to initiate the db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
   vote:
     image: voting-app
