@@ -413,3 +413,37 @@ networks:
   backend:
 
 ```
+
+## 8. Docker Engine, Storage
+* Docker Engine is a host with docker installed on it
+* If installing in a linux host, you install 3 components:
+  * Docker CLI: cli to perform actions
+  * REST API: interface to talk to deamoins and provide instructions
+  * Docker Daemon: background process mananging images, links, networks...
+* Docker CLI can be in a nother host and talk remotel;ly to a docker engine in another host
+
+### 8.1 Containerizations
+* Uses namespace approach
+* A namespace consume resources and process from the underlying host but with its own identification
+
+IMAGE 
+
+* A namespace contains:
+  * Process ID (which is related to a process id from underlying host)
+  * Unix Timesharing
+  * Network
+  * Mount
+  * Interprocess
+
+### 8.2 cgroups
+* host and containers share same resources
+* default there is no restriction on how much a container can consume resources from docker host
+* cgroups (control groups) are used to retrict the usage
+* use parameters like:
+```py
+# restrict cpus
+docker run --cpu=.5 ubuntu
+
+# retrict memory
+docker run --memory=100m ubuntu
+```
