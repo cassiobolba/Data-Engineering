@@ -447,3 +447,40 @@ docker run --cpu=.5 ubuntu
 # retrict memory
 docker run --memory=100m ubuntu
 ```
+### 8.3 Docker Storage
+* Docker install data on file system -> /var/lib/docker
+  * images, container, and volumes are inside this path
+* remember, docker is build on a layer basis (every command is a layer) and the layers are reused.
+* when running an image, it build all layers plus a container layer on the top
+  * image layers are read only
+  * container layer is read write -> THIS IS WHERE DATA CREATED BY THE APP LIVES
+
+IMAGE CONTAINER LAYER
+
+* everything stored in container layer is removed when container stoped
+
+### 8.4 Volumes
+* Used to persist data from containers, in case want to save it
+* when running a container, use -v parameter to persist
+```py
+docker run -v data_volume=/var/lib/mysql mysql
+```
+* this command will
+  * create a volume called data_volume (can change the name)
+  * the volume will be on the host at /var/lib/docker/volumes 
+  * the path mapped to mysql is standard because mysql is installed in that path
+  * if the data_volume was not previosuly created on the volumes folder, it will automatically create
+* This was the volume mount
+* there is also no bind mount, that allows to choose anyplace on the docker host to save the data
+* use the mount command to use it
+* it is highly recommened to use the mount command also to run volume mount, because it is easier to read
+```py
+docker run --mount type=bind , source=/data/mysql, target=/var/lib/mysql mysql
+```
+* type can be volume or bind
+* source is the location on the host you want your data to live
+* targe is the data from container to be persited
+
+IMAGE DOCKER VOLUMES
+
+* the storage drivers are responsible to manage this data transfer between container and host
