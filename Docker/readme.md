@@ -484,3 +484,34 @@ docker run --mount type=bind , source=/data/mysql, target=/var/lib/mysql mysql
 IMAGE DOCKER VOLUMES
 
 * the storage drivers are responsible to manage this data transfer between container and host
+
+## 9 Docker Networking
+When install docker, 3 default networks are created
+* bridge:
+  * all containers can comunicate with each other via internal ip
+  * to expose a container to exterior, map the container port to host port
+  * all containers all deploy to this by default
+* Nonee:
+  * isolated network, do noot communicate
+  * --network=none
+* Host:
+  * Coontainers are deployed in the host network, but the port cant be reused
+  * --network=host
+
+### 9.1 User Defined Networks
+* separate container in different networks for isolation
+* network commands
+```py
+# list networks
+docker network ls 
+
+#create network
+docker network create --driver bridge --subnet 182.18.0.0/16 my-network
+
+# verify the network of a caontainer
+docker inspect container_name
+# check on network section for more info
+
+# inpsect the neetwork properties
+docker network inspect my-network
+```
