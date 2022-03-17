@@ -515,3 +515,16 @@ docker inspect container_name
 # inpsect the neetwork properties
 docker network inspect my-network
 ```
+
+### 9.2 neetwork exercise
+Deploy a web application named webapp using the kodekloud/simple-webapp-mysql image. Expose the port to 38080 on the host.   
+
+The application makes use of two environment variable:   
+1: DB_Host with the value mysql-db.    
+2: DB_Password with the value db_pass123.   
+Make sure to attach it to the newly created network called wp-mysql-network.   
+
+Also make sure to link the MySQL and the webapp container.   
+```py
+docker run --network=wp-mysql-network -e DB_Host=mysql-db -e DB_Password=db_pass123 -p 38080:8080 --name webapp --link mysql-db:mysql-db -d kodekloud/simple-webapp-mysql
+```
