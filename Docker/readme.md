@@ -528,3 +528,43 @@ Also make sure to link the MySQL and the webapp container.
 ```py
 docker run --network=wp-mysql-network -e DB_Host=mysql-db -e DB_Password=db_pass123 -p 38080:8080 --name webapp --link mysql-db:mysql-db -d kodekloud/simple-webapp-mysql
 ```
+
+## 10 Docker Registry
+* Central repository of docker images
+* every time pull image just by name, it is actaully pulling from public docker hub
+* When using image: nginx, it is actually this that is happening:
+```docker
+image: docker.io/nginx/nginx
+```
+* docker.io -> docker registry, can be other, like google - gcr.io (if not provided it assumes it is docker.io)
+* nginx -> user owner of the image (if not provided it assumes it is equal to image name)
+* nginx -> image name
+
+### 10.1 Private Registry
+* Cloud providers offer a registry just for your company
+* usually you need to:
+```py
+# login in the regitry and provide credentials
+docker login private-registry.io
+
+# run using that registry
+docker run private-registry.io/apps/internal-app
+```
+
+### 10.2 Deploy Private Registry
+* How to deploy a local docker registry?
+* with docker registry you can download the image offering the service that acts as host **registry:2**
+```py
+# start the container hosting the local doker registry
+docker run -d -p 5000:5000 --name registry registry:2
+
+# tag the image to the private registry and
+docker image tag my-image localhost:5000/my-image
+
+# push the image to the local registry
+docker push localhost:5000/my-image
+
+# now can use from anywhere in the local or via the IP (for whom have acess to it)
+docker pull localhost:5000/my-image
+docker pull 192.168.56.100:5000/my-image
+```
