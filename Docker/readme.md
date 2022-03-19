@@ -542,6 +542,7 @@ image: docker.io/nginx/nginx
 
 ### 10.1 Private Registry
 * Cloud providers offer a registry just for your company
+* Can also build a registry locally and share
 * usually you need to:
 ```py
 # login in the regitry and provide credentials
@@ -568,3 +569,9 @@ docker push localhost:5000/my-image
 docker pull localhost:5000/my-image
 docker pull 192.168.56.100:5000/my-image
 ```
+
+## 11 Container Orchestration
+* Docker run a single instance of the application on the docker host
+* If need more instances to scale, need to run manually more run commands and monitor failures and performance manually. Not practical
+* Orchestration tool usually runs many hosts and takes care of everything mentioned before: Monitor, health, load balancing, security, scalability
+* Docker Swar, Kubernetes, Mesos -> few examples of container orchestration tools
