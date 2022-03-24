@@ -34,3 +34,22 @@
 image dbt_and_alatycs_engineer
 
 ### 1.4 The Modern Data Stack
+
+image modern_data_platform
+
+* We have various data sources
+* These data need to arrive to the company data platform
+* Can be done by python, cloud services (many options)
+* Data platform serve data to Bi tools
+* dbt enters in the Data Platform
+
+image dbt_workflow
+
+* dbt allows:
+    * develop data transformations focused on sql modules (sql selects basically)
+    * create tests (unique pk, not null values) and reuse the tests
+    * document the data transformations while you write the code
+    * deploy the data to data platform for bi purposes mantaining the data lineage documenteded
+    * create test pipelines and schedule periodically tests
+    * dbt is the T in ELT platforms
+    * dbt empowers data teams to leverage software engineering principles for transforming data
