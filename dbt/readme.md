@@ -53,3 +53,9 @@ image dbt_workflow
     * create test pipelines and schedule periodically tests
     * dbt is the T in ELT platforms
     * dbt empowers data teams to leverage software engineering principles for transforming data
+
+## 2. Setup DBT
+create free accounts on:
+* dbt cloud
+* a cloud dw provider (BQ and snowgflake are recomended)
+* git hub account
