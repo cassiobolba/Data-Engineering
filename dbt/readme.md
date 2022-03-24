@@ -54,8 +54,19 @@ image dbt_workflow
     * dbt is the T in ELT platforms
     * dbt empowers data teams to leverage software engineering principles for transforming data
 
-## 2. Setup DBT
+## 2. Setup DBT 
 create free accounts on:
-* dbt cloud
-* a cloud dw provider (BQ and snowgflake are recomended)
-* git hub account
+* dbt cloud -> https://www.getdbt.com
+* a cloud dw provider (BQ and snowflake are recomended) -> https://snowflakecommunity.force.com/s/
+* git hub account -> https://github.com
+* Create databases and schema with script **insert_sf_dbt_training_data.sql**
+
+### 2.2 Set Up DBT Cloud
+* go to your project in dbt 
+* go the add a new database - Ill be usgin snowflake
+* fill the following info:
+    * account (in snowflake panel, under organization)
+    * database (for this demo is Analytics - we created via sql before)
+    * warehouse (for this demo is transforming - we created via sql before)
+    * then fill user ans password
+    * hit test to check, then finalize
