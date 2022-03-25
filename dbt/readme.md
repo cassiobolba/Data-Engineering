@@ -65,8 +65,25 @@ create free accounts on:
 * go to your project in dbt 
 * go the add a new database - Ill be usgin snowflake
 * fill the following info:
-    * account (in snowflake panel, under organization)
+    * account (in snowflake panel, under organization) 
+        * it can be tricky
+        * I used instead the account the locator and the cloud region
+        * *MF58790.eu-central-1*
+        * Also went to the schema and granted the provileges 'CREATE SCHEMA' and 'USAGE' in the analytcs schema to the role account admin
+        * docs for this -> https://docs.getdbt.com/reference/warehouse-profiles/snowflake-profile
     * database (for this demo is Analytics - we created via sql before)
     * warehouse (for this demo is transforming - we created via sql before)
-    * then fill user ans password
+    * then fill user ans password from snowflake
     * hit test to check, then finalize
+
+### 2.3 Set Up the Git Repository
+* Create a repository in your git account
+* Allow dbt accesing the repo if first time
+* then add a repo or all repos to your profile
+* go to hamburger on top left > home > select the account your using in case more tahn one > continue 
+* select git hub again > find the repo you created for this project > continue and continue
+* hit start developing
+* hit initialize your project -> it will create all necessary files and projects
+* hit commit to push it to master and transform in a dbt repo
+* create a branch to start dev environment and start making changes
+
