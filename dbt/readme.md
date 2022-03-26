@@ -183,11 +183,64 @@ In working on this project, we established some conventions for naming our model
 * **Dimension** (dim) refers to data that represents a person, place or thing. Examples include customers, products, candidates, buildings, employees.
 Note: The Fact and Dimension convention is based on previous normalized modeling techniques.
 
-Reorganize Project
-When dbt run is executed, dbt will automatically run every model in the models directory.
-The subfolder structure within the models directory can be leveraged for organizing the project as the data team sees fit.
-This can then be leveraged to select certain folders with dbt run and the model selector.
-Example: If dbt run -s staging will run all models that exist in models/staging. (Note: This can also be applied for dbt test as well which will be covered later.)
-The following framework can be a starting part for designing your own model organization:
-Marts folder: All intermediate, fact, and dimension models can be stored here. Further subfolders can be used to separate data by business function (e.g. marketing, finance)
-Staging folder: All staging models and source configurations can be stored here. Further subfolders can be used to separate data by data source (e.g. Stripe, Segment, Salesforce). (We will cover configuring Sources in the Sources module)
+### 3.6 Reorganize Project
+* When dbt run is executed, dbt will automatically run every model in the models directory.
+* The subfolder structure within the models directory can be leveraged for organizing the project as the data team sees fit.
+* This can then be leveraged to select certain folders with dbt run and the model selector.
+* Example: If dbt run -s staging will run all models that exist in models/staging. (Note: This can also be applied for dbt test as well which will be covered later.)
+* The following framework can be a starting part for designing your own model organization:
+    * Marts folder: All intermediate, fact, and dimension models can be stored here. Further subfolders can be used to separate data by business function (e.g. marketing, finance)
+    * Staging folder: All staging models and source configurations can be stored here. Further subfolders can be used to separate data by data source (e.g. Stripe, Segment, Salesforce). (We will cover configuring Sources in the Sources module)
+* Create the following Structure:
+```
+dbt-learn
+├── analysis
+├── dbt_modules
+├── logs
+├── macros
+├── models
+    └── marts
+        └── core
+            └── dim_customers.sql  
+    └── staging
+        └── jaffle_shop
+            ├── stg_customers.sql
+            └── stg_orders.sql 
+├── snapshots
+├── target
+├── tests
+├── .gitignore
+├── dbt_project.yml
+└── README.md
+```
+* Also, instead of declaring the table materialization type in sql model file, we can do that no the dbt_project.yml
+* Go to the file and replace the example settings below module (all above remains the same)
+```yml 
+models:
+  jaffle_shop:
+    # Applies to all files under models/jaffle_shop/
+    marts:
+      core:
+        +materialized: table
+    staging:
+      +materialized: view
+```      
+### 3.7 Practice
+#### 3.7.1 Building a fct_orders Model
+
+* Use a statement tab or Snowflake to inspect raw.stripe.payment
+* Create a stg_payments.sql model in models/staging/stripe
+* Create a fct_orders.sql (not stg_orders) model with the following fields.  Place this in the marts/core directory.
+    * order_id
+    * customer_id
+    * amount (hint: this has to come from payments)
+
+#### 3.7.2 Refactor your dim_customers Model
+* Add a new field called lifetime_value to the dim_customers model:
+    * lifetime_value: the total amount a customer has spent at jaffle_shop
+    * Hint: The sum of lifetime_value is $1,672
+
+#### Answers om files:
+* fct_orders.sql
+* stg_payments.sql
+* dim_customer-3.sql
