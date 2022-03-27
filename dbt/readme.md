@@ -246,3 +246,36 @@ models:
 * dim_customer-3.sql
 
 ## 4. Sources
+### 4.1 What are Sources?
+* Sources represent the raw data that is loaded into the data warehouse.
+* We can reference tables in our models with an explicit table name (raw.jaffle_shop.customers)
+* However, setting up Sources in dbt and referring to them with the source function enables a few important tools.
+    * Multiple tables from a single sources can be configured in one place.
+    * Sources are easily identified as green nodes in the Lineage Graph.
+    * You can use dbt source freshness to check the freshness of raw tables.
+* Sources make easyto change data location in case they move schema. Just change the source path in the yml file, and then all queries (models) using that source will automatically be adjusted
+
+### 4.2 Configure and Select from Sources
+* official doc for sources https://docs.getdbt.com/reference/source-properties
+* Sources are configured in YML files in the models directory.
+* The following code block configures the table raw.jaffle_shop.customers and raw.jaffle_shop.orders:
+```yml
+version: 2
+
+sources:
+  - name: jaffle_shop
+    database: raw
+    schema: jaffle_shop
+    tables:
+      - name: customers
+      - name: orders
+```
+* Create a file under modesl/stagins/jaffle_sjop called src_jaffle_shop.yml like the the code above (and like the sample file in this directory).
+
+### 4.2.1 Configure Select from Source
+* The ref function is used to build dependencies between models.
+* Similarly, the source function is used to build the dependency of one model to a source.
+* Given the source configuration above, the snippet {{ source('jaffle_shop','customers') }} in a model file will compile to raw.jaffle_shop.customers.
+* The Lineage Graph will represent the sources in green.
+* On the stg_customers and orders, change the hardcoded table name to source
+* In these files, it is the commented lines
