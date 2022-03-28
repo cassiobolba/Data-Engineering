@@ -279,3 +279,143 @@ sources:
 * The Lineage Graph will represent the sources in green.
 * On the stg_customers and orders, change the hardcoded table name to source
 * In these files, it is the commented lines
+
+### 4.3 Source Freshness
+* Freshness thresholds can be set in the YML file where sources are configured. For each table, the keys loaded_at_field and freshness must be configured.
+```yml
+version: 2
+
+sources:
+  - name: jaffle_shop
+    database: raw
+
+    schema: jaffle_shop
+    tables:
+      - name: orders
+        loaded_at_field: _etl_loaded_at # the field is from your data source
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+```
+* A threshold can be configured for giving a warning and an error with the keys warn_after and error_after.
+* Add the freshness part into the src_jaffle_shop.yml as in the snipet above
+* The freshness of sources can then be determine with the command dbt source freshness.
+
+### 4.4 Source Practice
+* Configure your Stripe payments data to check for source freshness.
+* Run dbt source freshness.
+* the result is a new file modesl/stagins/stripe/src_stripe.yml as in this repo
+
+## 5. Testing
+### 5.1 Why testing?
+* Testing is used in software engineering to make sure that the code does what we expect it to.
+* In Analytics Engineering, testing allows us to make sure that the SQL transformations we write produce a model that meets our assertions.
+* In dbt, tests are written as select statements. These select statements are run against your materialized models to ensure they meet your assertions.
+
+### 5.2 Testing in DBT 
+* In dbt, there are two types of tests - schema tests and data tests:
+    * **Generic tests** are written in YAML and return the number of records that do not meet your assertions. These are run on specific columns in a model.
+    * **Specific tests** are specific queries that you run against your models. These are run on the entire model.
+
+### 5.3 Generic Testing
+* dbt ships with four built in tests: unique, not null, accepted values, relationships.
+    * **Unique** tests to see if every value in a column is unique
+    * **Not_null** tests to see if every value in a column is not null
+    * **Accepted_values** tests to make sure every value in a column is equal to a value in a provided list
+    * **Relationships** tests to ensure that every value in a column exists in a column in another model (see: referential integrity)
+* Generic tests are configured in a YAML file, whereas specific tests are stored as select statements in the tests folder.
+* Lets create a teat for some tables on jaffle_shop model
+* Create a new file models/staging/jaffle_shop/stg_jaffle_shop.yml as the file with same name in this repo
+* run dbt test to check
+* Code sample also below:
+```yml
+version: 2
+
+models:
+  - name: stg_customers #model name - sql file
+    columns: # columns in the model to apply test
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values:
+                - completed
+                - shipped
+                - returned
+                - return_pending
+                - placed
+```
+### 5.4 Singular Testing
+* Test a particular model against a specific condition not valid for all models
+* Create a new file under tests folder tests/assert_positive_total_for_payments.sql
+* We want to check if some order have a total value negative, which would be wrong
+* The file is in this repo, with the code below:
+```sql
+select
+    order_id,
+    sum(amount) as total_amount
+from {{ ref('stg_payments') }}
+group by 1
+having not(total_amount >= 0)
+```
+* dbt Commands to test
+    * Execute dbt test to run all generic and singular tests in your project.
+    * Execute dbt test --select test_type:generic to run only generic tests in your project.
+    * Execute dbt test --select test_type:singular to run only singular tests in your project.
+
+### 5.5 Test Sources
+* Can also test sources using singular or generic tests
+* Lets add some tests on jaffle_shop model, by modifying models/staging/jaffle_shop/src_jaffle_shop.yml
+* Use the file src_jaffle_shop-3.yml in this repo, with the code below:
+```yml
+version: 2
+
+sources:
+  - name: jaffle_shop
+    database: raw
+    schema: jaffle_shop
+    tables:
+      - name: customers
+        columns:
+          - name: id
+            tests:
+              - unique
+              - not_null
+            
+      - name: orders
+        columns:
+          - name: id
+            tests:
+              - unique              
+              - not_null
+        loaded_at_field: _etl_loaded_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+```
+* To test it, can run 
+    * dbt test --select source:jaffle_shop
+### Practice
+* Add a relationships test to your stg_orders model for the customer_id in stg_customers.
+* Add on the fiule stg_jaffle_shop.yml the below code, as a new column check in the stg_orders model
+```yml
+...<rest of code above>
+      - name: customer_id
+        tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+```
+* Or, use replace with full file stg_jaffle_shop-4.yml
+
+## 6. Documentation
