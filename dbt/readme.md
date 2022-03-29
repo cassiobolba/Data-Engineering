@@ -419,3 +419,135 @@ sources:
 * Or, use replace with full file stg_jaffle_shop-4.yml
 
 ## 6. Documentation
+* Documentation is essential for an analytics team to work effectively and efficiently. Strong documentation empowers users to self-service questions about data and enables new team members to on-board quickly.
+* Documentation often lags behind the code it is meant to describe. This can happen because documentation is a separate process from the coding itself that lives in another tool.
+* Therefore, documentation should be as automated as possible and happen as close as possible to the coding.
+* In dbt, models are built in SQL files. These models are documented in YML files that live in the same folder as the models.
+
+### 6.1 Writing documentation and doc blocks
+* Documentation of models occurs in the YML files (where generic tests also live) inside the models directory. It is helpful to store the YML file in the same subfolder as the models you are documenting.
+* For models, descriptions can happen at the model, source, or column level.
+* If a longer form, more styled version of text would provide a strong description, doc blocks can be used to render markdown in the generated documentation.
+* You can document columns and tables on your yml model declaration
+    * just add a parameter called description: my description below every model or column name like example below and file stg_jaffle_shop-2.yml
+```yml
+version: 2
+
+models:
+  - name: stg_customers
+    description: my description table
+    columns: 
+      - name: customer_id
+        description: my description column
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_orders
+    description: my description table
+    columns:
+      - name: order_id
+        description: my description column
+        tests:
+          - unique
+          - not_null
+      - name: status
+        description: my description column
+        tests:
+          - accepted_values:
+              values:
+                - completed
+                - shipped
+                - returned
+                - return_pending
+                - placed
+      - name: customer_id
+        description: my description column
+        tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+```
+#### 6.1.1 Doc Blocks
+* Can create MD files that can be referred in the documentation
+* Live the code below is table to be included in the doc for order_status, bu referencing using {% docs order_status %}
+* the file is in this repo with the name jaffle_shop.md
+* Multiple docs for columns and tables be in the same doc bloc
+```md
+{% docs order_status %}
+	
+One of the following values: 
+
+| status         | definition                                       |
+|----------------|--------------------------------------------------|
+| placed         | Order placed, not yet shipped                    |
+| shipped        | Order has been shipped, not yet been delivered   |
+| completed      | Order has been received by customers             |
+| return pending | Customer indicated they want to return this item |
+| returned       | Item has been returned                           |
+
+{% enddocs %}
+```
+* Now need to call the doc bloc within a description for a column (in this case) or a table in the description
+* In the description of status column we refer the docs
+```yml
+...
+
+ - name: stg_orders
+    description: "{{ doc('order_status') }}" #must be double quoted
+    columns:
+      - name: status
+        description: my description column
+        tests:
+          - accepted_values:
+              values:
+                - completed
+                - shipped
+
+                ...
+```
+### 6.2 Documenting Sources
+* Before we added description to columns and models in stg_jaffle_shop.yml
+* Can document the source table in the src_jaffle_shop.yml like below 
+* Reference to src_jaffle_shop-4.yml in this repo
+```yml
+version: 2
+
+sources:
+  - name: jaffle_shop
+    description: A clone of a Postgres application database.
+    database: raw
+    schema: jaffle_shop
+    tables:
+      - name: customers
+        description: Raw customers data.
+        columns:
+          - name: id
+            description: Primary key for customers.
+            tests:
+              - unique
+              - not_null
+
+      - name: orders
+        description: Raw orders data.
+        columns:
+          - name: id
+            description: Primary key for orders.
+            tests:
+              - unique
+              - not_null
+        loaded_at_field: _etl_loaded_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+```
+* save and run *dbt docs generate*
+
+### 6.3 Generating and viewing documentation
+* In the command line section, an updated version of documentation can be generated through the command dbt docs generate. This will refresh the `view docs` link in the top left corner of the Cloud IDE.
+* The generated documentation includes the following:
+    * Lineage Graph
+    * Model, source, and column descriptions
+    * Generic tests added to a column
+    * The underlying SQL code for each model
+    * and more...
