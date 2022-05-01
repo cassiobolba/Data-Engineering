@@ -233,3 +233,21 @@ git clean -f -d
 ```
 git clone -b <branchname> <remote-repo-url>
 ```
+## 17. Revert to a Specific Commit
+* Go to the GIT UI and find the commit to be back
+* Or, find the commit number via logs
+* Ommit the --online if want to see the full log
+``` 
+ git log --oneline
+```
+* With the commit hash in hands:
+ * checkout to the commit id
+ * add the changes
+ * commit and push again to branch or master
+```sh
+git checkout <commit-id> . 
+git add .
+git commit -m "Reverting to <commit-id>"
+git push
+```
+
