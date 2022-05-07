@@ -52,7 +52,56 @@ ARCHITECTURE IMAGE
 * Core use both files and communicate with providers to map the desired state according to the service to be deployes
 * There are currently more than a 100 providers
 
+### 2.3 Setup
+* Install Terraform
+    * Official installation instructions from HashiCorp: https://learn.hashicorp.com/tutorials/terraform/install-cli
+* AWS Account Setup
+    * AWS Terraform provider documentation: https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication
+    * create non-root AWS user in IAM
+    * Add the necessary IAM roles (e.g. AmazonEC2FullAccess)
+        * AmazonRDSFullAccess
+        * AmazonEC2FullAccess
+        * IAMFullAccess
+        * AmazonS3FullAccess
+        * AmazonDynamoDBFullAccess
+        * AmazonRoute53FullAccess
+    * Save Access key + secret key (or use AWS CLI aws configure -- https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 
+* I installed:
+    * brew install terraform
+* Install AWS CLI https://aws.amazon.com/cli/
+* After go to your preferred folder and config the aws cli:
+    * type aws configure
+    * pass the asked values (we got from previous step)
+    * choose your default region and output format as json
+    * All configured
+
+### 2.4 First Terraform Deployment
+* In folder first-tf-deployment/main.tf there is the minimal version a of a terraform deployment
+```json
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-011899242bb902164" # Ubuntu 20.04 LTS // us-east-1
+  instance_type = "t2.micro"
+}
+```
+* go to the folder with the main.tf and run
+* terraform init - this initialize the terraform backend
+* terraform plan - This will show the current state and the final state after you aplpy it
+* terraform apply - create instances
+* terraform destroy - clean up everything
 ## 03 - Basics
 Covers main usage pattern, setting up remote backends (where the terraform state is stored) using terraform Cloud and AWS, and provides a naive implementation of a web application architecture.
 
