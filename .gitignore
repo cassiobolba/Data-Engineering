@@ -1,3 +1,6 @@
 /Users/cassiobolba/Documents/GitHub/Data-Engineering/Terraform/first-tf-deployment/.terraform
 /Users/cassiobolba/Documents/GitHub/Data-Engineering/Terraform/first-tf-deployment/.terraform.lock.hcl
 /Users/cassiobolba/Documents/GitHub/Data-Engineering/Terraform/first-tf-deployment/terraform.tfstate.backup
+Terraform/first-tf-deployment/.terraform.lock.hcl
+Terraform/first-tf-deployment/.terraform/providers/registry.terraform.io/hashicorp/aws/3.75.1/darwin_amd64/terraform-provider-aws_v3.75.1_x5
+Terraform/first-tf-deployment/terraform.tfstate.backup
