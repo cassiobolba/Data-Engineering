@@ -141,6 +141,7 @@ Covers main usage pattern, setting up remote backends (where the terraform state
     * locks are used to take advantage of atomic guarantee from dynamo that only one transaction will happen at a moment
     * one transaction need to be finished before other start. This assure 2 terraform commands will not run together and try to change states
 * to create an AWs backend, add this section inside terraform on main.tf 
+    * see file in folder 3-remote-backend
 ```json
 terraform {
     backend "s3" {
@@ -152,6 +153,76 @@ terraform {
     }
 }
 ```
+### 3.6 Setup Remote Backend
+* This is a trick, how to setup a remote backend that needs a bucket and db that still not exist?
+* Usually we first deploy from local without specifyng the resources
+    * dynamo db + s3 bucket
+* first we wun with the section below commented, after deploy we can uncomment and refer the back end
+```json
+terraform {
+  #############################################################
+  ## AFTER RUNNING TERRAFORM APPLY (WITH LOCAL BACKEND)
+  ## YOU WILL UNCOMMENT THIS CODE THEN RERUN TERRAFORM INIT
+  ## TO SWITCH FROM LOCAL BACKEND TO REMOTE AWS BACKEND
+  #############################################################
+  # backend "s3" {
+  #   bucket         = "devops-directive-tf-state" # REPLACE WITH YOUR BUCKET NAME
+  #   key            = "03-basics/import-bootstrap/terraform.tfstate"
+  #   region         = "us-east-1"
+  #   dynamodb_table = "terraform-state-locking"
+  #   encrypt        = true
+  # }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "terraform_state" {
+  bucket        = "devops-directive-tf-state" # REPLACE WITH YOUR BUCKET NAME
+  force_destroy = true
+  versioning {
+    enabled = true
+  }
+
+  server_side_encryption_configuration {
+    rule {
+    # ecnryption
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+resource "aws_dynamodb_table" "terraform_locks" {
+  name         = "terraform-state-locking"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID" # important to be like this
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
+```
+### 3.7 Web App project
+IMAGE ARCHITECTURE
+
+* Amazon Route S3 -> used to ope the ports and receive external traffic
+* Elastic Load Balancing -> it receives the traffic request and balance to most avalaiable instance
+* Amazon EC2 -> Deployed a group of 2 Compute instances that returns a message
+* S3 -> sample, not really used in this architecture
+* Amazon RDS -> sample, not really used in this architecture
+
+After all deployed, since we do not own the domain and cant route the amazon route domain to our owned domain we can test the deployment by going to Load Balancer and pasting ist link on the url. Refresh a couple times and see it balancing to different EC2
+
 
 ## 04 - Variables and Outputs
 Introduces the concepts of variables which enable Terraform configurations to be flexible and composable. Refactors web application to use these features.
