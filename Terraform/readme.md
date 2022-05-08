@@ -78,32 +78,80 @@ ARCHITECTURE IMAGE
 
 ### 2.4 First Terraform Deployment
 * In folder first-tf-deployment/main.tf there is the minimal version a of a terraform deployment
-```json
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-resource "aws_instance" "example" {
-  ami           = "ami-011899242bb902164" # Ubuntu 20.04 LTS // us-east-1
-  instance_type = "t2.micro"
-}
-```
 * go to the folder with the main.tf and run
 * terraform init - this initialize the terraform backend
 * terraform plan - This will show the current state and the final state after you aplpy it
 * terraform apply - create instances
 * terraform destroy - clean up everything
-## 03 - Basics
+## 3 - Basics
 Covers main usage pattern, setting up remote backends (where the terraform state is stored) using terraform Cloud and AWS, and provides a naive implementation of a web application architecture.
+
+### 3.1 Basic Sequence
+* terraform init - this initialize the terraform backend
+* terraform plan - This will show the current state and the final state after you aplpy it
+* terraform apply - really create the resources
+* terraform destroy - clean up everything
+
+### 3.2 Providers
+* Can search for a lot 
+* Each provider can be tagged as official and have a lot resources to be deployed
+* You specify the providers on the top of main.tf and also can pass some other infos, like regions and so on
+* AWS provider -> https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication
+
+### 3.3 Terrafom init
+* Init
+    * when run, it downloads all dependencies for the provider version selected
+    * store in a hidden folder callend terraform
+    * Also creates a lock file containing info about specific dependencies for the workspace
+    * It would also download the modules (we se more later)
+    * Create the terraform.tfstate
+        * representation oth the world
+        * all info about every resource and objects
+        * can contain sensitive info like password for a database created on the fly
+        * can be stored locally or remotelly
+    * the local backend having the state file locally is the default
+    * Simple to get started
+    * bad because sensitive values in plain text
+    * also uncollaborative and require manual work
+    * The remote backend state file is better hosted on a cloud provider (S3, bucket, terraform cloud)
+    * Then sensitive data is encrypted
+    * Collaboration is possible and automation is easier
+    * the con: incrase the complexity slightly
+
+### 3.4 Terraform plan
+* Compare the current terraform config to the terraform state (actual state)
+* It will not deploy duplicated resources
+* If in the config I have 5 servers but in the config I have 4, it will plan +1 extra server only
+
+### 3.4 Terraform destroy
+* Clean up everything on the current project
+* usually not used in production environment
+* used to clean up dev environments
+
+### 3.5 Remote backend
+* Terraform Cloud
+    * simple ans easy to start
+    * free up to 5 users
+    * after 20$/month per user
+    * This is how they make money
+* AWS - self managed backend
+    * specify s3 bucket - where files will live
+    * specify dynamo db where the locking and configs will be stated
+    * can encrypt it
+    * locks are used to take advantage of atomic guarantee from dynamo that only one transaction will happen at a moment
+    * one transaction need to be finished before other start. This assure 2 terraform commands will not run together and try to change states
+* to create an AWs backend, add this section inside terraform on main.tf 
+```json
+terraform {
+    backend "s3" {
+    bucket         = "devops-directive-tf-state" # REPLACE WITH YOUR BUCKET NAME
+    key            = "03-basics/import-bootstrap/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locking"
+    encrypt        = true
+    }
+}
+```
 
 ## 04 - Variables and Outputs
 Introduces the concepts of variables which enable Terraform configurations to be flexible and composable. Refactors web application to use these features.
