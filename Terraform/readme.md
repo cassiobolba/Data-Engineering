@@ -225,7 +225,72 @@ After all deployed, since we do not own the domain and cant route the amazon rou
 
 
 ## 04 - Variables and Outputs
-Introduces the concepts of variables which enable Terraform configurations to be flexible and composable. Refactors web application to use these features.
+* We can deploy in the way it is but it is not taking advantage of hashicorp language
+* We can change the hardcoding and organize the code better, make it more modular
+
+### 4.1 Types of variables
+* Input Variables
+    * call in main.tf --> var.<name>
+    * can be saved in another file
+```json
+variable "var_name" {
+  type = string
+}
+```
+* Local Variables
+    * lcall in main.tf --> local.<name>
+    * used to save repeated values that will be reused many times locally
+```json
+locals {
+  extra_tag = "extra-tag"
+}
+```
+* Output Variables
+    * It can get the result of a terraform apply and reuse in some other step
+    * ie. get the IP of an EC2 and use in a routing service later    
+```json
+output "instance_ip_addr" {
+  value = aws_instance.instance.private_ip
+}
+```
+
+### 4.2 Setting Input Variables
+* in order of prescedence, lower important to most important
+    * Manual entry during Plan/applu -> not handy and prone to error
+    * Default Value in declaration block
+    * TF_VAR_<name> env variable , very usefull for CI CD pipelines
+    * terraform.tfvars files
+    * *.auto.tfvars files
+    * Command line -var or -var-file
+
+### 4.3 Types and Validation
+* primitive types
+    * string
+    * number
+    * bool
+* Complex type:
+    * list
+    * set
+    * map
+    * object - dictionary
+    * tuple
+* Validation
+    * Type checks happen automatically
+    * Custom conditions can also be enforced
+
+### 4.4 Sensitive Data
+How to handle that
+* Mark variables as sensitive
+    * sensitive = true
+    * when run plan or apply it will mask the value
+* Pass to terraform apply with:
+    * TV_VAR_<name>
+    * -var (retrieved from secret manager at runtime)
+* Can also use external secret Store
+    * For example, AWS Secrest Manager
+
+### 4.5 Putting into Practice
+
 
 ## 05 - Language Features
 Describes additional features of the Hashicorp Configuration Language (HCL).
