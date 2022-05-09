@@ -287,10 +287,11 @@ How to handle that
     * TV_VAR_<name>
     * -var (retrieved from secret manager at runtime)
 * Can also use external secret Store
-    * For example, AWS Secrest Manager
+    * For example, AWS Secret Manager
 
 ### 4.5 Putting into Practice
 
+FAZER DEMO 4
 
 ## 05 - Language Features
 Describes additional features of the Hashicorp Configuration Language (HCL).
