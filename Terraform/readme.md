@@ -294,10 +294,89 @@ How to handle that
 FAZER DEMO 4F
 
 ## 05 - Language Features
-Describes additional features of the Hashicorp Configuration Language (HCL).
+The official documentation is the best reference for these: https://www.terraform.io/docs/language/index.html.    
+Describes additional features of the Hashicorp Configuration Language (HCL). Common Language Features (check Readme on folder 5):   
+* Expressions
+  * Strings
+  * Operators
+  * Conditionals
+  * For expressions
+  * Splat expressions
+  * Dynamic blocks
+  * Type constraints
+  * Version constraints
+* Functions
+  * check on readme in folder 5 
+  * Other function types:
+    * Colleciton
+    * Encoding
+    * Filesystem
+    * Date & Time
+    * Hash & Crypto
+    * IP Network
+    * Type Conversion
+* Meta-arguments
+ * Special arguments to control the behavior of resources and/or modules
+ * depends_on
+ * count
+ * for_each
+ * create_before_destroy
+ * ignore_changes
+ * prevent_destroy
+
+### 5.1 Provisioners
+* PErform action on local machine or remote machine
+* Can call some tools like Ansible, Chef, Puppet to perform more actions after terraform deploy a resource
 
 ## 06 - Organization and Modules
-Demonstrates how to structure terraform code into reuseable modules and how to instantiate/configure modules.
+* Modules
+  * Containers for multiple resources that are used togethrer
+  * Consists of a collection of .tf and/or .tf.json files kept together in a directory
+  * main way to package and reuse resource configurations with Terraform
+* Why use it?
+  * To be able to share and collaborate IaC between Infra and Dev teams
+* Types of modules
+  * Root Module -> default module containing all .tf files in main workling directory
+  * Child Module -> separete external module referred to a from a .tf file
+    * possible sources -> Local Paths, Terraform Registry, Github, Buckets...
+```py
+#local path
+module "web-app" {
+  source = "../web-app"
+}
+```
+```py
+#terraform registry
+module "consul" {
+  source = "hashicorp/consul/aws"
+  vesion = "0.1.0"
+}
+```
+```py
+#git hub https
+module "consul" {
+  source = "github.com/hashicorp/consul?ref=v1.2.0"
+}
+```
+```py
+#git hub ssh
+module "consul" {
+  source = "git@github.com/hashicorp/consul.git"
+}
+```
+```py
+#git hub generic
+module "consul" {
+  source = "git::ssh://cassio.bolba@gmail.com/consul.git"
+}
+```
+### 6.1 - What Makes a good Module
+* Raises the abstraction level from base resource types
+* Groups resources in a logical fashion
+* Exposes input variable to allow necessary customization + composition
+* Provies useful defaults
+* Returns outuputs to make further integrations possible
+
 
 ## 07 - Managing Multiple Environments
 Shows two methods for managing multiple environments (e.g. dev/staging/prodution) with Terraform.
