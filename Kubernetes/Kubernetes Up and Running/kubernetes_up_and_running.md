@@ -33,7 +33,11 @@ First chapter enphasize the mais concepts od kubernetes and why it is changing t
     * Application container -> runs a single program offering the right granularity of isolation and easy scalability
 
 ### 2.2 Building Images with Docker
-We will use an application container appraoch to build a image
+We will use an application container approach to build a image. Install docker
 
 #### 2.2.1 Dockerfiles
-
+* Build the folder directory as folder 2
+* do via command line to folder  2
+* run
+    * docker build -t simple-node .
+    * docker run -rm -p 3000:3000 simple-node
