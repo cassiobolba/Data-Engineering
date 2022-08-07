@@ -36,3 +36,4 @@ First chapter enphasize the mais concepts od kubernetes and why it is changing t
 We will use an application container appraoch to build a image
 
 #### 2.2.1 Dockerfiles
+
