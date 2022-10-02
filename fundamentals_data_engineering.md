@@ -48,3 +48,25 @@ In this stage, many pitfalls and traps will be present, some advice on it:
 * It is not forbiden to already have DS and AI projects, but is very likely to fail do to the lack of maturity.
 
 #### Scaling With Data
+At this point companies moved away from ad hoc stuff, and now have a structured data team. DE are more speciallist than generalist. The goal is to plan and develop a scalable structure to allow a future data driven company. Focus on:
+* Establish formal data practices
+* Scalable and robust architecture
+* Adopt DevOps and DataOps practices
+* Build the systems to suport ML
+* Continue avoiding heavy lifting and customized tools, only if brings a great result
+There are also issues to watch out:
+* In this stage, there is always the temptation to adopt "silicon valley cutting edge tooling" like. Avoid unless really benefitial.
+* The main bottleneck for scaling is not cluster nodes, storage, or technology but the data engineering team. Focus on solutions that are simple to deploy and manage to expand your team’s throughput
+* DATA LITERACY: Dont act as a data god. Focus on pragmatic leadership to transition to next stage. Communicate even more with other users and stakeholders and teach the organization how to consume the data.
+
+#### Leading With Data
+Now, you are a data-drive company. Automated pipelines run easily and allow company to do a self-service analitycs and ML. DE implemented controls, monitoring and practices to ensure data availability and quality. DE's are more and more speacialist than ever:
+* Create seamless introduction of new data to allow better analysis
+* Build custom tools that leverage data competitive advantage
+* Adopt Data Management, governance, quality, and dataops
+* Adopt tools to disseminate data in the company -> Data Catalog, data lineage and metadata management
+* Collaborate with ML, Software Eng, analysts
+* Create a data community to share and talk with pepole openly
+Watch out for the following issues:
+* Do continuously maintenance and improvements to not risk fall back to stage 2
+* Temptation to try and spend time on ndistractions are really high at this point. Just do what clearly bring benefits to the company
