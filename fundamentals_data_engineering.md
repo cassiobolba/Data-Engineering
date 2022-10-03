@@ -103,3 +103,12 @@ Keep the Data Architecture as abstract as possible by using off-shelf products a
 They build tools and systems that scale and leverage data on the company, usually with Software Engineering backgrounds, they are found mostly in companies migrating from stage 2 to 3 in our data maturity scale.
 
 ### Data Engineers Inside an Organization
+#### Internal-Facing Versus External-Facing Data Engineers
+The *External DE* deal with APIS, external integrations, social media, IoT and ecomerce. They need to deal with extra components such as higher security, latency, limits os queries, concurrency and so on, in addition to normal requirements they have from their internal stakeholders.
+The *Internal DE* usually deals with more straightforward tasks such as ETL, reports, BI dashboards, DW and so on.
+Usually the 2 types of user facing are mixed and the internal work is usually also a pre-requise to external works.
+
+#### Data Engineers and Other Technical Roles
+DEs are a hub between Data Producers such as SE, DA, DevOps or SREs, and Data Consumers such as Data Analyst , DSm DEs and  ML
+##### Upstream Stakeholders
+You Must understand the data Architecture you use as much as understand the type of data and source systems producing the data. Let's take a look at each upstream role.
