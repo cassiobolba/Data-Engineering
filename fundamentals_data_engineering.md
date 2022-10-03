@@ -102,13 +102,36 @@ Keep the Data Architecture as abstract as possible by using off-shelf products a
 **Type B - Builder DE**.    
 They build tools and systems that scale and leverage data on the company, usually with Software Engineering backgrounds, they are found mostly in companies migrating from stage 2 to 3 in our data maturity scale.
 
-### Data Engineers Inside an Organization
+### Data Engineers Inside an Organization (RED)
 #### Internal-Facing Versus External-Facing Data Engineers
 The *External DE* deal with APIS, external integrations, social media, IoT and ecomerce. They need to deal with extra components such as higher security, latency, limits os queries, concurrency and so on, in addition to normal requirements they have from their internal stakeholders.
 The *Internal DE* usually deals with more straightforward tasks such as ETL, reports, BI dashboards, DW and so on.
 Usually the 2 types of user facing are mixed and the internal work is usually also a pre-requise to external works.
 
-#### Data Engineers and Other Technical Roles
-DEs are a hub between Data Producers such as SE, DA, DevOps or SREs, and Data Consumers such as Data Analyst , DSm DEs and  ML
-##### Upstream Stakeholders
+#### Data Engineers and Other Technical Roles (BLACK)
+DEs are a hub between Data Producers such as SE, DA, DevOps or SREs, and Data Consumers such as Data Analyst , DSm DEs and  ML.
+
+##### Upstream Stakeholders (GREY)
 You Must understand the data Architecture you use as much as understand the type of data and source systems producing the data. Let's take a look at each upstream role.
+**Data Architect**
+* Data architects design the blueprint for organizational data management, mapping out processes and overall data architecture and systems
+* Experienced person bridging tech to non tech people 
+* Depending on the maturity stage of a company, a DE can take the responsabilities of data architect, thus need to know the best practices
+**Software Engineers**
+* Build softwares that are usually the internal data consumed by DE (data, events, logs...)
+* Good practice is that SE and DE align ideas when a data project is about to born
+* Coordinate with SE the application type, volume, format, frequency of data
+**DevOps Eng and SRE**
+* Usually produce monitoring data
+
+##### Downstream Stakeholders
+**Data Scientist**
+* DEs should deliver good quality data to DS and enable path to production
+**Data Analysts**
+* They are usually experts in a domain
+* DEs deliver data pipelines to enable analysis
+**ML and AI Engineers**
+* As before, deliver good data
+* May help to deploy stuff to production
+
+#### Data Engineers and Business Leadership
