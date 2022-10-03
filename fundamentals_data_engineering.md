@@ -70,3 +70,23 @@ Now, you are a data-drive company. Automated pipelines run easily and allow comp
 Watch out for the following issues:
 * Do continuously maintenance and improvements to not risk fall back to stage 2
 * Temptation to try and spend time on ndistractions are really high at this point. Just do what clearly bring benefits to the company
+
+### The Background and Skills of a Data Engineer
+Since it is a new area, we lack a formal learning path as universities so expect to study many topics by yourself, or take niche focused courses and bootcamps to fill some gaps. People transitioning from ETL developers, BI, Data Science, Software Eng. and other data aware fields, tend to have a smother transition.
+
+#### Business Responsabilities
+There are a vast broad amount of responsabilities a DE can have and a short summary would be (it does not mean you must do all):    
+* Know how to communicate with nontechnical and technical people.
+* Understand how to scope and gather business and product requirements.
+* Understand the cultural foundations og Agile, DevOps and DataOps
+* Control Costs
+* Learn Continuously and filter what is a good or not technology to try
+
+#### Technical Responsabilities
+You must be able to design and mantain the data architecture and is components, and use the DE lifecycle topics such as:
+* Security
+* Data Management
+* DataOps
+* Data Architecture
+* Software Engineerging
+
