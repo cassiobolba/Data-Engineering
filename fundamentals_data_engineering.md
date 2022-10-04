@@ -151,3 +151,25 @@ This comprises all stages needed to deliver a data product ready for comsumption
 **DE Lifecycle:** It is just a subset of Data Lifecycle.  
 **Data Lifecycle:** All data lifespan from source system where DE have no control until de BI dashboard.
 #### Generation: Source Systems
+Some evaluations a DE should consider about the source systems:
+* What are the essential characteristics of the data source? Is it an application? A swarm of IoT devices?
+* How is data persisted in the source system? Is data persisted long term, or is it temporary and quickly deleted?
+* At what rate is data generated? How many events per second? How many gigabytes per hour?
+* What level of consistency can data engineers expect from the output data? If you’re running data-quality checks against the output data, how often do data inconsistencies occur—nulls where they aren’t expected, lousy formatting, etc.?
+* How often do errors occur?
+* Will the data contain duplicates?
+* Will some data values arrive late, possibly much later than other messages produced simultaneously?
+* What is the schema of the ingested data? Will data engineers need to join across several tables or even several systems to get a complete picture of the data?
+* If schema changes (say, a new column is added), how is this dealt with and communicated to downstream stakeholders?
+* How frequently should data be pulled from the source system?
+* For stateful systems (e.g., a database tracking customer account information), is data provided as periodic snapshots or update events “rom change data capture (CDC)? What’s the logic for how changes are performed, and how are these tracked in the source database?
+* Running Analytical queries on source system can affect its performance?
+* Who/what is the data provider that will transmit the data for downstream consumption?
+* Will reading from a data source impact its performance?
+* Does the source system have upstream data dependencies? What are the characteristics of these upstream systems?
+* Are data-quality checks in place to check for late or missing data?
+* Choose the best approach for schema: *Schemaless* is when you store and adapt the schema as it arrives. Or *fixed schema* is used when already saving data on databases.
+
+#### Storage
+This is one of the most complex stages of data lifecycle as it is present on all stages of a data pipeline. There are many storage solutions (databases, object storage, lakehouse...), they have a variety of purposes. Evaluating storage systems and the mains Key engineering considerations:
+
