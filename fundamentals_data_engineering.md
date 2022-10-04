@@ -135,3 +135,19 @@ You Must understand the data Architecture you use as much as understand the type
 * May help to deploy stuff to production
 
 #### Data Engineers and Business Leadership
+DE also interact with Business pepole, not only tech stakeholders:
+* CEO: Align with senior DEs and Data Architects what are the possibilities with data
+* CIO: (information) This person is highly technical and business oriented and makes strategical decision on IT elements sucha as ERP, CLoud Provider, CRM, migrations...
+* CTO:
+* CDO: Created in 2002 in capital one to give a better importance to data, they are responsible to implement data strategy, core functions , data privacy and management.
+* CAO: (analytics) Can exists to take speaciall care of BI, AI, and ML.
+* Product Managers: The owner of a initiative / product 
+
+## CHAPTER 2 - The Data Engineergin Lifecycle
+### What Is the Data Engineering Lifecycle?
+This comprises all stages needed to deliver a data product ready for comsumption by downstream stakeholder. Main steps are: Generation, Storage, Ingestion, Transformation and Serving Data.
+[PICTURE LIFECYCLE]. 
+#### The Data Lifecycle Versus the Data Engineering Lifecycle
+**DE Lifecycle:** It is just a subset of Data Lifecycle.  
+**Data Lifecycle:** All data lifespan from source system where DE have no control until de BI dashboard.
+#### Generation: Source Systems
