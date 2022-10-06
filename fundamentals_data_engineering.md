@@ -172,4 +172,34 @@ Some evaluations a DE should consider about the source systems:
 
 #### Storage
 This is one of the most complex stages of data lifecycle as it is present on all stages of a data pipeline. There are many storage solutions (databases, object storage, lakehouse...), they have a variety of purposes. Evaluating storage systems and the mains Key engineering considerations:
+* Is this storage solution compatible with the architecture’s required write and read speeds?
+* Will storage create a bottleneck for downstream processes?
+* Do you understand how this storage technology works? Are you utilizing the storage system optimally or committing unnatural acts? For instance, are you applying a high rate of random access updates in an object storage system? (This is an antipattern with significant performance overhead.)
+* Will this storage system handle anticipated future scale? You should consider all capacity limits on the storage system: total available storage, read operation rate, write volume, etc.
+* Will downstream users and processes be able to retrieve data in the required service-level agreement (SLA)?
+* Are you capturing metadata about schema evolution, data flows, data lineage, and so forth? Metadata has a significant impact on the utility of data. Metadata represents an investment in the future, dramatically enhancing discoverability and institutional knowledge to streamline future projects and architecture changes.
+* Is this a pure storage solution (object storage), or does it support complex query patterns (i.e., a cloud data warehouse)?
+* Is the storage system schema-agnostic (object storage)? Flexible schema (Cassandra)? Enforced schema (a cloud data warehouse)?
+* How are you tracking master data, golden records data quality, and data lineage for data governance? (We have more to say on these in “Data Management”.)
+* How are you handling regulatory compliance and data sovereignty? For example, can you store your data in certain geographical locations but not others?
 
+##### Understanding data access frequency
+Determine if you data is hot (very often accesed) or cold (mostly not frequently used and mostly archived for auditions). This have a very big impact on cost and the speed of access.
+
+##### Selecting a storage system
+Selecting the right storage depeneds on each use case, sucha as volume, drequency of ingestions, format, size and other. There is no unique solution for all cases, and there are countless technologies. More in chapter 6.
+
+#### Ingestion
+Ingestion is the biggest bottleneck on DE mostly because the source systems are out of our control and sudenly can send different data, less data, not data, change without previous notice. Key engineering consideration in this phase:
+* What are the use cases for the data I’m ingesting? Can I reuse this data rather than create multiple versions of the same dataset?
+* Are the systems generating and ingesting this data reliably, and is the data available when I need it?
+* What is the data destination after ingestion?
+* How frequently will I need to access the data?
+* In what volume will the data typically arrive?
+* What format is the data in? Can my downstream storage and transformation systems handle this format?
+* Is the source data in good shape for immediate downstream use? If so, for how long, and what may cause it to be unusable?
+* If the data is from a streaming source, does it need to be transformed before reaching its destination? Would an in-flight transformation be appropriate, where the data is transformed within the stream itself?
+* Streaming must be very carefully evaluated and implemented only if there a use case that bring real benefit over the complexity and costs it brings
+* Is it necessary CDC?
+
+#### Transformation
