@@ -24,7 +24,7 @@ Ultimately in simple words:
 * Data Managements
 * Data Ops
 * Data Architecture
-* Software Engineering
+* Software Engineering.  
 There is a company factor that cat drastically change how DE use the above skills and how their carrer progress, and it is **DATA MATURITY**
 
 ### Data Maturity
@@ -203,3 +203,18 @@ Ingestion is the biggest bottleneck on DE mostly because the source systems are 
 * Is it necessary CDC?
 
 #### Transformation
+Now data need to be transformed to start bringing value for downstream user. Key considerations for transformation phase:
+* What’s the cost and return on investment (ROI) of the transformation? What is the associated business value?
+* Is the transformation as simple and self-isolated as possible?
+* What business rules do the transformations support?
+* Am I minimizing data movement between the transformation and the storage system during transformation?   
+Transformations can happen in batch or streaming, depending the case. Transformations are one of the toughest parts of data lifecycle. Business Logic is the driver of this stage, because this is what might bring value to end user and allow analysis of current status, reporting and ML. Data featurign is also a big part of it, and requires a DS to analize the data and discover the main features for ML and tell DE to implement that automatically in the data pipeline.
+
+#### Serving Data
+The last step after data being collected and transformed, is the step to bring more value from the data. Hopefully at this point the data you are serving is really being used for a purpose, otherwise it will be a wasted pipeline. If data is used, this is where the magic happens: ML can apply forecast, analysts can find oportunities in the data and so on. Let’s look at some of the popular uses of data: analytics, ML, and reverse ETL:
+##### Analytics
+The main purpose of ETLs normally. Currently divided in 3 facets:
+* Business Intelligence: The data you applied business logic is now used to create reports, dashboards and on. Now a days there is also the new Analytc role that cerate a repository of business logic using the raw data you ingested (DBT use by analytis engineers). As the data maturity grows in the company, enabling self service analytics tends to happens. The biggest challenges of self-service analytics are poor data quality, data silos and lack of adequate skills from users perspective.
+* Operational Analytics: Details of operations usually near realtime, such as live inventory data, healt monitoring of web pages, and so on. Intended to be real time to react upon it.
+* Embedded Analytics: This is when you provide analytics to external cutomers in a platform. Security, data management, trust, permissions and volume of access are much more critical than internal analytics solutions. DEs can use for this multitenancy views which are a set of views containing only data for a specific user, consuming from a mains source which contains all data.
+##### Machine Learning
