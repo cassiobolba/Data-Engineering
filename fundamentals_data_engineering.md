@@ -113,26 +113,26 @@ DEs are a hub between Data Producers such as SE, DA, DevOps or SREs, and Data Co
 
 ##### Upstream Stakeholders (GREY)
 You Must understand the data Architecture you use as much as understand the type of data and source systems producing the data. Let's take a look at each upstream role.
-**Data Architect**
-* Data architects design the blueprint for organizational data management, mapping out processes and overall data architecture and systems
-* Experienced person bridging tech to non tech people 
-* Depending on the maturity stage of a company, a DE can take the responsabilities of data architect, thus need to know the best practices
-**Software Engineers**
-* Build softwares that are usually the internal data consumed by DE (data, events, logs...)
-* Good practice is that SE and DE align ideas when a data project is about to born
-* Coordinate with SE the application type, volume, format, frequency of data
-**DevOps Eng and SRE**
-* Usually produce monitoring data
+* Data Architect
+  * Data architects design the blueprint for organizational data management, mapping out processes and overall data architecture and systems
+  * Experienced person bridging tech to non tech people 
+  * Depending on the maturity stage of a company, a DE can take the responsabilities of data architect, thus need to know the best practices
+  * Software Engineers
+  * Build softwares that are usually the internal data consumed by DE (data, events, logs...)
+  * Good practice is that SE and DE align ideas when a data project is about to born
+  * Coordinate with SE the application type, volume, format, frequency of data
+* DevOps Eng and SRE
+  * Usually produce monitoring data
 
 ##### Downstream Stakeholders
-**Data Scientist**
-* DEs should deliver good quality data to DS and enable path to production
-**Data Analysts**
-* They are usually experts in a domain
-* DEs deliver data pipelines to enable analysis
-**ML and AI Engineers**
-* As before, deliver good data
-* May help to deploy stuff to production
+* Data Scientist
+  * DEs should deliver good quality data to DS and enable path to production
+* Data Analysts
+  * They are usually experts in a domain
+  * DEs deliver data pipelines to enable analysis
+* ML and AI Engineers
+  * As before, deliver good data
+  * May help to deploy stuff to production
 
 #### Data Engineers and Business Leadership
 DE also interact with Business pepole, not only tech stakeholders:
