@@ -218,3 +218,28 @@ The main purpose of ETLs normally. Currently divided in 3 facets:
 * Operational Analytics: Details of operations usually near realtime, such as live inventory data, healt monitoring of web pages, and so on. Intended to be real time to react upon it.
 * Embedded Analytics: This is when you provide analytics to external cutomers in a platform. Security, data management, trust, permissions and volume of access are much more critical than internal analytics solutions. DEs can use for this multitenancy views which are a set of views containing only data for a specific user, consuming from a mains source which contains all data.
 ##### Machine Learning
+Companies with good maturity can tackle problems with ML. DEs usually help ML and Analytics engineers to set up environment, implement data catalag, lieneage and so on. DEs also support implementation of feature stores for ML engineers. Key considerations when serving data to ML:
+* Is the data with sufficient quality? Align with users
+* Is data discoverable?
+* Where are tech and org. boundaries between a ML and Data Engineer?
+##### Reverse ETL
+The practice of taking curated data and feed into SaaS and other platforms, and sometimes ingesting it again. Ex. Marketing team read bids for a data, analyize, change and re-upload it again to biding platform.
+
+### Major Undercurrents Across the DE Lifecycle (red)
+As DE evolved, new practices other than just ETL have been incorporated to the role, such as the undercurrents: Security, Data Management, DataOps, Data Architecture, Orchestration, Soft. Eng. :
+
+IMAGE
+
+#### Security
+This should be top priority, and the concept of least privilege must be used. Give only the inteded access necessary to the tuser execute the task. You also should not have usperuser or admin access all the time. It avoid accidental damage. Use encryption, tokenization, masking, obfuscation and mantain a simple and robust access control.
+#### Data Management
+Data best practices once reserved for huge companies—data governance, master data management, data-quality management, metadata management—are now filtering down to companies of all sizes and maturity levels. Data management practices form a cohesive framework that everyone can adopt to ensure that the organization gets value from data and handles it appropriately. Data management has quite a few facets, including the following:
+* Data governance, including discoverability and accountability
+* Data modeling and design
+* Data lineage
+* Storage and operations
+* Data integration and interoperability
+* Data lifecycle management
+* Data systems for advanced analytics and ML
+* Ethics and privacy
+##### Data Governance
