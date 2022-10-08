@@ -117,7 +117,7 @@ You Must understand the data Architecture you use as much as understand the type
   * Data architects design the blueprint for organizational data management, mapping out processes and overall data architecture and systems
   * Experienced person bridging tech to non tech people 
   * Depending on the maturity stage of a company, a DE can take the responsabilities of data architect, thus need to know the best practices
-  * Software Engineers
+* Software Engineers
   * Build softwares that are usually the internal data consumed by DE (data, events, logs...)
   * Good practice is that SE and DE align ideas when a data project is about to born
   * Coordinate with SE the application type, volume, format, frequency of data
@@ -243,3 +243,6 @@ Data best practices once reserved for huge companies—data governance, master d
 * Data systems for advanced analytics and ML
 * Ethics and privacy
 ##### Data Governance
+According to Data Governance: The Definitive Guide, “Data governance is, first and foremost, a data management function to ensure the quality, integrity, security, and usability of the data collected by an organization. This is key to ensure data is realiable and is being used in the right way. Main categories of data governance are discoverability, security and accountability.
+###### Discoverability
+End users should be able to find the right data, know where it comes from, how it relates tp pther data and what the data means.
