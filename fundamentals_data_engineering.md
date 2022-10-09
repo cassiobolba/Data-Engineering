@@ -212,16 +212,19 @@ Transformations can happen in batch or streaming, depending the case. Transforma
 
 #### Serving Data
 The last step after data being collected and transformed, is the step to bring more value from the data. Hopefully at this point the data you are serving is really being used for a purpose, otherwise it will be a wasted pipeline. If data is used, this is where the magic happens: ML can apply forecast, analysts can find oportunities in the data and so on. Let’s look at some of the popular uses of data: analytics, ML, and reverse ETL:
+
 ##### Analytics
 The main purpose of ETLs normally. Currently divided in 3 facets:
 * Business Intelligence: The data you applied business logic is now used to create reports, dashboards and on. Now a days there is also the new Analytc role that cerate a repository of business logic using the raw data you ingested (DBT use by analytis engineers). As the data maturity grows in the company, enabling self service analytics tends to happens. The biggest challenges of self-service analytics are poor data quality, data silos and lack of adequate skills from users perspective.
 * Operational Analytics: Details of operations usually near realtime, such as live inventory data, healt monitoring of web pages, and so on. Intended to be real time to react upon it.
 * Embedded Analytics: This is when you provide analytics to external cutomers in a platform. Security, data management, trust, permissions and volume of access are much more critical than internal analytics solutions. DEs can use for this multitenancy views which are a set of views containing only data for a specific user, consuming from a mains source which contains all data.
+* 
 ##### Machine Learning
 Companies with good maturity can tackle problems with ML. DEs usually help ML and Analytics engineers to set up environment, implement data catalag, lieneage and so on. DEs also support implementation of feature stores for ML engineers. Key considerations when serving data to ML:
 * Is the data with sufficient quality? Align with users
 * Is data discoverable?
 * Where are tech and org. boundaries between a ML and Data Engineer?
+* 
 ##### Reverse ETL
 The practice of taking curated data and feed into SaaS and other platforms, and sometimes ingesting it again. Ex. Marketing team read bids for a data, analyize, change and re-upload it again to biding platform.
 
@@ -232,6 +235,7 @@ IMAGE
 
 #### Security
 This should be top priority, and the concept of least privilege must be used. Give only the inteded access necessary to the tuser execute the task. You also should not have usperuser or admin access all the time. It avoid accidental damage. Use encryption, tokenization, masking, obfuscation and mantain a simple and robust access control.
+
 #### Data Management
 Data best practices once reserved for huge companies—data governance, master data management, data-quality management, metadata management—are now filtering down to companies of all sizes and maturity levels. Data management practices form a cohesive framework that everyone can adopt to ensure that the organization gets value from data and handles it appropriately. Data management has quite a few facets, including the following:
 * Data governance, including discoverability and accountability
@@ -242,7 +246,34 @@ Data best practices once reserved for huge companies—data governance, master d
 * Data lifecycle management
 * Data systems for advanced analytics and ML
 * Ethics and privacy
+
 ##### Data Governance
 According to Data Governance: The Definitive Guide, “Data governance is, first and foremost, a data management function to ensure the quality, integrity, security, and usability of the data collected by an organization. This is key to ensure data is realiable and is being used in the right way. Main categories of data governance are discoverability, security and accountability.
-###### Discoverability
-End users should be able to find the right data, know where it comes from, how it relates tp pther data and what the data means.
+
+###### Data Discoverability
+End users should be able to find the right data, know where it comes from, how it relates tp pther data and what the data means. Key areas of dicoverability are metadata management and masterdata management:
+
+###### Metadata
+Is data about data. There are several automated tools to generate them, but human aspect should no be taken off because it has more knowledge on the area to add. Can come from 2 sources, auto generated and human generated. Wikis are important tools and should contain data experts, sources, owners, consumers, and it is human generated. But it also should be connected to automated tools. DMBOK divides the metada in 4 categories:
+* Business Metadata: Identifies businees logic and definition. DEs would consult data catalogs or dictionary to for ie. know the definion of customaer to generate a nes costumer segment table. Is customer who have ever bought or only who bought on the past 90 days.
+* Technical metadata: Data created and udes by systems such as data model and schema, lineage, field mappings, and pipeline workflow. 
+ * Pipeline metadata show dependencies, schedule, configs, connections and more
+ * Lineage metadata tracks origins, dependencies and data changes over time. Provide audit data
+ * Schema metadata manages columns for dw, o other data for object store
+* Operational metadata: statistics, , job ids,runtime logs, error logs and on.
+* Reference Metadata: Data used to classify other data, like look up data to stadanrize time, dates, geographies.
+
+###### Data Accountability
+Assing an individual to gover a portion of data. Do not need to be a data eng. could a key user, software eng., product owner. Dont need to solve the problems found, but coordinae for the solution.
+
+###### Data Quality
+DE shoul ensure data quality by applying data quality tests, data conformance, eschema expectation, completeness and precision. According to "data Governance: the definitive guide" there are 3 main characteristics:
+* Accuracy
+* Completeness
+* Timeliness
+
+###### MDM - Master Data Management
+Consists on creating a consisten definition of entities such as employees, customers, producst, locations and so on, to be the golden records across the company. As companies scale, this is necessary to avoid different definition on differents areas fo the company. Usually there is a team or person dedicated to it, and DEs should collaborate them on it.
+
+##### Data Modeling and Design
+
