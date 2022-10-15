@@ -98,7 +98,7 @@ Then main languages used as of now:
 #### The Continuum of Data Engineering Roles, from A to B
 Appears that a DE is a unicorn with all data knowledge, but in fact you do not need to be that person. In DS there is a disctinction of DS A and DS B professional (analist and builder), translating this to DE:   
 **Type A - Abstraction DE**. 
-Keep the Data Architecture as abstract as possible by using off-shelf products and managed services and tools. They can work on companies in all levels of maturity.
+Keep the Data Architecture as abstract as possible by using off-shelf products and managed services and tools. They can work on companies in all levels of maturity.   
 **Type B - Builder DE**.    
 They build tools and systems that scale and leverage data on the company, usually with Software Engineering backgrounds, they are found mostly in companies migrating from stage 2 to 3 in our data maturity scale.
 
