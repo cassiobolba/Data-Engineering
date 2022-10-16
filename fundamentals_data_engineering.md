@@ -252,10 +252,10 @@ Data best practices once reserved for huge companies—data governance, master d
 ##### 2.2.2.1 Data Governance
 According to Data Governance: The Definitive Guide, “Data governance is, first and foremost, a data management function to ensure the quality, integrity, security, and usability of the data collected by an organization. This is key to ensure data is realiable and is being used in the right way. Main categories of data governance are discoverability, security and accountability.
 
-##### 2.2.2.2 Data Discoverability
+###### 2.2.2.1.1 Data Discoverability
 End users should be able to find the right data, know where it comes from, how it relates tp pther data and what the data means. Key areas of dicoverability are metadata management and masterdata management:
 
-##### 2.2.2.3 Metadata
+###### 2.2.2.1.2 Metadata
 Is data about data. There are several automated tools to generate them, but human aspect should no be taken off because it has more knowledge on the area to add. Can come from 2 sources, auto generated and human generated. Wikis are important tools and should contain data experts, sources, owners, consumers, and it is human generated. But it also should be connected to automated tools. DMBOK divides the metada in 4 categories:
 * Business Metadata: Identifies businees logic and definition. DEs would consult data catalogs or dictionary to for ie. know the definion of customaer to generate a nes costumer segment table. Is customer who have ever bought or only who bought on the past 90 days.
 * Technical metadata: Data created and udes by systems such as data model and schema, lineage, field mappings, and pipeline workflow. 
@@ -265,17 +265,58 @@ Is data about data. There are several automated tools to generate them, but huma
 * Operational metadata: statistics, , job ids,runtime logs, error logs and on.
 * Reference Metadata: Data used to classify other data, like look up data to stadanrize time, dates, geographies.
 
-##### 2.2.2.4 Data Accountability
+###### 2.2.2.1.3 Data Accountability
 Assing an individual to gover a portion of data. Do not need to be a data eng. could a key user, software eng., product owner. Dont need to solve the problems found, but coordinae for the solution.
 
-##### 2.2.2.5 Data Quality
+##### 2.2.2.1.5 Data Quality
 DE shoul ensure data quality by applying data quality tests, data conformance, eschema expectation, completeness and precision. According to "data Governance: the definitive guide" there are 3 main characteristics:
 * Accuracy
 * Completeness
 * Timeliness
 
-##### 2.2.2.6 MDM - Master Data Management
+###### 2.2.2.1.4 MDM - Master Data Management
 Consists on creating a consisten definition of entities such as employees, customers, producst, locations and so on, to be the golden records across the company. As companies scale, this is necessary to avoid different definition on differents areas fo the company. Usually there is a team or person dedicated to it, and DEs should collaborate them on it.
 
-#### 2.2.3 Data Modeling and Design
+##### 2.2.2.2 Data Modeling and Design
+Data Engineers face a wide spectrum of data and must deliver it in an actionable way that users can take insight from it. This is where applying modeling best practices comes to hand. Data ingested and never used generate the famous data swamps.
 
+##### 2.2.2.3 Data Lineage
+Data Lieneage describers the recording of an audit trail of data through its lifecycle, tracking both the systems that process the data and the upstream data it depends on. 
+* It helps on compliance and lineage of governance data (to know where a row that should be deleted is)
+* It has been around for a while, but getting famous as data governance becomes a necessity
+* Famous concept: DODD (data observability driuven development)
+
+##### 2.2.2.4 Data Integration and Interoperability
+Often DEs need to inegrate different process and sources to operate across different parts od data lifecycle, such as consuming from API, loading to S3, reading via spark API and so on. Ochestration plays a big role in here.
+
+##### 2.2.2.4 Data Lifecycle Management
+With the datalake event, it is very common to store all data in the clous since it is cheap. But, to manage data in object oriented storage is not as simple as in DW environments. With incresed GDPR and CCPA rules, deleting user sensible data is a requirement, and this is part of data lifecycle management. ACID Hive and Delta Lake help on this.
+
+##### 2.2.2.5 Ethics and Privacy
+In the currents world, avoud data leaks and misusage is also part of DE job. Mask PII, ensure data assets are compliant.
+
+#### 2.2.3 Orchestration
+Main responsabilities os orchestration tools:
+* Schedule tasks
+* Manage or check Dependencies
+* Monitor Execution
+* Notify desired state
+* The choosen tool must be high available
+
+#### 2.2.4 DataOps
+Aims to improve release and quality of data products.   
+DEs must understand  the tech aspect of building software as well as the data logic used by business and business metrics to create an excelent product.    
+DataOps is a set of cultural habits inspired in lean practices. It has 3 core technical elements: Automation, Observability and Moniroting, and Incident Response.
+
+##### 2.2.4.1 Automation
+The goal is to enable realiable and consisntet DataOps process, allow quick deploys of features and improvements, via  change management, CI/CD, monitoring and so on.   
+Consider a company that only use cron jobs with time schedule. Every time a job runs longer or do no run, next jobs fails. To avoid this, they implement orchestration tool. They still have only 1 instance of the orchestration tool, which lead to breaks when someone deploy new code that is not tested. To solve this they create a dev instance... and so on, they can implement MR system, automated deploy from dev to prod, automated linting, tests...
+
+##### 2.2.4.2 Observability and Monitoring
+
+# order
+## -> chapter x 
+### -> RED 
+#### -> bold 
+##### -> grey
+###### -> italic
