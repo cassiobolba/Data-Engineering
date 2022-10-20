@@ -313,6 +313,21 @@ The goal is to enable realiable and consisntet DataOps process, allow quick depl
 Consider a company that only use cron jobs with time schedule. Every time a job runs longer or do no run, next jobs fails. To avoid this, they implement orchestration tool. They still have only 1 instance of the orchestration tool, which lead to breaks when someone deploy new code that is not tested. To solve this they create a dev instance... and so on, they can implement MR system, automated deploy from dev to prod, automated linting, tests...
 
 ##### 2.2.4.2 Observability and Monitoring
+Wrong data can lead a company to financial problems due to wrong decision, also , DEs sometime just realized something is wrong when the stakeholder complains about a bronke dashboars. Observability, monitoring, logging, alerting, and tracing are all critical to getting ahead of any problems along the data engineering lifecycle. SPC is recommended to implement to monitor events.
+
+##### 2.2.4.3 Incident Response
+It is about using automation and observacility to quickly respond to incidents.
+
+##### 2.2.4.4 DataOps summary
+The effort of implementing DataOps (DevOps for data) pay off when you can deliver fast products with higher quality, reliable, accurate. Recent tools like airflow have paved the way to data management and lifecycle.
+
+#### 2.2.5 Data Architecture
+It defines the long term data strategy and data needs. Architecture are build by gathering business requirements and finding the best architecture cost and effort wise to the company. Data Architect and DEs are usually separate roles, but DE must be able to work on it and give feedback to.
+
+#### 2.2.6 Software Engineering
+In early stages DE used to build Map Reduce jobs in C++ and Java. Now, we mostlyt abstracted versions of it in the cloud and usgin higher level coding. There are a few components very important to it.
+
+##### 2.2.6.1 Core data processing code
 
 # order
 ## -> chapter x 
