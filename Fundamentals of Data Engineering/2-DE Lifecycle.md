@@ -88,7 +88,7 @@ The practice of taking curated data and feed into SaaS and other platforms, and 
 ### 2.2 Major Undercurrents Across the DE Lifecycle (red)
 As DE evolved, new practices other than just ETL have been incorporated to the role, such as the undercurrents: Security, Data Management, DataOps, Data Architecture, Orchestration, Soft. Eng. :
 
-IMAGE
+<div><img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Fundamentals%20of%20Data%20Engineering/src/DE_lifecycle.png" style="height: 400px; margin: 20px"/></div>
 
 #### 2.2.1 Security
 This should be top priority, and the concept of least privilege must be used. Give only the inteded access necessary to the tuser execute the task. You also should not have usperuser or admin access all the time. It avoid accidental damage. Use encryption, tokenization, masking, obfuscation and mantain a simple and robust access control.
