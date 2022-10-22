@@ -107,6 +107,8 @@ Usually the 2 types of user facing are mixed and the internal work is usually al
 #### 1.6.2 Data Engineers and Other Technical Roles (BLACK)
 DEs are a hub between Data Producers such as SE, DA, DevOps or SREs, and Data Consumers such as Data Analyst , DSm DEs and  ML.
 
+<div><img src="https://github.com/cassiobolba/Data-Engineering/blob/master/Fundamentals%20of%20Data%20Engineering/src/DE_stakeholders.png" style="height: 400px; margin: 20px"/></div>
+
 ##### 1.6.2.1 Upstream Stakeholders (GREY)
 You Must understand the data Architecture you use as much as understand the type of data and source systems producing the data. Let's take a look at each upstream role.
 * Data Architect
