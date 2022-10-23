@@ -73,10 +73,16 @@ Based on the AWS well-achitected framework and on Google Cloud principles for Cl
     * no waterfall release, each system evolve separately
 
 #### 3.2.7 Principle 7: Make Reversivble Decisions
+* Data landscape changes quickly
+* be prepared to move and change architecture
 
+#### 3.2.8 Principle 8: Prioritize Security
+* Every DE help on security build and maintenance
+* Use zero-trsut approach or shared resp. security model
 
-
-
+#### 3.2.9 Principle 9: Embrace FinOps
+* manage costs can be tricky on cloud environment
+* DEs must know cost system an how to optimize and choose the best
 
 
 # order
