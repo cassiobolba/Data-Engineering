@@ -83,6 +83,25 @@ Based on the AWS well-achitected framework and on Google Cloud principles for Cl
 #### 3.2.9 Principle 9: Embrace FinOps
 * manage costs can be tricky on cloud environment
 * DEs must know cost system an how to optimize and choose the best
+* It evolves the operational monitoring model to monitor spending on an ongoing basis
+* Data FinOps is a new area and have good territory!
+
+### 3.3 Major Architecture Concepts
+#### 3.3.1 Domains and Services
+A domain is the real-world sibject area of which you are architecting.   
+A service a set of functionality whose goal is to accomplish a task.   
+A Domains contains multiple services
+
+### 3.3.2 Distributed Systems, Scalability, and Design for Failure
+* Design for scalability
+* Elasticity
+* Availability
+* Reliability
+* Distributed systems can help on all these by providing these characteristis to the cluster or service you use
+* Cloud services usually provide it under the hood
+
+### 3.3.3 Tight Versus Loose Coupling: Tiers, Monoliths, and Microservices
+
 
 
 # order
