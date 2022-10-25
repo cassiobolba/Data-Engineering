@@ -101,7 +101,10 @@ A Domains contains multiple services
 * Cloud services usually provide it under the hood
 
 ### 3.3.3 Tight Versus Loose Coupling: Tiers, Monoliths, and Microservices
+* Tight Couple systems: most pieces depend on each other, centralized
+* Loosely couple systems: Distributed, no dependencies, easy to change
 
+#### 3.3.3.1 Architecturse Tiers
 
 
 # order
