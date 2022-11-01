@@ -78,7 +78,7 @@ Based on the AWS well-achitected framework and on Google Cloud principles for Cl
 
 #### 3.2.8 Principle 8: Prioritize Security
 * Every DE help on security build and maintenance
-* Use zero-trsut approach or shared resp. security model
+* Use zero-trust approach or shared resp. security model
 
 #### 3.2.9 Principle 9: Embrace FinOps
 * manage costs can be tricky on cloud environment
@@ -88,11 +88,11 @@ Based on the AWS well-achitected framework and on Google Cloud principles for Cl
 
 ### 3.3 Major Architecture Concepts
 #### 3.3.1 Domains and Services
-A domain is the real-world sibject area of which you are architecting.   
+A domain is the real-world subject area of which you are architecting.   
 A service a set of functionality whose goal is to accomplish a task.   
-A Domains contains multiple services
+A Domains contains multiple services.   
 
-### 3.3.2 Distributed Systems, Scalability, and Design for Failure
+#### 3.3.2 Distributed Systems, Scalability, and Design for Failure
 * Design for scalability
 * Elasticity
 * Availability
@@ -100,12 +100,62 @@ A Domains contains multiple services
 * Distributed systems can help on all these by providing these characteristis to the cluster or service you use
 * Cloud services usually provide it under the hood
 
-### 3.3.3 Tight Versus Loose Coupling: Tiers, Monoliths, and Microservices
+#### 3.3.3 Tight Versus Loose Coupling: Tiers, Monoliths, and Microservices
 * Tight Couple systems: most pieces depend on each other, centralized
 * Loosely couple systems: Distributed, no dependencies, easy to change
 
-#### 3.3.3.1 Architecturse Tiers
+##### 3.3.3.1 Architecturse Tiers
+Applications have layers like data, app, business logic, presentations... You need to know how to decouple them to make it flexible and no monolithic.   
 
+###### 3.3.3.1.1 Single Tier
+* Every layer lives in the same server (database and application for example). 
+* It is good for development, not for production. 
+* All layers share the same resources, making hadr to optimize
+
+###### 3.3.3.1.2 Multitier
+Aka n-tier is hierarchical layers, separating database from application, and from presentation... 
+* 3-tier is very famous for client server desgin.
+* start simple and increse tiers as needed
+
+##### 3.3.3.2 Monoliths
+* Includes as much as possible under one roof
+* Can be Tech coupled or Domain coupled, or together
+* Very hard to mantain and upgrade
+
+##### 3.3.3.3 Microservices
+* Separate, decentralized and loosely coupled services
+* Each service has its own function and do not depend on the other
+* Breaking a monolith to microservices is very hard and sometimes impossible
+
+##### 3.3.3.4 Considerations for Data Architecture
+* Above we saw many soft. eng. concepts that are being recently implemented to DE teams
+* A loosely coupled Data Architecture would have its pipelines and DW split by domain, for example, sales and inventory run independently
+
+MONOLITH X MICROSERVICES PIC
+
+* But it does not resolve the complexity of sharing domains data
+* If DWs from sales and inventory are separate there are options to make a user have good access to both:
+    * centralization: a team is responsible for centralizing all domains data and curate it
+    * data mesh: each SE team is responsible for delivering usable data
+
+#### 3.3.4 User Access: Single vs Multitenant
+* Consider 2 factor for it: performance and security
+* Very common approach is to isolate tenant data in views
+* Consider if the data shared is secured enough and only needed people will have access
+* If sharing the same tenant data (or view) with many users, consider if performance is not being affected by high usage
+
+#### 3.3.5 Event-Driven Architecture
+An event-driven workflow encompasses the ability to create, update, and asynchronously move events across various parts of the data engineering lifecycle.
+* it enables to save the events state and recover easily
+* example of loosely coupled, that events pass throught loosely services
+
+#### 3.3.6 Brownfield vs Greenfield Projects
+##### 3.3.6.1 Brownfield Projects
+* Involve refactoring an existing system
+* Need to undersdant the current architecture
+* Why decisions were made ?
+* Use empathy, identify opportunities and pitfalls
+* Common pattern is the strangled pattern: slowlly releasea updates and switchs to new architecture, small steps that allow rollback
 
 # order
 ## -> chapter x 
