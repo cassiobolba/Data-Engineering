@@ -157,6 +157,29 @@ An event-driven workflow encompasses the ability to create, update, and asynchro
 * Use empathy, identify opportunities and pitfalls
 * Common pattern is the strangled pattern: slowlly releasea updates and switchs to new architecture, small steps that allow rollback
 
+##### 3.3.6.2 Greenfield Projects
+* Start a project from zero
+* The pitfall is to be more excited about usgin new shiny tech than focusing on bringing value
+* Be flexible, aim positive ROI, access tools trade-offs
+
+### 3.4 Examples and Types of Data Architecture
+Most common Architectures
+#### 3.4.1 Data Warehouse
+* Central Hub for reporting and Analysis
+* Oldest type of Architecture
+* Gained even use because new cloud DW with pay as you go methods
+* Divided in Organizational and Technical
+    * Organizational
+        * Analytics Process (OLAP)
+        * better performance for analisys
+        * Centralize and organize company data
+    * Technical
+        * Supports MPP to process massive amount of data
+        * Started with row based process, now changing to columnar based to incresve even more the capabilities
+
+##### 3.4.1.1 The Cloud Data Warehouse
+
+
 # order
 ## -> chapter x 
 ### -> RED 
