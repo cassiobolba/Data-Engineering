@@ -178,7 +178,50 @@ Most common Architectures
         * Started with row based process, now changing to columnar based to incresve even more the capabilities
 
 ##### 3.4.1.1 The Cloud Data Warehouse
+* Redshift is the pionner
+* No need anymore to buy expensive infra to do MPP
+* Can just spin up a cluster in the cloud and scale as needed
+* BQ and SF brought the concept of separating storage (now in an object storage) from computing power
+* Accept also semi structured data
 
+##### 3.4.1.2 Data Marts
+* Subset of data for reporting
+* It is divided by deparment, or business
+* make easy to give data to users
+
+#### 3.4.2 Data Lake
+* separate ccomputing from storage
+* storage in the cloud with limitless storage
+* generation 1 faile to delivery the promisse of democratization of data
+    * data stored in swamps
+    * huge amount of uselles data
+    * No support to raising rules on GDPR
+    * joins were hard to do in mapreduce
+    * expensive teams hired to mantain haddop clusters
+* But, it was sucessfull for companies like netflix and facebook because they have the money to invest an also create their own tools on the top
+
+#### 3.4.3 Convergence, Next-Generation Data Lakes and the Data Platform
+* Many companies entedered to deliver new solutions
+* databricks brought the concept of lakehouse including ACID, solving problems of previous generation
+* cloud companies have brought the cloud DW with datalake concepts
+* the edge from datalake to DW will be more and more very blurry
+* ex: AWS, GCP, Azure, Databricks, Snowflake...
+
+#### 3.4.4 Modern Data Stack
+* new trend on data technologies
+* goal to use:
+    * modern cloud based tools
+    * plug-n-play
+    * off-the-shelf components
+    * modular
+    * cost effective
+    * self-service
+    * community
+    * open-source
+    * clear pricing
+* many new tools are borning, but he goal is the same: reduce complexity an increase modularization
+
+#### 3.4.5 Lambda Architecture
 
 # order
 ## -> chapter x 
