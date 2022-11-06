@@ -222,6 +222,48 @@ Most common Architectures
 * many new tools are borning, but he goal is the same: reduce complexity an increase modularization
 
 #### 3.4.5 Lambda Architecture
+* explosion of streaming tools created need to reconcile batch and streaming in same architecture
+* Source system send data to 2 destination, batch and streaming
+* Streaming aims lower latency, usually NoSql
+* Batch computes data to DW or Lakes 
+* Serving layer combines results of 2 previous layers
+* The downside, is hard to mantain 2 different codebases and tools, not first recommendation if needed to use batch and streaming
+
+#### 3.4.6 Kappa Architecture
+* Came as the response to Lambda
+* Aim to have full architecture over streaming
+* Can be really expsenvie and also hard to do, since streaming is still not very wiedlly adopted
+* batch storage and processing is still cheaper
+
+#### 3.4.7 The Dataflow Model and Unified Batch and Streaming
+* Google developed the Dataflow model by introducing Apache Beam
+* View all data as events aggregated over windows
+* Streaming is unbounded data
+* batches are bounded data
+* So all data is a variation of streaming, with basically same codebase
+* flink and spark tried to o the same
+
+#### 3.4.8 Architecture for IoT
+* data comes from devices
+* It is expect this data will be the dominant type in the future
+
+##### 3.4.8.1 Devices
+* Watches, cameras, sensors...
+
+##### 3.4.8.2 Interfacing with Devices
+* evices are only useful if someone can get ist data. How to interface with it ?
+
+###### 3.4.8.2.1 IoT Gateway
+* hub for device connection an data transmition
+* usually each device have its own gateway (every smartwatch owner connect to its own hub, then its own gateway)
+
+##### 3.4.8.2.2 Storage
+* Vary depending on the usage purpose
+* If need to analyze in real time, a queue is good to buffer the data
+* If batch is enough, store in object storage
+
+##### 3.4.8.2.3 Serving
+
 
 # order
 ## -> chapter x 
