@@ -257,12 +257,54 @@ Most common Architectures
 * hub for device connection an data transmition
 * usually each device have its own gateway (every smartwatch owner connect to its own hub, then its own gateway)
 
-##### 3.4.8.2.2 Storage
+###### 3.4.8.2.2 Storage
 * Vary depending on the usage purpose
 * If need to analyze in real time, a queue is good to buffer the data
 * If batch is enough, store in object storage
 
-##### 3.4.8.2.3 Serving
+###### 3.4.8.2.3 Serving
+* usually data served via report and dashboard usgin DW data
+* can be analyzed in real-time for critical events, anomalies
+* Reverse engineering is also used to analyze batch data, apply ml and adjust settings in devices
+
+#### 3.4.9 Data Mesh
+* Comes as response to centralized data approach like DW and Datalake
+* Use the idea of Domain Driven Design
+* It decentralize data, and each domain is responsible for owning and serving their data:
+    * Domain-oriented decentralized data ownership and architecture
+    * Data as a product
+    * Self-serve data infrastructure as a platform
+    * Federated computational governance
+
+<div><img src="link" style="height: 400px; margin: 20px"/></div> IMAGE DATA MESH
+
+#### 3.4.10 Other Data Architecture Examples
+* Examples of other Archs:
+    * Data fabric
+    * Data hub
+    * Scaled Arch
+    * metadata-first
+    * event-driven
+    * live data stack
+* DEs should be aware of data arch evolutions and evaluate possibel benefits for their purpose
+* Not be attached to a tool or single architecture
+
+### 3.5 Who's Involved with Designing a Data Architecture?
+* Bigger companies usually hire Data Architects
+* DAs and DEs should be in sync and aligned with company needs
+* Smaller companies have the DEs designing it, so DEs should be aware of good data architecture
+* Works with SH, evaluate trade-offs, should be DE ou DL ? which cloud platform? lambda or kappa?
+
+### 3.6 FUTURE READS
+* https://aws.plainenglish.io/end-to-end-serverless-etl-orchestration-in-aws-322fedd4402f
+* https://www.oreilly.com/radar/questioning-the-lambda-architecture/
+* https://medium.com/slalom-data-ai/a-personal-implementation-of-modern-data-architecture-getting-strava-data-into-google-cloud-49506446ebd4
+* https://medium.com/sapphire-ventures-perspectives/what-is-the-open-data-ecosystem-and-why-its-here-to-stay-60c06f19011b
+* https://www.cio.com/article/190941/what-is-data-architecture-a-framework-for-managing-data.html
+* https://medium.com/ssense-tech/principled-data-engineering-part-i-architectural-overview-6d4bdf89b657
+* https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/how-to-build-a-data-architecture-to-drive-innovation-today-and-tomorrow
+* https://learn.microsoft.com/en-us/azure/architecture/data-guide/big-data/
+
 
 
 # order
