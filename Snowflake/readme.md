@@ -27,7 +27,7 @@ grant imported privileges on database snowflake_sample_data to role public;
 ```
 
 ## Architecture Basics
-https:--docs.snowflake.com/en/user-guide/intro-key-concepts.html
+https://docs.snowflake.com/en/user-guide/intro-key-concepts.html
 - 3 layers
 - storage: columnar compressed data stored in object storage (if - selected AWS, S3)
 - query processing: virtual WH are servers
@@ -35,7 +35,7 @@ https:--docs.snowflake.com/en/user-guide/intro-key-concepts.html
     - Billed by - credit (1 server = 1 credit) billed by second (min 1min). Can - use multi cluster to increase WH number during usage peak
 - cloud provider: chooses provider that manages various activities to run snowflake
 
-## Set uo Warehouse - UI
+## Set up Warehouse - UI
 - Admin > Warehouse >
 - nome padrao > TEAM_NAME_WH
 - size
@@ -100,7 +100,7 @@ WITH
 
 ## Snowflake Editions
 look for link with comparation image    
-https:--docs.snowflake.com/en/user-guide/intro-editions.html
+https://docs.snowflake.com/en/user-guide/intro-editions.html
 
 ### Standard
 introductory level
@@ -194,7 +194,10 @@ https:--www.snowflake.com/pricing/
 - USERADMIN: dedicated to user and role management only, create roles and users
 - PUBLIC: all user have this access, create own objects like other roles
 
+
+
 # Loading Data
+
 ## Loading Methods
 - Bulk Loading
     - Most used method
@@ -588,6 +591,7 @@ DESC STAGE MANAGE_DB.external_stages.aws_stage_errorex;
 ```
 
 # COPY options
+
 ## Understanding copy options
 The basics we already have seen:
 ```sql
@@ -660,3 +664,461 @@ copy into copy_db.public.orders
 ```
 
 ## Working with rejected values
+there are 2 ways of retrieving the errors that have occured:   
+Method 1:
+    - use validation_mode = return_errors
+    - this just print the errors
+    - create a table 'rejected' as select * from (result_scan(last_query_id()))
+
+```sql
+--- SETUP
+---- Use files with errors ----
+CREATE OR REPLACE STAGE COPY_DB.PUBLIC.aws_stage_copy
+    url='s3://snowflakebucket-copyoption/returnfailed/';
+
+LIST @COPY_DB.PUBLIC.aws_stage_copy;    
+
+COPY INTO COPY_DB.PUBLIC.ORDERS
+    FROM @aws_stage_copy
+    file_format= (type = csv field_delimiter=',' skip_header=1)
+    pattern='.*Order.*'
+    VALIDATION_MODE = RETURN_ERRORS;
+
+COPY INTO COPY_DB.PUBLIC.ORDERS
+    FROM @aws_stage_copy
+    file_format= (type = csv field_delimiter=',' skip_header=1)
+    pattern='.*Order.*'
+    VALIDATION_MODE = RETURN_1_rows;
+    
+-------------- Working with error results -----------
+---- 1) Saving rejected files after VALIDATION_MODE ---- 
+CREATE OR REPLACE TABLE  COPY_DB.PUBLIC.ORDERS (
+    ORDER_ID VARCHAR(30),
+    AMOUNT VARCHAR(30),
+    PROFIT INT,
+    QUANTITY INT,
+    CATEGORY VARCHAR(30),
+    SUBCATEGORY VARCHAR(30));
+
+COPY INTO COPY_DB.PUBLIC.ORDERS
+    FROM @aws_stage_copy
+    file_format= (type = csv field_delimiter=',' skip_header=1)
+    pattern='.*Order.*'
+    VALIDATION_MODE = RETURN_ERRORS;
+
+--Storing rejected /failed results in a table
+CREATE OR REPLACE TABLE rejected AS 
+select rejected_record from table(result_scan(last_query_id()));
+
+-- Adding additional records --
+INSERT INTO rejected
+select rejected_record from table(result_scan(last_query_id()));
+
+SELECT * FROM rejected;
+```
+Method 2:   
+- use ON_ERROR=CONTINUE instead of validation
+- then select * from table(validate(orders, job_id => '_last') or insert into a tables this data
+- it will only save in rejected the data with errors, and the good data will go to
+
+```sql
+---- 2) Saving rejected files without VALIDATION_MODE ---- 
+COPY INTO COPY_DB.PUBLIC.ORDERS
+    FROM @aws_stage_copy
+    file_format= (type = csv field_delimiter=',' skip_header=1)
+    pattern='.*Order.*'
+    ON_ERROR=CONTINUE;
+   
+select * from table(validate(orders, job_id => '_last'));
+```
+### Dealing with errors
+- After saving the errors to another table we can easily tream them
+- since the reject values were not transformed in columns, we need to do it with the query below
+- other options is to return these values to responsible people in source 
+
+```sql
+---- 3) Working with rejected records ---- 
+SELECT REJECTED_RECORD FROM rejected;
+
+CREATE OR REPLACE TABLE rejected_values as
+SELECT 
+SPLIT_PART(rejected_record,',',1) as ORDER_ID, 
+SPLIT_PART(rejected_record,',',2) as AMOUNT, 
+SPLIT_PART(rejected_record,',',3) as PROFIT, 
+SPLIT_PART(rejected_record,',',4) as QUATNTITY, 
+SPLIT_PART(rejected_record,',',5) as CATEGORY, 
+SPLIT_PART(rejected_record,',',6) as SUBCATEGORY
+FROM rejected; 
+
+SELECT * FROM rejected_values;
+```
+
+## Other COPY Options
+- SIZE_LIMIT = 20000 
+    - limit value in kb
+    - size limit for all files combined
+    - a file will always be loaded completely]
+    - ie: 3 files with 20000 size each, we set the limit to 30000. First 2 files are fully loaded, but 3rd is not, because loading the 2nd file exceeded the limit
+- RETURN_FAILED_ONLY = TRUE | FALSE
+    - useful together with ON_ERROR = CONTINUE
+    - default is false
+    - set to true ( with continue ) and returns only the tables names tahat had erros, thus you can focus on only on it
+- TRUNCATECOLUMNS = TRUE | FALSE
+    - IE: COLUMN type is varchar 10, then we try to insert a 12 char string, it will cause error
+    - set this parameter to true to truncate the 12 char value  to 10 char and have no error
+- FORCE = TRUE | FALSE 
+    - Force a file to be copied again even tought has already been copied
+    - can lead to uplicated values
+
+## Check COPY history
+- INFROMATION_SCHEMA.load_history view
+    - in the DB you are copying data, go to INFROMATION_SCHEMA.load_history view
+    - can see file names, load files, size, rows loaded...
+    - this shows the history since the table creation
+    - maybe the table was recreate, then we need next approach
+
+- SNOWFLAKE.ACCOUNT_USAGE.LOAD_HISTORY
+    - this has global table info
+    - each table has one table_id and we can compare other tables 
+
+# Load Unstructured Data
+## Unstructure data example
+in the example below we have dictionary, nested dictionary (job), array of dictionaries, array of values
+```json
+{
+   "id":12,
+   "first_name":"Isahella",
+   "last_name":"Leadbeatter",
+   "gender":"Female",
+   "city":"Koncang",
+   "job":{
+      "title":"Structural Engineer",
+      "salary":13500
+   },
+   "spoken_languages":[
+      {
+         "language":"Hindi",
+         "level":"Basic"
+      },
+      {
+         "language":"Portuguese",
+         "level":"Advanced"
+      },
+      {
+         "language":"Luxembourgish",
+         "level":"Expert"
+      }
+   ],
+   "prev_company":[
+      "Walker, O'Hara and Graham",
+      "Turcotte, Crist and Rodriguez",
+      "Blanda LLC"
+   ]
+},
+```
+recomended process to deal with unstructured data:
+- create stage
+- load raw data (as variant)
+- analyse and parse
+- flatten and load
+
+## Creating Stage and Loading Raw
+```sql
+--First step: Load Raw JSON
+CREATE OR REPLACE stage MANAGE_DB.EXTERNAL_STAGES.JSONSTAGE
+     url='s3://bucketsnowflake-jsondemo';
+
+CREATE OR REPLACE file format MANAGE_DB.FILE_FORMATS.JSONFORMAT
+    TYPE = JSON;
+    
+    
+CREATE OR REPLACE table OUR_FIRST_DB.PUBLIC.JSON_RAW (
+    raw_file variant);
+    
+COPY INTO OUR_FIRST_DB.PUBLIC.JSON_RAW
+    FROM @MANAGE_DB.EXTERNAL_STAGES.JSONSTAGE
+    file_format= MANAGE_DB.FILE_FORMATS.JSONFORMAT
+    files = ('HR_data.json');
+    
+   
+SELECT * FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+```
+
+## Parse JSON
+- access jason values and casting
+
+```sql
+--Second step: Parse & Analyse Raw JSON 
+--Selecting attribute/column
+
+SELECT RAW_FILE:city FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+SELECT $1:first_name FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+--Selecting attribute/column - formattted
+SELECT RAW_FILE:first_name::string as first_name  FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+SELECT RAW_FILE:id::int as id  FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+SELECT 
+    RAW_FILE:id::int as id,  
+    RAW_FILE:first_name::STRING as first_name,
+    RAW_FILE:last_name::STRING as last_name,
+    RAW_FILE:gender::STRING as gender
+
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+--Handling nested data   
+SELECT RAW_FILE:job as job  FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+```
+
+## Parsing Nested Data
+- dot notation
+- accesing values in array
+
+```sql
+--Handling nested data 
+SELECT RAW_FILE:job as job  FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+-- dot notation
+SELECT 
+      RAW_FILE:job.salary::INT as salary
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+SELECT 
+    RAW_FILE:first_name::STRING as first_name,
+    RAW_FILE:job.salary::INT as salary,
+    RAW_FILE:job.title::STRING as title
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+
+--Handling arrays
+SELECT
+    RAW_FILE:prev_company as prev_company
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+-- indices 
+SELECT
+    RAW_FILE:prev_company[1]::STRING as prev_company
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+-- count the number of companies a person worked
+SELECT
+    ARRAY_SIZE(RAW_FILE:prev_company) as prev_company
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+
+-- combining 2 values from the array
+SELECT 
+    RAW_FILE:id::int as id,  
+    RAW_FILE:first_name::STRING as first_name,
+    RAW_FILE:prev_company[0]::STRING as prev_company
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+UNION ALL 
+SELECT 
+    RAW_FILE:id::int as id,  
+    RAW_FILE:first_name::STRING as first_name,
+    RAW_FILE:prev_company[1]::STRING as prev_company
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+ORDER BY id
+```
+
+## Dealing with Hierarchy
+- accessing nester json
+- accessing array values
+- using table and flatten in a column
+
+```sql
+-- check the spoken language structure -> array of dictionaries
+SELECT 
+    RAW_FILE:spoken_languages as spoken_languages
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+-- fetching the 1st spoken languages
+SELECT 
+    RAW_FILE:first_name::STRING as first_name,
+    RAW_FILE:spoken_languages[0] as First_language
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW;
+-- entenring each element in the array to get the language and level
+SELECT 
+    RAW_FILE:first_name::STRING as First_name,
+    RAW_FILE:spoken_languages[0].language::STRING as First_language,
+    RAW_FILE:spoken_languages[0].level::STRING as Level_spoken
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+
+
+-- usgin the inneficient and not correct way of unioning 
+SELECT 
+    RAW_FILE:id::int as id,
+    RAW_FILE:first_name::STRING as First_name,
+    RAW_FILE:spoken_languages[0].language::STRING as First_language,
+    RAW_FILE:spoken_languages[0].level::STRING as Level_spoken
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+UNION ALL 
+SELECT 
+    RAW_FILE:id::int as id,
+    RAW_FILE:first_name::STRING as First_name,
+    RAW_FILE:spoken_languages[1].language::STRING as First_language,
+    RAW_FILE:spoken_languages[1].level::STRING as Level_spoken
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+UNION ALL 
+SELECT 
+    RAW_FILE:id::int as id,
+    RAW_FILE:first_name::STRING as First_name,
+    RAW_FILE:spoken_languages[2].language::STRING as First_language,
+    RAW_FILE:spoken_languages[2].level::STRING as Level_spoken
+FROM OUR_FIRST_DB.PUBLIC.JSON_RAW
+ORDER BY ID
+
+
+-- CORRECT OPTION
+select
+      RAW_FILE:first_name::STRING as First_name,
+    f.value:language::STRING as First_language,
+   f.value:level::STRING as Level_spoken
+from OUR_FIRST_DB.PUBLIC.JSON_RAW, table(flatten(RAW_FILE:spoken_languages)) f;
+```
+
+## Insert Final Data
+We have a couple options
+```sql
+--Option 1: CREATE TABLE AS
+CREATE OR REPLACE TABLE Languages AS
+select
+      RAW_FILE:first_name::STRING as First_name,
+    f.value:language::STRING as First_language,
+   f.value:level::STRING as Level_spoken
+from OUR_FIRST_DB.PUBLIC.JSON_RAW, table(flatten(RAW_FILE:spoken_languages)) f;
+
+SELECT * FROM Languages;
+
+truncate table languages;
+
+--Option 2: INSERT INTO
+INSERT INTO Languages
+select
+      RAW_FILE:first_name::STRING as First_name,
+    f.value:language::STRING as First_language,
+   f.value:level::STRING as Level_spoken
+from OUR_FIRST_DB.PUBLIC.JSON_RAW, table(flatten(RAW_FILE:spoken_languages)) f;
+
+SELECT * FROM Languages;
+```
+
+## Querying PARQUET file
+Usually done in 2 steps
+    - first open the parquet file to see the structure (in case unknown)
+    - copy the structure and parse it
+
+```sql
+--Create file format and stage object  
+CREATE OR REPLACE FILE FORMAT MANAGE_DB.FILE_FORMATS.PARQUET_FORMAT
+    TYPE = 'parquet';
+
+CREATE OR REPLACE STAGE MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE
+    url = 's3://snowflakeparquetdemo'   
+    FILE_FORMAT = MANAGE_DB.FILE_FORMATS.PARQUET_FORMAT;
+    
+--Preview the data  
+LIST  @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE;   
+    
+SELECT * FROM @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE;
+    
+
+-- File format in Queries
+-- if not specify file format on stage creation
+CREATE OR REPLACE STAGE MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE
+    url = 's3://snowflakeparquetdemo'  
+
+-- specify during the table read with    
+SELECT * 
+FROM @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE
+(file_format => 'MANAGE_DB.FILE_FORMATS.PARQUET_FORMAT')
+
+
+--Querying with conversions and aliases    
+SELECT 
+$1:__index_level_0__::int as index_level,
+$1:cat_id::VARCHAR(50) as category,
+DATE($1:date::int ) as Date,
+$1:"dept_id"::VARCHAR(50) as Dept_ID,
+$1:"id"::VARCHAR(50) as ID,
+$1:"item_id"::VARCHAR(50) as Item_ID,
+$1:"state_id"::VARCHAR(50) as State_ID,
+$1:"store_id"::VARCHAR(50) as Store_ID,
+$1:"value"::int as value
+FROM @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE;
+```
+
+## Loading PARQUET data
+
+We can also add some metadata
+```sql
+--Adding metadata
+SELECT 
+$1:__index_level_0__::int as index_level,
+$1:cat_id::VARCHAR(50) as category,
+DATE($1:date::int ) as Date,
+$1:"dept_id"::VARCHAR(50) as Dept_ID,
+$1:"id"::VARCHAR(50) as ID,
+$1:"item_id"::VARCHAR(50) as Item_ID,
+$1:"state_id"::VARCHAR(50) as State_ID,
+$1:"store_id"::VARCHAR(50) as Store_ID,
+$1:"value"::int as value,
+METADATA$FILENAME as FILENAME,
+METADATA$FILE_ROW_NUMBER as ROWNUMBER,
+TO_TIMESTAMP_NTZ(current_timestamp) as LOAD_DATE
+FROM @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE;
+
+SELECT TO_TIMESTAMP_NTZ(current_timestamp);
+
+
+--Create destination table
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.PARQUET_DATA (
+    ROW_NUMBER int,
+    index_level int,
+    cat_id VARCHAR(50),
+    date date,
+    dept_id VARCHAR(50),
+    id VARCHAR(50),
+    item_id VARCHAR(50),
+    state_id VARCHAR(50),
+    store_id VARCHAR(50),
+    value int,
+    Load_date timestamp default TO_TIMESTAMP_NTZ(current_timestamp)
+    )
+
+--Load the parquet data 
+COPY INTO OUR_FIRST_DB.PUBLIC.PARQUET_DATA
+    FROM (SELECT 
+            METADATA$FILE_ROW_NUMBER,
+            $1:__index_level_0__::int,
+            $1:cat_id::VARCHAR(50),
+            DATE($1:date::int ),
+            $1:"dept_id"::VARCHAR(50),
+            $1:"id"::VARCHAR(50),
+            $1:"item_id"::VARCHAR(50),
+            $1:"state_id"::VARCHAR(50),
+            $1:"store_id"::VARCHAR(50),
+            $1:"value"::int,
+            TO_TIMESTAMP_NTZ(current_timestamp)
+        FROM @MANAGE_DB.EXTERNAL_STAGES.PARQUETSTAGE);
+        
+    
+SELECT * FROM OUR_FIRST_DB.PUBLIC.PARQUET_DATA;
+```
+
+# PERFORMANCE OPTIMIZATION
+
+## Performance in Snowflake
+- a little bit different then traditional databases
+- usually to save costs and make faster queries
+- WE DO NOT DO LIKE THE TRADICIONAL WAY
+    - Indexes
+    - table aprtitions
+    - analyze execution plan
+    - remove unecessary full table scans
+- Snowflake have Auto managed micro parittions
+- Normal optmizations in SF:
+    - type data
+    - size virtual warehouses according to workloads
+    - scaling up for known work load
+    - scaling out dinamically for unknown work load
+    - maximize automatic cache
+    - cluster keys for larger tables
