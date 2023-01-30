@@ -1214,3 +1214,261 @@ DROP WAREHOUSE DBA_WH;
 ALTER WAREHOUSE MY_WH
 SET WAREHOUSE_SIZE='XSMAL'
 ```
+
+## Scaling Out
+- Used when we have more concurrent queries to run (NOT MORE COMPLEX QUERIES)
+- Add warehouses
+- Multi cluster is the feature to use, to automatically change it
+- If you have enterprise edition, all warehouses should be set to multi-cluster
+- default should be 1 warehouse in multi-cluster
+- maximum should suffice the needs with loose
+- can test creating a warehouse that would scale up to 3 and run 8x times this query
+```SQL
+SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_SITE T1
+CROSS JOIN SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_SITE T2
+CROSS JOIN SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_SITE T3
+CROSS JOIN (SELECT TOP 57 * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_SITE)  T4
+```
+
+## Caching
+- Automatic process to speed up the queries
+- if query is executed tiwce, resutls are achached and can be re-used
+- cahce lasts 24h or until underlying data changes
+- we cant do much about it
+- but we can assure same queries are running in the same warehouse (if possible)
+
+### Maximizing Cache
+- demo
+- run the query test and see and click on 3 dots in query details > profile (should have 3 stages)
+- re run the query and check the profile again (should have only stage)
+- cerate another user, grant permission to same warehouse, login as him
+- with new user, run the same query (1 stage)
+
+```SQL
+-- query to test
+SELECT AVG(C_BIRTH_YEAR) FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER
+
+--Setting up an additional user
+CREATE ROLE DATA_SCIENTIST;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE DATA_SCIENTIST;
+
+CREATE USER DS1 PASSWORD = 'DS1' LOGIN_NAME = 'DS1' DEFAULT_ROLE='DATA_SCIENTIST' DEFAULT_WAREHOUSE = 'DS_WH'  MUST_CHANGE_PASSWORD = FALSE;
+GRANT ROLE DATA_SCIENTIST TO USER DS1;
+```
+
+## Clustering
+
+- it is subset of rows to loacate the data in micro-partitions
+- for large tables, it improve scan sfficiency in our queries
+- it is maintaned automatically (in regular DBs, DBAS need to mantain)
+- In general snowflake produces well-clustered tables
+- But, they are not always ideal and can change over time
+- example with image to show what snowflake does
+
+### When and how to cluster
+- when? when table is more than a couple TBs, this is not for smaller tables
+- how? 
+    - create a cluster in columns frequenbtly used in where
+    - if filter often by 2 columns, it can alse be good to create 2 cluster keys
+    - also good for columns frequenlty used in joins
+    - the column choose should not be very granular and never have distinct values to avoid hotspot
+    - the column value should be very well distributed to enable efficient grouping
+- when creating table, we add the cluster key
+```sql
+-- CLUSTER BY 1 OR MORE COLUMNS
+CREATE TABLE MY_TABLE AS SELECT * FROM A CLUSTER BY (COLUMN_A , COLUMN_B)
+
+--CLUSTER BY EXPRESION -> LIKE MONTH
+CREATE TABLE MY_TABLE AS SELECT * FROM A CLUSTER BY (MONTH(COLUMN_A))
+
+-- CAN ALSO ALTER TABLE TO ADD OR DROP CLUSTER
+ALTER TALBE TABLE MY_TABLE CLUSTER BY (COLUMN_A , COLUMN_B)
+```
+
+### CLUSTER DEMO
+
+```SQL
+--Publicly accessible staging area    
+CREATE OR REPLACE STAGE MANAGE_DB.external_stages.aws_stage
+    url='s3://bucketsnowflakes3';
+
+--Load data using copy command
+COPY INTO OUR_FIRST_DB.PUBLIC.ORDERS
+    FROM @MANAGE_DB.external_stages.aws_stage
+    file_format= (type = csv field_delimiter=',' skip_header=1)
+    pattern='.*OrderDetails.*';
+    
+--Create table
+CREATE OR REPLACE TABLE ORDERS_CACHING (
+ORDER_ID	VARCHAR(30)
+,AMOUNT	NUMBER(38,0)
+,PROFIT	NUMBER(38,0)
+,QUANTITY	NUMBER(38,0)
+,CATEGORY	VARCHAR(30)
+,SUBCATEGORY	VARCHAR(30)
+,DATE DATE)    
+
+-- INSERT THE DATA  creting a date column
+INSERT INTO ORDERS_CACHING 
+SELECT
+t1.ORDER_ID
+,t1.AMOUNT	
+,t1.PROFIT	
+,t1.QUANTITY	
+,t1.CATEGORY	
+,t1.SUBCATEGORY	
+,DATE(UNIFORM(1500000000,1700000000,(RANDOM())))
+FROM ORDERS t1
+CROSS JOIN (SELECT * FROM ORDERS) t2
+CROSS JOIN (SELECT TOP 100 * FROM ORDERS) t3
+
+--Query Performance before Cluster Key
+--check on the query profiler
+SELECT * FROM ORDERS_CACHING  WHERE DATE = '2020-06-09'
+
+
+--Adding Cluster Key & Compare the result
+ALTER TABLE ORDERS_CACHING CLUSTER BY ( DATE ) 
+-- check after 45 min to  1h to see results in the query profiler
+SELECT * FROM ORDERS_CACHING  WHERE DATE = '2020-01-05'
+```
+
+# Loading from Cloud Provider
+- Create AWS account
+- Create Bucket and folder in the same region as SF to avoid extra cost
+- Upload the files
+- create policy to create connection between AWS and SF
+    - click on profile name (top right) > security credentials > copy the aws account id
+    - IAM > Role > Create New Role > Another AWS account > enter aws account id > select require external id > fill external id with 00000 > next
+    - search for s3 full acess > next > role name > create role
+    - copy the role ARN
+    - paste it on the query below
+    - run both commands
+
+```sql
+--Create storage integration object
+create or replace storage integration s3_int
+  TYPE = EXTERNAL_STAGE
+  STORAGE_PROVIDER = S3
+  ENABLED = TRUE 
+  STORAGE_AWS_ROLE_ARN = 'bla bla bla'
+  STORAGE_ALLOWED_LOCATIONS = ('s3://<your-bucket-name>/<your-path>/', 's3://<your-bucket-name>/<your-path>/')
+   COMMENT = 'This an optional comment' 
+   
+--See storage integration properties to fetch external_id so we can update it in S3
+DESC integration s3_int;
+```
+    - after DESC command copy the SOTRAGE_AWS_IAM_USER_ARN  and STORAGE_AWS_EXTERNAL_ID
+    - GO to AWS > IAM > role >select the created role > edit
+    - on place of principal : AWS paste SOTRAGE_AWS_IAM_USER_ARN
+    - on place od sts:ExternalID : place STORAGE_AWS_EXTERNAL_ID
+
+## Loading the data
+```sql
+--Create table first
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.movie_titles (
+  show_id STRING,
+  type STRING,
+  title STRING,
+  director STRING,
+  cast STRING,
+  country STRING,
+  date_added STRING,
+  release_year STRING,
+  rating STRING,
+  duration STRING,
+  listed_in STRING,
+  description STRING )
+  
+--Create file format object
+CREATE OR REPLACE file format MANAGE_DB.file_formats.csv_fileformat
+    type = csv
+    field_delimiter = ','
+    skip_header = 1
+    null_if = ('NULL','null')
+    empty_field_as_null = TRUE    
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"'    
+    
+--Create stage object with integration object & file format object
+CREATE OR REPLACE stage MANAGE_DB.external_stages.csv_folder
+    URL = 's3://<your-bucket-name>/<your-path>/'
+    STORAGE_INTEGRATION = s3_int
+    FILE_FORMAT = MANAGE_DB.file_formats.csv_fileformat
+
+--Use Copy command       
+COPY INTO OUR_FIRST_DB.PUBLIC.movie_titles
+    FROM @MANAGE_DB.external_stages.csv_folder
+    
+SELECT * FROM OUR_FIRST_DB.PUBLIC.movie_titles
+```    
+    
+# Snowpipe
+https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro.html
+
+## What is it?
+- Enable loading once a file appears in a bucket
+- if needs data to be available immediately for analysis
+- Snowpipe use serverless features instead of Warehouses
+- can create flow to show
+files > s3 bucket >---s3 notification---> serverless > Snowflake DB
+
+## Steps to Create
+- Create Stage Object
+- create a copy command and test it
+- Create a Pipe as object with copy command
+- create S3 notification to trigger snowpipe
+
+## Creating the Stage
+- it used the employee data 1.csv
+- first create the table to insert the data
+- then create the file format object
+- create the stage (if the stage is in a sub folder of the integration object, you can reuse the same integration objet)
+```sql
+--Create table first
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.employees (
+  id INT,
+  first_name STRING,
+  last_name STRING,
+  email STRING,
+  location STRING,
+  department STRING
+  )
+    
+--Create file format object
+CREATE OR REPLACE file format MANAGE_DB.file_formats.csv_fileformat
+    type = csv
+    field_delimiter = ','
+    skip_header = 1
+    null_if = ('NULL','null')
+    empty_field_as_null = TRUE;
+      
+--Create stage object with integration object & file format object
+CREATE OR REPLACE stage MANAGE_DB.external_stages.csv_folder
+    URL = 's3://snowflakes3bucket123/csv/snowpipe'
+    STORAGE_INTEGRATION = s3_int
+    FILE_FORMAT = MANAGE_DB.file_formats.csv_fileformat
+   
+--Create stage object with integration object & file format object
+LIST @MANAGE_DB.external_stages.csv_folder  
+```
+## Creating the PIPE
+- on Manage DB create a separate schema to save pipes
+- create the copy command and test it
+- create the pipe AS the copy
+- describe the pipe to find out the notification resource and copy it
+```sql
+--Create schema to keep things organized
+CREATE OR REPLACE SCHEMA MANAGE_DB.pipes
+
+--Define pipe
+CREATE OR REPLACE pipe MANAGE_DB.pipes.employee_pipe
+auto_ingest = TRUE
+AS
+COPY INTO OUR_FIRST_DB.PUBLIC.employees
+FROM @MANAGE_DB.external_stages.csv_folder  
+
+--Describe pipe
+DESC pipe employee_pipe
+    
+SELECT * FROM OUR_FIRST_DB.PUBLIC.employees    
+```
