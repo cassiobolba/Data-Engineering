@@ -590,7 +590,7 @@ COPY INTO OUR_FIRST_DB.PUBLIC.ORDERS_EX
 DESC STAGE MANAGE_DB.external_stages.aws_stage_errorex;
 ```
 
-# COPY options
+# COPY options  
 
 ## Understanding copy options
 The basics we already have seen:
@@ -1122,3 +1122,95 @@ SELECT * FROM OUR_FIRST_DB.PUBLIC.PARQUET_DATA;
     - scaling out dinamically for unknown work load
     - maximize automatic cache
     - cluster keys for larger tables
+
+## Dedicated Warehouses
+- Identify and classify user groups and their workload
+    - BI, DS, Engineering, MArketing
+- For every class, create a custom Warehouse
+- try to maximize as much as possible the usage of a wharehouse
+Attention:
+- Do not create too many WH, avoid under utilization. Even if the WH have auto suspend, it mean a lot of the times it will still on and not used
+- Refine classification, work pattern can change over time. Monitor it
+
+## Implement Dedicated WH
+We Identified 2 teams, we first create both WH with expeceted usage size
+```sql
+--Create virtual warehouse for data scientist & DBA
+--Data Scientists
+CREATE WAREHOUSE DS_WH 
+WITH WAREHOUSE_SIZE = 'SMALL'
+WAREHOUSE_TYPE = 'STANDARD' 
+AUTO_SUSPEND = 300 
+AUTO_RESUME = TRUE 
+MIN_CLUSTER_COUNT = 1 
+MAX_CLUSTER_COUNT = 1 
+SCALING_POLICY = 'STANDARD';
+
+--DBA
+CREATE WAREHOUSE DBA_WH 
+WITH WAREHOUSE_SIZE = 'XSMALL'
+WAREHOUSE_TYPE = 'STANDARD' 
+AUTO_SUSPEND = 300 
+AUTO_RESUME = TRUE 
+MIN_CLUSTER_COUNT = 1 
+MAX_CLUSTER_COUNT = 1 
+SCALING_POLICY = 'STANDARD';
+```
+After, we create the roles that the users need to be.   
+To create the roles you must be using ACCOUNTADMIN
+- create roles
+- grant the role usage on the WH
+- create users
+- grant the users a role
+
+```SQL
+--Create role for Data Scientists & DBAs
+CREATE ROLE DATA_SCIENTIST;
+GRANT USAGE ON WAREHOUSE DS_WH TO ROLE DATA_SCIENTIST;
+
+CREATE ROLE DBA;
+GRANT USAGE ON WAREHOUSE DBA_WH TO ROLE DBA;
+
+--Setting up users with roles
+--Data Scientists
+CREATE USER DS1 PASSWORD = 'DS1' LOGIN_NAME = 'DS1' DEFAULT_ROLE='DATA_SCIENTIST' DEFAULT_WAREHOUSE = 'DS_WH'  MUST_CHANGE_PASSWORD = FALSE;
+CREATE USER DS2 PASSWORD = 'DS2' LOGIN_NAME = 'DS2' DEFAULT_ROLE='DATA_SCIENTIST' DEFAULT_WAREHOUSE = 'DS_WH'  MUST_CHANGE_PASSWORD = FALSE;
+CREATE USER DS3 PASSWORD = 'DS3' LOGIN_NAME = 'DS3' DEFAULT_ROLE='DATA_SCIENTIST' DEFAULT_WAREHOUSE = 'DS_WH'  MUST_CHANGE_PASSWORD = FALSE;
+
+GRANT ROLE DATA_SCIENTIST TO USER DS1;
+GRANT ROLE DATA_SCIENTIST TO USER DS2;
+GRANT ROLE DATA_SCIENTIST TO USER DS3;
+
+--DBAs
+CREATE USER DBA1 PASSWORD = 'DBA1' LOGIN_NAME = 'DBA1' DEFAULT_ROLE='DBA' DEFAULT_WAREHOUSE = 'DBA_WH'  MUST_CHANGE_PASSWORD = FALSE;
+CREATE USER DBA2 PASSWORD = 'DBA2' LOGIN_NAME = 'DBA2' DEFAULT_ROLE='DBA' DEFAULT_WAREHOUSE = 'DBA_WH'  MUST_CHANGE_PASSWORD = FALSE;
+
+GRANT ROLE DBA TO USER DBA1;
+GRANT ROLE DBA TO USER DBA2;
+
+--Drop objects again
+DROP USER DBA1;
+DROP USER DBA2;
+
+DROP USER DS1;
+DROP USER DS2;
+DROP USER DS3;
+
+DROP ROLE DATA_SCIENTIST;
+DROP ROLE DBA;
+
+DROP WAREHOUSE DS_WH;
+DROP WAREHOUSE DBA_WH;
+```
+
+## Scalling Up / Down
+- THIS IS NOT USEFUL WHEN NUMBER OF USERS INCRESEAD
+- changing the size of VW depending on the workload in different periods
+- ie: ETL at certain times (4 to 8pm), or special business event with more workload
+- THE COMMON CENARIO IS WHEN QUERY GET MORE COMPLEX
+- Can change VW size on UI or via code
+
+```SQL
+ALTER WAREHOUSE MY_WH
+SET WAREHOUSE_SIZE='XSMAL'
+```
