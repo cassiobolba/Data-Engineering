@@ -1409,6 +1409,7 @@ https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro.html
 - Enable loading once a file appears in a bucket
 - if needs data to be available immediately for analysis
 - Snowpipe use serverless features instead of Warehouses
+- Snowpipe is not meant for bulk loading big files, but instead, to load small and continuou files that might be arriving very often
 - can create flow to show
 files > s3 bucket >---s3 notification---> serverless > Snowflake DB
 
@@ -1455,7 +1456,7 @@ LIST @MANAGE_DB.external_stages.csv_folder
 - on Manage DB create a separate schema to save pipes
 - create the copy command and test it
 - create the pipe AS the copy
-- describe the pipe to find out the notification resource and copy it
+- describe the pipe to find out the column notification_channel and copy it
 ```sql
 --Create schema to keep things organized
 CREATE OR REPLACE SCHEMA MANAGE_DB.pipes
@@ -1471,4 +1472,376 @@ FROM @MANAGE_DB.external_stages.csv_folder
 DESC pipe employee_pipe
     
 SELECT * FROM OUR_FIRST_DB.PUBLIC.employees    
+```
+
+## Creating Notification
+- Go to bucker screen > properties tab > setup event notification
+- name it > prefix used for folders where to notifiy > event types (select the desired or ALL) > roll to destination > select SQS queue > select Enter SQS queu ARN > paste the code copied from Snowflake > save changes
+- gtest it
+    - upload another file to subfolder you set of prefix
+    - takes 30 to 60 seconds to event happen
+    - check data in snowflake
+
+## Error Handling
+- use files employee data 3 and 4
+- first show test with error, using wrong delimiter
+```sql
+--Create file format object
+CREATE OR REPLACE file format MANAGE_DB.file_formats.csv_fileformat
+    type = csv
+    field_delimiter = ',' -- set a wrong delimiter
+    skip_header = 1
+    null_if = ('NULL','null')
+    empty_field_as_null = TRUE;
+```
+- upload a new file on bucket
+- queries below are to debug
+```sql 
+-- this command shows the runs that happened
+-- just to know if pipe is functioning
+ALTER PIPE employee_pipe refresh
+ 
+-- Validate pipe is actually working
+SELECT SYSTEM$PIPE_STATUS('employee_pipe')
+
+-- Snowpipe error message
+-- sometime can give some general error message
+SELECT * FROM TABLE(VALIDATE_PIPE_LOAD(
+    PIPE_NAME => 'MANAGE_DB.pipes.employee_pipe',
+    START_TIME => DATEADD(HOUR,-2,CURRENT_TIMESTAMP())))
+
+-- COPY command history from table to see error massage
+-- here we have more details to understand the error
+SELECT * FROM TABLE (INFORMATION_SCHEMA.COPY_HISTORY(
+   table_name  =>  'OUR_FIRST_DB.PUBLIC.EMPLOYEES',
+   START_TIME =>DATEADD(HOUR,-2,CURRENT_TIMESTAMP())))
+```
+
+## Managing Pipes
+```sql
+-- Manage pipes -- 
+DESC pipe MANAGE_DB.pipes.employee_pipe;
+
+SHOW PIPES;
+
+SHOW PIPES like '%employee%'
+
+SHOW PIPES in database MANAGE_DB
+
+SHOW PIPES in schema MANAGE_DB.pipes
+
+SHOW PIPES like '%employee%' in Database MANAGE_DB
+
+-- Changing pipe (alter stage or file format) --
+--P reparation table first
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.employees2 (
+  id INT,
+  first_name STRING,
+  last_name STRING,
+  email STRING,
+  location STRING,
+  department STRING
+  )
+
+-- Pause pipe
+ALTER PIPE MANAGE_DB.pipes.employee_pipe SET PIPE_EXECUTION_PAUSED = true
+ 
+-- Verify pipe is paused and has pendingFileCount 0 
+SELECT SYSTEM$PIPE_STATUS('MANAGE_DB.pipes.employee_pipe') 
+
+ -- Recreate the pipe to change the COPY statement in the definition
+CREATE OR REPLACE pipe MANAGE_DB.pipes.employee_pipe
+auto_ingest = TRUE
+AS
+COPY INTO OUR_FIRST_DB.PUBLIC.employees2
+FROM @MANAGE_DB.external_stages.csv_folder  
+
+ALTER PIPE  MANAGE_DB.pipes.employee_pipe refresh
+
+-- List files in stage
+LIST @MANAGE_DB.external_stages.csv_folder  
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC.employees2
+
+-- Reload files manually that where aleady in the bucket
+-- files already loaded will not be realoaded
+COPY INTO OUR_FIRST_DB.PUBLIC.employees2
+FROM @MANAGE_DB.external_stages.csv_folder  
+
+-- Resume pipe
+ALTER PIPE MANAGE_DB.pipes.employee_pipe SET PIPE_EXECUTION_PAUSED = false
+
+-- Verify pipe is running again
+SELECT SYSTEM$PIPE_STATUS('MANAGE_DB.pipes.employee_pipe') 
+```
+
+# TIME TRAVEL
+
+## Time travel Functions
+https://docs.snowflake.com/en/user-guide/data-time-travel.html
+- we can look how a table was in an specific point in time
+- each snowflake edition has its look back time
+    - standard -1 day
+    - enterprise and on -90
+- first create a table and stages
+```sql
+--Setting up table
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.test (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string)
+    
+CREATE OR REPLACE FILE FORMAT MANAGE_DB.file_formats.csv_file
+    type = csv
+    field_delimiter = ','
+    skip_header = 1
+    
+CREATE OR REPLACE STAGE MANAGE_DB.external_stages.time_travel_stage
+    URL = 's3://data-snowflake-fundamentals/time-travel/'
+    file_format = MANAGE_DB.file_formats.csv_file;
+    
+LIST @MANAGE_DB.external_stages.time_travel_stage
+
+COPY INTO OUR_FIRST_DB.public.test
+from @MANAGE_DB.external_stages.time_travel_stage
+files = ('customers.csv')
+
+SELECT * FROM OUR_FIRST_DB.public.test
+```
+- this is all set
+- the use case is we will accidentally replace all names in a column instead a single value
+- there are 3 ways of using 
+- Method 1
+```sql
+--Use-case: Update data (by mistake)
+UPDATE OUR_FIRST_DB.public.test
+SET FIRST_NAME = 'Joyen' 
+
+-- see all is wrong
+SELECT * FROM OUR_FIRST_DB.public.test
+
+--Using time travel: Method 1 - 2 minutes back
+SELECT * FROM OUR_FIRST_DB.public.test at (OFFSET => -60*1.5)
+
+-- see all is back to normal
+SELECT * FROM OUR_FIRST_DB.public.test
+```
+- method 2
+- recreate the table from beggining to re do the mistake
+- get the current timestamp
+- use the timestamp
+```sql
+-- Setting up UTC time for convenience
+ALTER SESSION SET TIMEZONE ='UTC'
+SELECT DATEADD(DAY, 1, CURRENT_TIMESTAMP)
+
+UPDATE OUR_FIRST_DB.public.test
+SET Job = 'Data Scientist'
+
+-- all shoudl be wrong
+SELECT * FROM OUR_FIRST_DB.public.test;
+
+-- second method
+SELECT * FROM OUR_FIRST_DB.public.test before (timestamp => '2021-04-16 07:30:47.145'::timestamp)
+
+-- all should be all good
+SELECT * FROM OUR_FIRST_DB.public.test;
+```
+- method 3
+- recreate the table from beggining to re do the mistake
+- get the query id on the history
+```sql
+--Using time travel: Method 3 - before Query ID
+--Altering table (by mistake)
+UPDATE OUR_FIRST_DB.public.test
+SET EMAIL = null
+
+SELECT * FROM OUR_FIRST_DB.public.test
+
+SELECT * FROM OUR_FIRST_DB.public.test before (statement => '019b9ee5-0500-8473-0043-4d8300073062')
+```
+## Restoring the data
+- setup every data as previous 
+- do two mistakes, one at each times to have 2 query id
+- recreate the table using time travel on latest mistake id from last query run
+- check results and see is not ideal (missing the rollback of first mistake)
+- try to recreate using the first mistake query id and get error
+- this is because recreate table deletes all metadata
+- this is the bad habit of restoring data
+``` sql
+--Use-case: Update data (by mistake)
+UPDATE OUR_FIRST_DB.public.test
+SET LAST_NAME = 'Tyson';
+
+UPDATE OUR_FIRST_DB.public.test
+SET JOB = 'Data Analyst';
+
+SELECT * FROM OUR_FIRST_DB.public.test before (statement => '019b9eea-0500-845a-0043-4d830007402a')
+
+--Bad method
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.test as
+SELECT * FROM OUR_FIRST_DB.public.test before (statement => '019b9eea-0500-845a-0043-4d830007402a')
+
+
+SELECT * FROM OUR_FIRST_DB.public.test
+
+-- you shoudl get an error here
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.test as
+SELECT * FROM OUR_FIRST_DB.public.test before (statement => '019b9eea-0500-8473-0043-4d830007307a')
+```
+- the good method
+- recreate everything and do both mistakes
+- do the same of restoring not to the ideal query id but with a good practice
+- check it and see it not cool but you still can go to right point in time
+```sql
+-- Good method
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.test_backup as
+SELECT * FROM OUR_FIRST_DB.public.test before (statement => '019b9ef0-0500-8473-0043-4d830007309a')
+
+TRUNCATE OUR_FIRST_DB.public.test
+
+INSERT INTO OUR_FIRST_DB.public.test
+SELECT * FROM OUR_FIRST_DB.public.test_backup
+
+SELECT * FROM OUR_FIRST_DB.public.test 
+```
+
+## Undrop Table / Schema / Database
+- SETUP the environment
+```sql
+--Setting up table
+CREATE OR REPLACE STAGE MANAGE_DB.external_stages.time_travel_stage
+    URL = 's3://data-snowflake-fundamentals/time-travel/'
+    file_format = MANAGE_DB.file_formats.csv_file;
+    
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.customers (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+    
+COPY INTO OUR_FIRST_DB.public.customers
+from @MANAGE_DB.external_stages.time_travel_stage
+files = ('customers.csv');
+
+SELECT * FROM OUR_FIRST_DB.public.customers;
+```
+- undrop commands
+```sql
+--UNDROP command - Tables
+DROP TABLE OUR_FIRST_DB.public.customers;
+
+SELECT * FROM OUR_FIRST_DB.public.customers;
+
+UNDROP TABLE OUR_FIRST_DB.public.customers;
+
+--UNDROP command - Schemas
+DROP SCHEMA OUR_FIRST_DB.public;
+
+SELECT * FROM OUR_FIRST_DB.public.customers;
+
+UNDROP SCHEMA OUR_FIRST_DB.public;
+
+--UNDROP command - Database
+DROP DATABASE OUR_FIRST_DB;
+
+SELECT * FROM OUR_FIRST_DB.public.customers;
+
+UNDROP DATABASE OUR_FIRST_DB;
+```
+- you can even use undrop to undrop recreated tables and restore the metadatada and do time travel
+- but you cant undrop a table that still exists, then you need to rename the current recreated table and then undrop the desired table
+
+## Retention Period
+- Standard edition = 1 day
+- Enterprise and on = 90 days (but default is 1)
+- but it does not mean is always 90 days, need to use query below to see what is the retention time
+```sql
+SHOW TABLES LIKE '%TABLENAME';
+```
+- there are 2 methods to set the retention time
+```sql
+-- existing table
+ALTER TALBE MY_TABLE SET DATA_RETENTION_TIME_IN_DAYS = 2;
+
+-- on creation
+CREATE OR REPLACE TABLE MY_ABLE AS
+( SELECT * FROM A) DATA_RETENTION_TIME_IN_DAYS = 2 ;
+```
+- IF SETTING a retention period to 0 you can also undrop
+- the more the time travel retention period the more storage, thus, more cost
+
+## Time Travel Cost
+- not always ideal to have 90 days retention period
+- increase storage
+```sql
+-- storage usage per day in total
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE ORDER BY USAGE_DATE DESC;
+-- storage usage per table
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS;
+
+-- Query time travel storage
+SELECT 	ID, 
+		TABLE_NAME, 
+		TABLE_SCHEMA,
+        TABLE_CATALOG,
+		ACTIVE_BYTES / (1024*1024*1024) AS STORAGE_USED_GB,
+		TIME_TRAVEL_BYTES / (1024*1024*1024) AS TIME_TRAVEL_STORAGE_USED_GB
+FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+ORDER BY STORAGE_USED_GB DESC,TIME_TRAVEL_STORAGE_USED_GB DESC;
+```
+
+# FAIL SAFE
+
+## What is Fail Safe
+- Protection of historical data in case of disaster
+- non-configurable 7-day period for permanent tables (most common, non views)
+- perios starts immediately after time travel priods ends
+- No user interaction & recoverable only by snowflake support
+- Contribute to storage cost
+
+## Continuous Data Protection Lifecycle
+- in the data lifecycle we have:
+    - first layer of data: current storage and data, we use to regular queries
+    - time travel data: data from a permanent table from 1 up to 90 days ago (used to time travel or undrop)
+    - Fail Safe Data: for permament tables, 7 days ago from the time travel data (if TT is set to 90, then up to 97 days ago). 
+    - Transient tables do not have fail safe
+
+## Fail Safe Storage
+- 2 ways to find it out
+- log as account admin
+- first method: UI > account > sotrage used > select fail safe on UI
+- second method: use the queries below
+```sql
+-- Storage usage on account level
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE ORDER BY USAGE_DATE DESC;
+
+--Storage usage on account level formatted
+SELECT 	USAGE_DATE, 
+		STORAGE_BYTES / (1024*1024*1024) AS STORAGE_GB,  
+		STAGE_BYTES / (1024*1024*1024) AS STAGE_GB,
+		FAILSAFE_BYTES / (1024*1024*1024) AS FAILSAFE_GB
+FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE ORDER BY USAGE_DATE DESC;
+
+
+--Storage usage on table level
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS;
+
+--Storage usage on table level formatted
+SELECT 	ID, 
+		TABLE_NAME, 
+		TABLE_SCHEMA,
+		ACTIVE_BYTES / (1024*1024*1024) AS STORAGE_USED_GB,
+		TIME_TRAVEL_BYTES / (1024*1024*1024) AS TIME_TRAVEL_STORAGE_USED_GB,
+		FAILSAFE_BYTES / (1024*1024*1024) AS FAILSAFE_STORAGE_USED_GB
+FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+ORDER BY FAILSAFE_STORAGE_USED_GB DESC;
 ```
