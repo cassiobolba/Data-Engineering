@@ -1845,3 +1845,355 @@ SELECT 	ID,
 FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
 ORDER BY FAILSAFE_STORAGE_USED_GB DESC;
 ```
+
+# TABLE TYPES
+
+## The types
+- Permanent Tables
+    - Standard table created by the CREATE TABLE command
+    - have fail safe
+    - Have time travel (0-90 days)
+    - can cost more, because fail safe andd TT storage costs
+    - live until dropped
+- Transient Tables
+    - CREATE TRANSIENT TABLE
+    - Have TT (0-1 days)
+    - DONT HAVE fail safe, so the data there must not need protection
+    - live until dropped
+    - good for large tables without protection, to reduce costs
+- Temporary Table
+    - CREATE TEMPORARY TABLE
+    - Have TT (0-1 days)
+    - No fail safe
+    - live ONLY IN THE SESSION , no other user can see
+    - good for development, non permanent data
+
+- theses type of tables are used mainly for cost management
+- these types are also available for schemas and databases
+    - if creating a temporary database, all schemas and tables will be temporary
+- for temporary tables, there will be no name conflict with permanent or transient tables
+
+## Permanent Tables
+- lets check any table we have created
+```sql
+-- column options would show if transietn or not, retention time value TT
+SHOW DATABASES;
+
+-- can see size in bytes, retention time
+SHOW TABLES;
+
+--View table metrics (takes a bit to appear)
+-- see if transient, active bytes, fail saffe and TT bytes
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+
+SELECT 	ID, 
+       	TABLE_NAME, 
+		TABLE_SCHEMA,
+        TABLE_CATALOG,
+		ACTIVE_BYTES / (1024*1024*1024) AS ACTIVE_STORAGE_USED_GB,
+		TIME_TRAVEL_BYTES / (1024*1024*1024) AS TIME_TRAVEL_STORAGE_USED_GB,
+		FAILSAFE_BYTES / (1024*1024*1024) AS FAILSAFE_STORAGE_USED_GB,
+        IS_TRANSIENT,
+        DELETED,
+        TABLE_CREATED,
+        TABLE_DROPPED,
+        TABLE_ENTERED_FAILSAFE
+FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+--WHERE TABLE_CATALOG ='PDB'
+WHERE TABLE_DROPPED is not null -- this is to show space ocupied by dropped tables
+ORDER BY FAILSAFE_BYTES DESC;
+```
+
+## Transient Tables
+```sql
+-- creating a new DB to test
+CREATE OR REPLACE DATABASE TDB;
+
+-- createing the transient table
+CREATE OR REPLACE TRANSIENT TABLE TDB.public.customers_transient (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+
+-- inserting data to transient table
+INSERT INTO TDB.public.customers_transient
+SELECT t1.* FROM OUR_FIRST_DB.public.customers t1
+CROSS JOIN (SELECT * FROM OUR_FIRST_DB.public.customers) t2
+
+-- be in admin role
+-- run the command below to see the table 
+-- we can see size and transient flag of this table
+SHOW TABLES;
+
+-- lets check storage metrics Query storage
+-- it may take sometime to update values about the recently created table
+-- but there will be no fail safe storage for transiente tables
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+
+-- way to better check it
+SELECT 	ID, 
+       	TABLE_NAME, 
+		TABLE_SCHEMA,
+        TABLE_CATALOG,
+		ACTIVE_BYTES,
+		TIME_TRAVEL_BYTES / (1024*1024*1024) AS TIME_TRAVEL_STORAGE_USED_GB,
+		FAILSAFE_BYTES / (1024*1024*1024) AS FAILSAFE_STORAGE_USED_GB,
+        IS_TRANSIENT,
+        DELETED,
+        TABLE_CREATED,
+        TABLE_DROPPED,
+        TABLE_ENTERED_FAILSAFE
+FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+WHERE TABLE_CATALOG ='TDB'
+ORDER BY TABLE_CREATED DESC;
+
+-- Creating transient schema and then table 
+-- showing that all below the schema is also transient
+CREATE OR REPLACE TRANSIENT SCHEMA TRANSIENT_SCHEMA;
+
+SHOW SCHEMAS;
+
+CREATE OR REPLACE TABLE TDB.TRANSIENT_SCHEMA.new_table (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+
+-- this will not be possible, because transient table have TT max 1
+ALTER TABLE TDB.TRANSIENT_SCHEMA.new_table
+SET DATA_RETENTION_TIME_IN_DAYS  = 2
+
+SHOW TABLES;
+```
+
+## Temporary Tables
+```sql
+USE DATABASE PDB;
+
+Create permanent table 
+CREATE OR REPLACE TABLE PDB.public.customers (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+
+INSERT INTO PDB.public.customers
+SELECT t1.* FROM OUR_FIRST_DB.public.customers t1
+
+SELECT * FROM PDB.public.customers
+
+--Create temporary table (with the same name)
+CREATE OR REPLACE TEMPORARY TABLE PDB.public.customers (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+
+--Validate temporary table is the active table
+SELECT * FROM PDB.public.customers;
+
+--Create second temporary table (with a new name)
+CREATE OR REPLACE TEMPORARY TABLE PDB.public.temp_table (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+
+--Insert data in the new table
+INSERT INTO PDB.public.temp_table
+SELECT * FROM PDB.public.customers
+
+SELECT * FROM PDB.public.temp_table
+
+SHOW TABLES;
+```
+
+# ZERO-COPY CLONING
+
+## What is Zero-Copy Cloning?
+- Create copies of a database, shcema and tables at once
+- other databases need to do copies separately: first DB, then schema, then table , then PK...
+- Clone is a metadata operation
+- since the data is on S3, snowflake only creates a reference to the file there and create a new table
+- Cloned table is an independent table, even tought referencing to same files
+- When making changes to the clone table, snowflake make sure just to save the data that has been modefied, not all the table
+- Easy to copy all meta data & improved sotrage management
+- Very useful for backups and development environment
+- Wirks with time travel too
+```sql
+CREATE TABLE NAME
+CLONE SOURCE_TABLE
+BEFORE (TIMESTAMP => 1231516)
+```
+- Any structure of the object and meta data is inherited
+    - clustering keys, comments...
+- Can perform on DB, table. schema, stages, file formats, task...
+
+## Cloning Tables
+```sql
+-- Cloning
+SELECT * FROM OUR_FIRST_DB.PUBLIC.CUSTOMERS
+
+CREATE TABLE OUR_FIRST_DB.PUBLIC.CUSTOMERS_CLONE
+CLONE OUR_FIRST_DB.PUBLIC.CUSTOMERS
+
+-- Validate the data is the same
+SELECT * FROM OUR_FIRST_DB.PUBLIC.CUSTOMERS_CLONE
+
+--Update cloned table
+UPDATE OUR_FIRST_DB.public.CUSTOMERS_CLONE
+SET LAST_NAME = NULL
+
+-- original table is still the same
+SELECT * FROM OUR_FIRST_DB.PUBLIC.CUSTOMERS 
+
+-- clone table is changed
+SELECT * FROM OUR_FIRST_DB.PUBLIC.CUSTOMERS_CLONE
+
+--Cloning a temporary table is not possible
+CREATE OR REPLACE TEMPORARY TABLE OUR_FIRST_DB.PUBLIC.TEMP_TABLE(
+  id int)
+
+-- try and get the error
+CREATE TABLE OUR_FIRST_DB.PUBLIC.TABLE_COPY
+CLONE OUR_FIRST_DB.PUBLIC.TEMP_TABLE
+
+-- but if cloning as a temporary table, it works
+CREATE TEMPORARY TABLE OUR_FIRST_DB.PUBLIC.TABLE_COPY
+CLONE OUR_FIRST_DB.PUBLIC.TEMP_TABLE
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC.TABLE_COPY
+```
+
+## Cloning Schemas & Databases
+```sql
+-- Cloning Schema in a transient mode
+-- they inherit everything
+CREATE TRANSIENT SCHEMA OUR_FIRST_DB.COPIED_SCHEMA
+CLONE OUR_FIRST_DB.PUBLIC;
+
+-- check all data is there
+SELECT * FROM COPIED_SCHEMA.CUSTOMERS
+
+-- clone the schema with satage to see that under databases > this schema > all stages are there
+CREATE TRANSIENT SCHEMA OUR_FIRST_DB.EXTERNAL_STAGES_COPIED
+CLONE MANAGE_DB.EXTERNAL_STAGES;
+
+--Cloning Database
+--you see that all is there
+CREATE TRANSIENT DATABASE OUR_FIRST_DB_COPY
+CLONE OUR_FIRST_DB;
+
+--clea up
+DROP DATABASE OUR_FIRST_DB_COPY
+DROP SCHEMA OUR_FIRST_DB.EXTERNAL_STAGES_COPIED
+DROP SCHEMA OUR_FIRST_DB.COPIED_SCHEMA
+```
+
+## Cloning with Time Travel
+```sql
+--Cloning using time travel
+--Setting up table
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.public.time_travel (
+   id int,
+   first_name string,
+  last_name string,
+  email string,
+  gender string,
+  Job string,
+  Phone string);
+    
+CREATE OR REPLACE FILE FORMAT MANAGE_DB.file_formats.csv_file
+    type = csv
+    field_delimiter = ','
+    skip_header = 1;
+    
+CREATE OR REPLACE STAGE MANAGE_DB.external_stages.time_travel_stage
+    URL = 's3://data-snowflake-fundamentals/time-travel/'
+    file_format = MANAGE_DB.file_formats.csv_file;
+    
+LIST @MANAGE_DB.external_stages.time_travel_stage;
+
+COPY INTO OUR_FIRST_DB.public.time_travel
+from @MANAGE_DB.external_stages.time_travel_stage
+files = ('customers.csv');
+
+SELECT * FROM OUR_FIRST_DB.public.time_travel
+------ END OF SETUP
+
+--Update data to test TT
+UPDATE OUR_FIRST_DB.public.time_travel
+SET FIRST_NAME = 'Frank' 
+
+-- Using time travel in the simple way
+SELECT * FROM OUR_FIRST_DB.public.time_travel at (OFFSET => -60*1)
+
+-- Using time travel with clone
+-- this is very useful to compare with current table status
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.time_travel_clone
+CLONE OUR_FIRST_DB.public.time_travel at (OFFSET => -60*1.5)
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC.time_travel_clone
+
+--Update data on clone table -  can create a clone of a clone
+UPDATE OUR_FIRST_DB.public.time_travel_clone
+SET JOB = 'Snowflake Analyst' 
+
+-- Using time travel: Method 2 - before Query
+SELECT * FROM OUR_FIRST_DB.public.time_travel_clone before (statement => '<your-query-id>')
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.time_travel_clone_of_clone
+CLONE OUR_FIRST_DB.public.time_travel_clone before (statement => '<your-query-id>')
+
+SELECT * FROM OUR_FIRST_DB.public.time_travel_clone_of_clone 
+```
+
+## Swapping Tables
+- useful for moving a developing table to a production scenario
+- similar to clioning, because it is only a metadata operation
+- it swaps only the metadata
+```sql
+ALTER TALBE MYTABLE
+SWAP WITH OTHERTABLE
+```
+- Can do for schema and databases also
+- test ideia
+    - have 2 tables with same data
+    - delete some data from one
+    - check they are different
+    - use the swap command
+    - the other table should be equal to the deleted data table
+
+# DATA SHARING
+
+## What is Data Sharing
+- it is usually very complicated because we need to set up everything
+- Due to snowflake decoupled architecture, where storage is separate from processing it is easy here
+- Can do data sharing without actual copy of the data & that is up to date
+- shared data can be consumed bt the own compute resources
+    - separate costs
+- can share to external users with reader account
+- ex
+    - we have 2 SF account
+    - 1 account is the one we use, createing data
+    - other account is a consumer, read only
+    - account 2 use their own compute resources
+- account owning the data have full controll over the data sharing
+
