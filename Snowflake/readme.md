@@ -2187,13 +2187,178 @@ SWAP WITH OTHERTABLE
 - it is usually very complicated because we need to set up everything
 - Due to snowflake decoupled architecture, where storage is separate from processing it is easy here
 - Can do data sharing without actual copy of the data & that is up to date
-- shared data can be consumed bt the own compute resources
+- shared data can be consumed by their own compute resources
     - separate costs
 - can share to external users with reader account
 - ex
     - we have 2 SF account
-    - 1 account is the one we use, createing data
+    - 1 account is the one we use, creating data
     - other account is a consumer, read only
     - account 2 use their own compute resources
 - account owning the data have full controll over the data sharing
+
+## Data share via SQL
+- steps:
+- create a share -> this will be the obejct shared with other instance
+- grant to share usage access to schema and database
+- grant to the share select on table access
+- check the grant with show grants
+- add the consumer account into the share
+```sql
+--Create a share object
+CREATE OR REPLACE SHARE ORDERS_SHARE;
+
+---- Setup Grants ----
+--Grant usage on database
+GRANT USAGE ON DATABASE DATA_S TO SHARE ORDERS_SHARE; 
+
+-- Grant usage on schema
+GRANT USAGE ON SCHEMA DATA_S.PUBLIC TO SHARE ORDERS_SHARE; 
+
+-- Grant SELECT on table
+
+GRANT SELECT ON TABLE DATA_S.PUBLIC.ORDERS TO SHARE ORDERS_SHARE; 
+
+-- Validate Grants
+SHOW GRANTS TO SHARE ORDERS_SHARE;
+
+---- Add Consumer Account ----
+ALTER SHARE ORDERS_SHARE ADD ACCOUNT=<consumer-account-id>;
+```
+- move to the other account
+- show share, to see the share name
+- check more info with desc share share_name
+- you cant see the shared data, you need to create a database to see it
+- now you ca query from the share
+```sql
+SHOW SHARES;
+
+DESC SHARE SHARE.NAME;
+
+CREATE DATABASE MY_DB FROM SHARE SHARE.NAME;
+```
+
+## Data share via UI
+- go to share on ui
+- select role account admin
+- inboundL shared with us 
+- outbound: what we share
+- can add cosumer, drop, edit
+- create a new one, fill aal, add account, select full to add acnother account (reader is for external)
+
+## Share with non SF user
+- For this you create a reader account within your account
+- this account will consume for yours account, but will have different login, user, url...
+- but it is an independent instance using computing recources
+- steps:
+    - create a reader account
+    - share the data
+    - on the reader account: as admin, create users and role
+
+## Crate a Reader Account - Managed Account
+```sql
+-- Create Reader Account--
+-- after running this, you get the url and account printed
+CREATE MANAGED ACCOUNT tech_joy_account
+ADMIN_NAME = tech_joy_admin,
+ADMIN_PASSWORD = 'set-pwd',
+TYPE = READER;
+
+--Make sure to have selected the role of accountadmin
+--Show accounts and get url and account id
+SHOW MANAGED ACCOUNTS;
+
+-- Share the data -- 
+ALTER SHARE ORDERS_SHARE 
+ADD ACCOUNT = <reader-account-id>;
+
+-- if using business critical, need to change restriction to be able to share with non business critical
+ALTER SHARE ORDERS_SHARE 
+ADD ACCOUNT =  <reader-account-id>
+SHARE_RESTRICTIONS=false;
+```
+
+## Create a DB from Share
+- Here we gonna login with reader account with credential created before
+- follow steps below
+```sql
+-- Create database from share --
+-- Show all shares (consumer & producers)
+-- use accountadmin
+SHOW SHARES;
+
+-- See details on share
+DESC SHARE QNA46172.ORDERS_SHARE;
+
+-- Setup virtual warehouse
+CREATE WAREHOUSE READ_WH WITH
+WAREHOUSE_SIZE='X-SMALL'
+AUTO_SUSPEND = 180
+AUTO_RESUME = TRUE
+INITIALLY_SUSPENDED = TRUE;
+
+-- Create a database in consumer account using the share
+CREATE DATABASE DATA_SHARE_DB FROM SHARE <account_name_producer>.ORDERS_SHARE;
+
+-- Validate table access
+SELECT * FROM  DATA_SHARE_DB.PUBLIC.ORDERS
+```
+
+## Create Users to share
+- crate user on the reader account
+- after, you should be able to query
+```sql
+-- Create and set up users --
+-- Create user
+CREATE USER MYRIAM PASSWORD = 'difficult_passw@ord=123'
+
+-- Grant usage on warehouse
+GRANT USAGE ON WAREHOUSE READ_WH TO ROLE PUBLIC;
+
+-- Grating privileges on a Shared Database for other users
+GRANT IMPORTED PRIVILEGES ON DATABASE DATA_SHARE_DB TO ROLE PUBLIC;
+```
+
+## Sharing DB and Schema
+- Up to now, we just shared a table
+```sql 
+SHOW SHARES;
+
+-- Create share object
+CREATE OR REPLACE SHARE COMEPLETE_SCHEMA_SHARE;
+
+-- Grant usage on dabase & schema to share created
+GRANT USAGE ON DATABASE OUR_FIRST_DB TO SHARE COMEPLETE_SCHEMA_SHARE;
+GRANT USAGE ON SCHEMA OUR_FIRST_DB.PUBLIC TO SHARE COMEPLETE_SCHEMA_SHARE;
+
+-- Grant select on all tables in schema and db
+GRANT SELECT ON ALL TABLES IN SCHEMA OUR_FIRST_DB.PUBLIC TO SHARE COMEPLETE_SCHEMA_SHARE;
+GRANT SELECT ON ALL TABLES IN DATABASE OUR_FIRST_DB TO SHARE COMEPLETE_SCHEMA_SHARE;
+
+-- Add account to share the db and schema
+ALTER SHARE COMEPLETE_SCHEMA_SHARE
+ADD ACCOUNT=KAA74702
+```
+- Login in the share
+```sql
+-- LOGIN ON READER ACCOUNT --
+-- should see the new share
+SHOW SHARES;
+
+-- CREATE A DATABASE FROM THE SHARE
+-- NOW YOU SHOULD BE ABLE TO QUERY
+CREATE DATABASE MY_SHARED_DB FROM SHARE ACCOOUNTID.COMEPLETE_SCHEMA_SHARE
+```
+- If now you change data on the main account, it will reflected on reader
+- if you add new tables on the mais account schema, will not appear on reader because they have no access
+- must grant permission (or use future when granting)
+```sql
+-- Updating data
+UPDATE OUR_FIRST_DB.PUBLIC.ORDERS
+SET PROFIT=0 WHERE PROFIT < 0
+
+-- Add new table
+CREATE TABLE OUR_FIRST_DB.PUBLIC.NEW_TABLE (ID int)
+```
+
 
