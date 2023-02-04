@@ -2361,4 +2361,362 @@ SET PROFIT=0 WHERE PROFIT < 0
 CREATE TABLE OUR_FIRST_DB.PUBLIC.NEW_TABLE (ID int)
 ```
 
+## Secure vs Normal view
+- in real business sncenario we usually just share a subset of data in a view
+- use any table to the example
+```sql
+-- example table
+SELECT * FROM  CUSTOMER_DB.PUBLIC.CUSTOMERS;
 
+-- Create VIEW filtering the data out you dont want to show
+CREATE OR REPLACE VIEW CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW AS
+SELECT 
+FIRST_NAME,
+LAST_NAME,
+EMAIL
+FROM CUSTOMER_DB.PUBLIC.CUSTOMERS
+WHERE JOB != 'DATA SCIENTIST'; 
+
+-- Grant usage & SELECT to public user
+GRANT USAGE ON DATABASE CUSTOMER_DB TO ROLE PUBLIC;
+GRANT USAGE ON SCHEMA CUSTOMER_DB.PUBLIC TO ROLE PUBLIC;
+GRANT SELECT ON TABLE CUSTOMER_DB.PUBLIC.CUSTOMERS TO ROLE PUBLIC;
+GRANT SELECT ON VIEW CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW TO ROLE PUBLIC;
+
+-- select the public role and run query below
+-- you can see that view definition is apprearing, column and values that are in view deifnition also, and you want to hide them
+SHOW VIEWS LIKE '%CUSTOMER%';
+
+-- Create SECURE VIEW -- 
+CREATE OR REPLACE SECURE VIEW CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW_SECURE AS
+SELECT 
+FIRST_NAME,
+LAST_NAME,
+EMAIL
+FROM CUSTOMER_DB.PUBLIC.CUSTOMERS
+WHERE JOB != 'DATA SCIENTIST' 
+
+-- do the grants
+GRANT SELECT ON VIEW CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW_SECURE TO ROLE PUBLIC;
+
+-- go again to the public role and execute the query below
+SHOW VIEWS LIKE '%CUSTOMER%';
+```
+
+## Share a Secure View
+- view can only be shared on secure mode
+- 
+```sql
+SHOW SHARES;
+
+-- Create share object
+CREATE OR REPLACE SHARE VIEW_SHARE;
+
+-- Grant usage on dabase & schema
+GRANT USAGE ON DATABASE CUSTOMER_DB TO SHARE VIEW_SHARE;
+GRANT USAGE ON SCHEMA CUSTOMER_DB.PUBLIC TO SHARE VIEW_SHARE;
+
+-- Grant select on view non secured, you gonna receive an error
+GRANT SELECT ON VIEW  CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW TO SHARE VIEW_SHARE;
+
+-- grant select access to share, on the secure view, should work
+GRANT SELECT ON VIEW  CUSTOMER_DB.PUBLIC.CUSTOMER_VIEW_SECURE TO SHARE VIEW_SHARE;
+
+-- Add account to share
+ALTER SHARE VIEW_SHARE
+ADD ACCOUNT=KAA74702
+```
+- go the other account
+- create a database from the share with view
+- in public schema see the shared view
+- the icon is a bit different
+
+# DATA SAMPLING
+
+## Why we need Data Sampling?
+
+- use case:
+- we have an extremelly large dataset like 20 TB
+- to do testing an development it would be very expensive to run queries on all data and also very slow
+- If increse the WH size it would be faster, but would cost more processing
+- sampling, as for DS people, is randonly taking a subset of the data to work with
+- this is faster, and save compute resources, and since is rano sample, have high accuracy
+- good for data analysis and development
+
+## Sampling Methods
+2 methods
+- Row or Bernuolli Method
+    - every row have a probability of x percent in being in the sample
+    - it is a bit more random
+    - less efficient
+    - for smaller tables
+- block or system method
+    - every block of data (micro partition) have a probability of x percent in being in the sample
+    - this is more proccesgin effective
+    - for extremelly large tables
+
+## Sampling the data
+```sql
+-- lets create a transient table for testing
+CREATE OR REPLACE TRANSIENT DATABASE SAMPLING_DB;
+
+-- use the snoeflake sample data
+CREATE OR REPLACE VIEW ADDRESS_SAMPLE
+AS 
+SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER_ADDRESS
+-- row(1) means that we get 1% of dataset
+-- see(27) is basically a version of it and make create a hisotry
+-- if want someone else to use the same sample as me, should use seed(x) to have the same version
+SAMPLE ROW (1) SEED(27);
+
+SELECT * FROM ADDRESS_SAMPLE
+
+-- run the query below with having the view with row(1) and later row(10) 
+-- when useing row(10) dont forget to increase the numberos rows in the division below, it is 10x more rows
+-- compare both results and see that the null percentage is very similar
+-- shows that this sample can be very efficient
+SELECT CA_LOCATION_TYPE, COUNT(*)/3254250*100
+FROM ADDRESS_SAMPLE
+GROUP BY CA_LOCATION_TYPE
+
+
+-- just showing the usage of a better performant approach
+SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER_ADDRESS 
+SAMPLE SYSTEM (1) SEED(23);
+
+SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER_ADDRESS 
+SAMPLE SYSTEM (10) SEED(23);
+```
+
+# SCHEDULING TASKS
+## Understangin tasks
+- sql statement that runs periodically
+- 1 sql statement per task
+- standalone or tree os task and dependencies
+- course agenda
+
+## Creating tasks
+```sql
+-- createing a temporary db to the lesson
+CREATE OR REPLACE TRANSIENT DATABASE TASK_DB;
+
+-- Prepare table
+CREATE OR REPLACE TABLE CUSTOMERS (
+    -- autoincrement to show new data
+    CUSTOMER_ID INT AUTOINCREMENT START = 1 INCREMENT =1, 
+    FIRST_NAME VARCHAR(40) DEFAULT 'JENNIFER' ,
+    CREATE_DATE DATE)
+    
+-- Create task
+CREATE OR REPLACE TASK CUSTOMER_INSERT
+    WAREHOUSE = COMPUTE_WH
+    -- schedule is always in minutes
+    SCHEDULE = '1 MINUTE'
+    AS 
+    INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(CURRENT_TIMESTAMP);
+    
+-- check the task is no started
+SHOW TASKS;
+
+-- Task starting
+ALTER TASK CUSTOMER_INSERT RESUME;
+
+-- check new data being inserted
+SELECT * FROM CUSTOMERS;
+
+-- Task suspending
+ALTER TASK CUSTOMER_INSERT SUSPEND;
+```
+
+## Using Cron
+```sql
+
+CREATE OR REPLACE TASK CUSTOMER_INSERT
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = 'USING CRON 0 7,10 * * 5L UTC'
+    AS 
+    INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(CURRENT_TIMESTAMP);
+    
+# __________ minute (0-59) - 0 = every full hour
+# | ________ hour (0-23)
+# | | ______ day of month (1-31, or L) L = last day of the month
+# | | | ____ month (1-12, JAN-DEC)
+# | | | | __ day of week (0-6, SUN-SAT, or L) 
+# | | | | |
+# | | | | |
+# * * * * *
+
+-- Every minute
+SCHEDULE = 'USING CRON * * * * * UTC'
+
+-- Every day at 6am UTC timezone
+SCHEDULE = 'USING CRON 0 6 * * * UTC'
+
+-- Every hour starting at 9 AM and ending at 5 PM on Sundays 
+-- 9-17 from 9 to 17
+-- 9,17 at 9 and at 17
+SCHEDULE = 'USING CRON 0 9-17 * * SUN America/Los_Angeles'
+
+
+CREATE OR REPLACE TASK CUSTOMER_INSERT
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = 'USING CRON 0 9,17 * * * UTC'
+    AS 
+    INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(CURRENT_TIMESTAMP);
+```  
+  
+## Trees of tasks
+- crate dependencies
+- show a graph of dependencies
+- the parent task should be scheduled
+- child tasks depends on parent task
+- a child task can have only 1 parent task as dependency but can have multiple child tasks upstream
+- up to 1000 tasks in a tree of tasks
+- up to 100 tasks as dependency for a child task
+```sql
+CREATE TASK ...
+    AFTER PARENT_TASK
+    AS
+
+-- ALTER and add a task after the other
+ALTER TASK
+    ADD AFTER
+```
+
+## Creating Tree of tasks
+```sql
+-- select our current db for tasks
+USE TASK_DB;
+ 
+-- we should have 1 
+SHOW TASKS;
+
+-- we should have a couple rows
+SELECT * FROM CUSTOMERS;
+
+-- Prepare a second table
+CREATE OR REPLACE TABLE CUSTOMERS2 (
+    CUSTOMER_ID INT,
+    FIRST_NAME VARCHAR(40),
+    CREATE_DATE DATE)
+    
+-- Suspend parent task
+ALTER TASK CUSTOMER_INSERT SUSPEND;
+    
+-- Create a child task
+CREATE OR REPLACE TASK CUSTOMER_INSERT2
+    WAREHOUSE = COMPUTE_WH
+    AFTER CUSTOMER_INSERT
+    AS 
+    INSERT INTO CUSTOMERS2 SELECT * FROM CUSTOMERS;
+        
+-- Prepare a third table
+CREATE OR REPLACE TABLE CUSTOMERS3 (
+    CUSTOMER_ID INT,
+    FIRST_NAME VARCHAR(40),
+    CREATE_DATE DATE,
+    INSERT_DATE DATE DEFAULT DATE(CURRENT_TIMESTAMP))    
+    
+-- Create a child task
+CREATE OR REPLACE TASK CUSTOMER_INSERT3
+    WAREHOUSE = COMPUTE_WH
+    AFTER CUSTOMER_INSERT2
+    AS 
+    INSERT INTO CUSTOMERS3 (CUSTOMER_ID,FIRST_NAME,CREATE_DATE) SELECT * FROM CUSTOMERS2;
+
+-- see that all tasks have ACCOUNTADMIN permission, should eb aware of
+SHOW TASKS;
+
+ALTER TASK CUSTOMER_INSERT 
+SET SCHEDULE = '1 MINUTE'
+
+-- Resume tasks (first root task)
+ALTER TASK CUSTOMER_INSERT RESUME;
+ALTER TASK CUSTOMER_INSERT2 RESUME;
+ALTER TASK CUSTOMER_INSERT3 RESUME;
+
+SELECT * FROM CUSTOMERS2
+
+SELECT * FROM CUSTOMERS3
+
+-- Suspend tasks again
+ALTER TASK CUSTOMER_INSERT SUSPEND;
+ALTER TASK CUSTOMER_INSERT2 SUSPEND;
+ALTER TASK CUSTOMER_INSERT3 SUSPEND;
+```
+
+## Calling a Stored Procedure
+```sql
+-- Create a stored procedure
+USE TASK_DB;
+
+SELECT * FROM CUSTOMERS
+
+CREATE OR REPLACE PROCEDURE CUSTOMERS_INSERT_PROCEDURE (CREATE_DATE varchar)
+    RETURNS STRING NOT NULL
+    LANGUAGE JAVASCRIPT
+    AS
+        $$
+        var sql_command = 'INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(:1);'
+        snowflake.execute(
+            {
+            sqlText: sql_command,
+            binds: [CREATE_DATE]
+            });
+        return "Successfully executed.";
+        $$;
+         
+CREATE OR REPLACE TASK CUSTOMER_TAKS_PROCEDURE
+WAREHOUSE = COMPUTE_WH
+SCHEDULE = '1 MINUTE'
+AS CALL  CUSTOMERS_INSERT_PROCEDURE (CURRENT_TIMESTAMP);
+
+SHOW TASKS;
+
+ALTER TASK CUSTOMER_TAKS_PROCEDURE RESUME;
+
+SELECT * FROM CUSTOMERS;
+```
+
+## Task History and Error Handling
+```sql
+SHOW TASKS;
+
+-- must be in the context of your db
+USE DEMO_DB;
+
+-- Use the table function "TASK_HISTORY()"
+select *
+  from table(information_schema.task_history())
+  order by scheduled_time desc;
+  
+-- See results for a specific Task in a given time
+-- analyze and show what we have in the columns
+select *
+from table(information_schema.task_history(
+    scheduled_time_range_start=>dateadd('hour',-4,current_timestamp()),
+    result_limit => 5,
+    task_name=>'CUSTOMER_INSERT2'));
+  
+-- See results for a given time period
+select *
+  from table(information_schema.task_history(
+    scheduled_time_range_start=>to_timestamp_ltz('2021-04-22 11:28:32.776 -0700'),
+    scheduled_time_range_end=>to_timestamp_ltz('2021-04-22 11:35:32.776 -0700')));  
+
+-- find out the current timestamp to use in above query  
+SELECT TO_TIMESTAMP_LTZ(CURRENT_TIMESTAMP)  
+```
+
+## Task with Conditions
+- set condition to execute or not a task
+- on task_hisotry table can check the condition and error message
+- the drawback is that you can use only one function in the WHEN parameter
+```sql
+CREATE OR REPLACE TASK CUSTOMER_INSERT
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = 'USING CRON 0 7,10 * * 5L UTC'
+    WHEN 1 = 1
+    AS 
+    INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(CURRENT_TIMESTAMP);
+```
