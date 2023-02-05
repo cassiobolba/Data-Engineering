@@ -2720,3 +2720,454 @@ CREATE OR REPLACE TASK CUSTOMER_INSERT
     AS 
     INSERT INTO CUSTOMERS(CREATE_DATE) VALUES(CURRENT_TIMESTAMP);
 ```
+
+# STREAMS
+
+## What are Streams
+- To ingest data we usually use use ETL
+- Also we use Delta load, just new records appended / insert / deleted on tables
+- It is objects record (DML) changes made to table
+- This is called CDC - change data capture
+- summary: streams are object that have the same columns as destination table and detect any insert / update / or delete operation between the source and destination, by watching a table and seing the changes
+- it also show more 3 columns (apart from the table columns)
+    - METADATA$ACTION
+    - METADATA$UPDATE
+    - METADATA$ROW_ID
+- The data on stream object is not charged, just a very minimum for the metadata
+```sql
+CREATE STREAM STREA_NAME
+    ON TABLE TABLE_NAME
+```
+
+## Insert Operation
+- first lets setup the case
+```sql
+-------------------- Stream example: INSERT SETUP ------------------------
+CREATE OR REPLACE TRANSIENT DATABASE STREAMS_DB;
+
+-- Create example table 
+-- we gonna track changes on this table and insert to final table in case changes happens
+create or replace table sales_raw_staging(
+  id varchar,
+  product varchar,
+  price varchar,
+  amount varchar,
+  store_id varchar);
+  
+-- insert values to have something as starting point
+insert into sales_raw_staging 
+    values
+        (1,'Banana',1.99,1,1),
+        (2,'Lemon',0.99,1,1),
+        (3,'Apple',1.79,1,2),
+        (4,'Orange Juice',1.89,1,2),
+        (5,'Cereals',5.98,2,1);  
+
+-- create a map table with some extra info
+create or replace table store_table(
+  store_id number,
+  location varchar,
+  employees number);
+
+-- insert values to mapping store table, with info about the store
+INSERT INTO STORE_TABLE VALUES(1,'Chicago',33);
+INSERT INTO STORE_TABLE VALUES(2,'London',12);
+
+-- this will be the final table to insert date with already some more data about store
+create or replace table sales_final_table(
+  id int,
+  product varchar,
+  price number,
+  amount int,
+  store_id int,
+  location varchar,
+  employees int);
+
+ -- Insert into final table to have same data available
+INSERT INTO sales_final_table 
+    SELECT 
+    SA.id,
+    SA.product,
+    SA.price,
+    SA.amount,
+    ST.STORE_ID,
+    ST.LOCATION, 
+    ST.EMPLOYEES 
+    FROM SALES_RAW_STAGING SA
+    JOIN STORE_TABLE ST ON ST.STORE_ID=SA.STORE_ID ;
+```
+- after setup we start with stream creation
+```sql
+-- Create a stream object
+create or replace stream sales_stream on table sales_raw_staging;
+
+-- check info about stream
+SHOW STREAMS;
+
+DESC STREAM sales_stream;
+
+-- Get changes on data using stream (INSERTS)
+-- should have 0 rows, nothing changed on the tables being checked
+select * from sales_stream;
+
+-- staging should have 5 rows
+select * from sales_raw_staging;
+                            
+-- insert values 2 rows to tables being checked
+insert into sales_raw_staging  
+    values
+        (6,'Mango',1.99,1,2),
+        (7,'Garlic',0.99,1,1);
+        
+-- Get changes on data using stream (INSERTS)
+-- now should have 2 row, because they were added after table being checked on stream
+-- check the metadata columns indicating a insert
+select * from sales_stream;
+
+select * from sales_raw_staging;
+
+-- why here we still have the same 5 rows? We need to insert with a command            
+select * from sales_final_table;        
+        
+-- Consume stream object as a source and insert only the missing rows
+INSERT INTO sales_final_table 
+    SELECT 
+    SA.id,
+    SA.product,
+    SA.price,
+    SA.amount,
+    ST.STORE_ID,
+    ST.LOCATION, 
+    ST.EMPLOYEES 
+    FROM SALES_STREAM SA
+    JOIN STORE_TABLE ST ON ST.STORE_ID=SA.STORE_ID ;
+
+-- final table should now have the 7 rows and stream object must be empty, because they were consumed
+-- Get changes on data using stream (INSERTS)
+select * from sales_stream;
+
+-- insert values to check it again
+insert into sales_raw_staging  
+    values
+        (8,'Paprika',4.99,1,2),
+        (9,'Tomato',3.99,1,2);
+```
+
+## Update Operation
+```sql
+-- ******* UPDATE 1 ********
+-- stage shoudl with same rows as before
+SELECT * FROM SALES_RAW_STAGING;     
+
+-- we have nmothing in the stream
+SELECT * FROM SALES_STREAM;
+
+-- we now update a row in staging instead of inserting
+UPDATE SALES_RAW_STAGING
+SET PRODUCT ='Potato' WHERE PRODUCT = 'Banana'
+
+-- when checking the stream we see 2 rows, one for update other for delete
+-- in the delete we see old value, in insert we see new value (potato)
+SELECT * FROM SALES_STREAM;
+
+-- create a new merge query
+merge into SALES_FINAL_TABLE F      -- Target table to merge changes from source table
+using SALES_STREAM S                -- Stream that has captured the changes
+   on  f.id = s.id                 
+when matched 
+    and S.METADATA$ACTION ='INSERT'
+    and S.METADATA$ISUPDATE ='TRUE'        -- Indicates the record has been updated 
+    then update 
+    set f.product = s.product,
+        f.price = s.price,
+        f.amount= s.amount,
+        f.store_id=s.store_id;
+        
+-- we see the table updated
+SELECT * FROM SALES_FINAL_TABLE
+
+-- stream should be empty also       
+SELECT * FROM SALES_STREAM;
+```
+
+## Delete Operation
+```sql   
+-- ******* DELETE  ********           
+SELECT * FROM SALES_FINAL_TABLE
+
+SELECT * FROM SALES_RAW_STAGING;     
+        
+SELECT * FROM SALES_STREAM;    
+
+DELETE FROM SALES_RAW_STAGING
+WHERE PRODUCT = 'Lemon';
+        
+-- ******* Process stream  ********            
+    
+merge into SALES_FINAL_TABLE F      -- Target table to merge changes from source table
+using SALES_STREAM S                -- Stream that has captured the changes
+   on  f.id = s.id          
+when matched 
+    and S.METADATA$ACTION ='DELETE' 
+    and S.METADATA$ISUPDATE = 'FALSE'
+    then delete               
+```
+
+## Process All Data Changes
+```sql
+-- ******* Process UPDATE,INSERT & DELETE simultaneously  ********                     
+merge into SALES_FINAL_TABLE F      -- Target table to merge changes from source table
+USING ( SELECT STRE.*,ST.location,ST.employees
+        FROM SALES_STREAM STRE
+        JOIN STORE_TABLE ST
+        ON STRE.store_id = ST.store_id
+       ) S
+ON F.id=S.id
+when matched                        -- DELETE condition
+    and S.METADATA$ACTION ='DELETE' 
+    and S.METADATA$ISUPDATE = 'FALSE'
+    then delete                   
+when matched                        -- UPDATE condition
+    and S.METADATA$ACTION ='INSERT' 
+    and S.METADATA$ISUPDATE  = 'TRUE'       
+    then update 
+    set f.product = s.product,
+        f.price = s.price,
+        f.amount= s.amount,
+        f.store_id=s.store_id
+when not matched 
+    and S.METADATA$ACTION ='INSERT'
+    then insert 
+    (id,product,price,store_id,amount,employees,location)
+    values
+    (s.id, s.product,s.price,s.store_id,s.amount,s.employees,s.location)
+        
+
+-- queries to validate each procedure - insert-delete and update
+SELECT * FROM SALES_RAW_STAGING;     
+        
+SELECT * FROM SALES_STREAM;
+
+SELECT * FROM SALES_FINAL_TABLE;
+
+
+-- INSERT TEST       
+INSERT INTO SALES_RAW_STAGING VALUES (2,'Lemon',0.99,1,1);
+
+-- UPDATE TEST
+UPDATE SALES_RAW_STAGING
+SET PRODUCT = 'Lemonade'
+WHERE PRODUCT ='Lemon'
+    
+-- DELETE TEST
+DELETE FROM SALES_RAW_STAGING
+WHERE PRODUCT = 'Lemonade';       
+
+
+--- Example 2 ---
+-- ALL THE OPERATIONS AT ONCE
+INSERT INTO SALES_RAW_STAGING VALUES (10,'Lemon Juice',2.99,1,1);
+
+UPDATE SALES_RAW_STAGING
+SET PRICE = 3
+WHERE PRODUCT ='Mango';
+       
+DELETE FROM SALES_RAW_STAGING
+WHERE PRODUCT = 'Potato';    
+```
+
+## Combo: Streams + Tasks
+```sql
+------- Automatate the updates using tasks --
+CREATE OR REPLACE TASK all_data_changes
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = '1 MINUTE'
+    WHEN SYSTEM$STREAM_HAS_DATA('SALES_STREAM') -- condition to only run when stream has data
+    AS 
+merge into SALES_FINAL_TABLE F      -- Target table to merge changes from source table
+USING ( SELECT STRE.*,ST.location,ST.employees
+        FROM SALES_STREAM STRE
+        JOIN STORE_TABLE ST
+        ON STRE.store_id = ST.store_id
+       ) S
+ON F.id=S.id
+when matched                        -- DELETE condition
+    and S.METADATA$ACTION ='DELETE' 
+    and S.METADATA$ISUPDATE = 'FALSE'
+    then delete                   
+when matched                        -- UPDATE condition
+    and S.METADATA$ACTION ='INSERT' 
+    and S.METADATA$ISUPDATE  = 'TRUE'       
+    then update 
+    set f.product = s.product,
+        f.price = s.price,
+        f.amount= s.amount,
+        f.store_id=s.store_id
+when not matched 
+    and S.METADATA$ACTION ='INSERT'
+    then insert 
+    (id,product,price,store_id,amount,employees,location)
+    values
+    (s.id, s.product,s.price,s.store_id,s.amount,s.employees,s.location)
+
+-- resume the task because they are by default not started
+ALTER TASK all_data_changes RESUME;
+
+-- check if task is created
+SHOW TASKS;
+
+
+-- Change data to test
+INSERT INTO SALES_RAW_STAGING VALUES (11,'Milk',1.99,1,2);
+INSERT INTO SALES_RAW_STAGING VALUES (12,'Chocolate',4.49,1,2);
+INSERT INTO SALES_RAW_STAGING VALUES (13,'Cheese',3.89,1,1);
+
+UPDATE SALES_RAW_STAGING
+SET PRODUCT = 'Chocolate bar'
+WHERE PRODUCT ='Chocolate';
+       
+DELETE FROM SALES_RAW_STAGING
+WHERE PRODUCT = 'Mango';    
+
+
+-- Verify results
+-- stage should be changed
+SELECT * FROM SALES_RAW_STAGING;     
+-- stream shoudl have the data changed (if the task did not run yet)        
+SELECT * FROM SALES_STREAM;
+-- after task run (1min) final table should have the new updates
+SELECT * FROM SALES_FINAL_TABLE;
+
+
+-- Verify the history
+select *
+from table(information_schema.task_history())
+order by name asc,scheduled_time desc;
+```
+
+## Types of Streams
+- there are 2 types of streams
+- the default is the one we used
+- can see the stream mode by SHOW STREAM on mode columns
+- STANDARD
+    - capture all data changes
+    - insert, update and delete
+- APPEND ONLY
+    - only use INSERT
+```sql
+------- Append-only type ------
+USE STREAMS_DB;
+SHOW STREAMS;
+
+SELECT * FROM SALES_RAW_STAGING;     
+
+-- Create stream with default
+CREATE OR REPLACE STREAM SALES_STREAM_DEFAULT
+ON TABLE SALES_RAW_STAGING;
+
+-- Create stream with append-only
+CREATE OR REPLACE STREAM SALES_STREAM_APPEND
+ON TABLE SALES_RAW_STAGING 
+APPEND_ONLY = TRUE;
+
+-- View streams
+SHOW STREAMS;
+
+
+-- Insert values
+INSERT INTO SALES_RAW_STAGING VALUES (14,'Honey',4.99,1,1);
+INSERT INTO SALES_RAW_STAGING VALUES (15,'Coffee',4.89,1,2);
+INSERT INTO SALES_RAW_STAGING VALUES (15,'Coffee',4.89,1,2);
+
+-- aftger inser should see both streams have 3 rows
+SELECT * FROM SALES_STREAM_APPEND;
+SELECT * FROM SALES_STREAM_DEFAULT;
+
+-- Delete values
+DELETE FROM SALES_RAW_STAGING WHERE ID=7;
+
+-- after delete, only the default stream should have 4 rows, because append only do not detect the deletion
+SELECT * FROM SALES_STREAM_APPEND;
+SELECT * FROM SALES_STREAM_DEFAULT;
+
+
+-- Consume stream via "CREATE TABLE ... AS"
+CREATE OR REPLACE TEMPORARY TABLE PRODUCT_TABLE
+AS SELECT * FROM SALES_STREAM_DEFAULT;
+CREATE OR REPLACE TEMPORARY TABLE PRODUCT_TABLE
+AS SELECT * FROM SALES_STREAM_APPEND;
+
+
+-- Update
+UPDATE SALES_RAW_STAGING
+SET PRODUCT = 'Coffee 200g'
+WHERE PRODUCT ='Coffee';
+       
+
+SELECT * FROM SALES_STREAM_APPEND;
+SELECT * FROM SALES_STREAM;
+```
+
+## Changes Clause
+- Changes is another method to capture data changes, different from streams
+- in changes different from streams is that we use TT and the differences are not consumed
+```SQL
+----- Change clause ------ 
+--- Create example db & table ---
+CREATE OR REPLACE DATABASE SALES_DB;
+
+create or replace table sales_raw(
+	id varchar,
+	product varchar,
+	price varchar,
+	amount varchar,
+	store_id varchar);
+
+-- insert values
+insert into sales_raw
+	values
+		(1, 'Eggs', 1.39, 1, 1),
+		(2, 'Baking powder', 0.99, 1, 1),
+		(3, 'Eggplants', 1.79, 1, 2),
+		(4, 'Ice cream', 1.89, 1, 2),
+		(5, 'Oats', 1.98, 2, 1);
+
+-- this is how to track the changes
+ALTER TABLE sales_raw
+SET CHANGE_TRACKING = TRUE;
+
+-- usgin the changes
+SELECT * FROM SALES_RAW
+CHANGES(information => default) -- defaulkt see all changes
+AT (offset => -0.5*60) -- see the changes using time travel
+
+-- can use the timestamp in the TT 
+-- get the timestamp before inserting the values below
+SELECT CURRENT_TIMESTAMP;
+
+-- Insert values
+INSERT INTO SALES_RAW VALUES (6, 'Bread', 2.99, 1, 2);
+INSERT INTO SALES_RAW VALUES (7, 'Onions', 2.89, 1, 2);
+
+-- paste the timestamp below in the query, run and see the changed values
+SELECT * FROM SALES_RAW
+CHANGES(information  => default)
+AT (timestamp => 'your-timestamp'::timestamp_tz)
+
+-- if updateing should also
+UPDATE SALES_RAW
+SET PRODUCT = 'Toast2' WHERE ID=6;
+
+
+-- should see the update row
+SELECT * FROM SALES_RAW
+CHANGES(information  => default)
+AT (timestamp => 'your-timestamp'::timestamp_tz)
+
+-- should not see the update row
+SELECT * FROM SALES_RAW
+CHANGES(information  => append_only)
+AT (timestamp => 'your-timestamp'::timestamp_tz)
+
+SELECT * FROM PRODUCTS;
+```
