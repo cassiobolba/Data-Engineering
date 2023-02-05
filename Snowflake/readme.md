@@ -2489,6 +2489,7 @@ SAMPLE SYSTEM (10) SEED(23);
 ```
 
 # SCHEDULING TASKS
+
 ## Understangin tasks
 - sql statement that runs periodically
 - 1 sql statement per task
@@ -3170,4 +3171,357 @@ CHANGES(information  => append_only)
 AT (timestamp => 'your-timestamp'::timestamp_tz)
 
 SELECT * FROM PRODUCTS;
+```
+
+# MATERIALIZED VIEWS
+
+## What are Materialized views ?
+- Imagine you have a view that take long time to run, it cause issues:
+    - bad user experience
+    - processing cost increase
+- Matelized view solve this kind of problem
+- Mateliazed view saves the data in a table to make the query speed faster
+- And everytime the sources tables change, it automatically update the MV table
+- It joins the best of both worlds
+
+## Using Materialized view
+```sql
+-- Remove caching just to have a fair test -- Part 1
+ALTER SESSION SET USE_CACHED_RESULT=FALSE; -- disable global caching
+ALTER warehouse compute_wh suspend;
+ALTER warehouse compute_wh resume;
+
+
+-- Prepare table
+CREATE OR REPLACE TRANSIENT DATABASE ORDERS;
+
+CREATE OR REPLACE SCHEMA TPCH_SF100;
+
+CREATE OR REPLACE TABLE TPCH_SF100.ORDERS AS
+SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF100.ORDERS;
+
+SELECT * FROM ORDERS LIMIT 100
+
+
+-- Example statement view that we use very frequently for a lot of users-- 
+SELECT
+YEAR(O_ORDERDATE) AS YEAR,
+MAX(O_COMMENT) AS MAX_COMMENT,
+MIN(O_COMMENT) AS MIN_COMMENT,
+MAX(O_CLERK) AS MAX_CLERK,
+MIN(O_CLERK) AS MIN_CLERK
+FROM ORDERS.TPCH_SF100.ORDERS
+GROUP BY YEAR(O_ORDERDATE)
+ORDER BY YEAR(O_ORDERDATE);
+
+-- Create materialized view
+-- to speed up the queries from users
+CREATE OR REPLACE MATERIALIZED VIEW ORDERS_MV
+AS 
+SELECT
+YEAR(O_ORDERDATE) AS YEAR,
+MAX(O_COMMENT) AS MAX_COMMENT,
+MIN(O_COMMENT) AS MIN_COMMENT,
+MAX(O_CLERK) AS MAX_CLERK,
+MIN(O_CLERK) AS MIN_CLERK
+FROM ORDERS.TPCH_SF100.ORDERS
+GROUP BY YEAR(O_ORDERDATE);
+
+-- column behind by show many seconds behind the real table
+-- last refresh time column
+-- show also it is not a secure view
+SHOW MATERIALIZED VIEWS;
+
+-- Query view and then query the real table and see the difference
+SELECT * FROM ORDERS_MV
+ORDER BY YEAR;
+```
+
+## Refresh MA
+```sql
+-- UPDATE or DELETE values to test
+UPDATE ORDERS
+SET O_CLERK='Clerk#99900000' 
+WHERE O_ORDERDATE='1992-01-01'
+
+-- Test updated data --
+-- Example statement view -- 
+SELECT
+YEAR(O_ORDERDATE) AS YEAR,
+MAX(O_COMMENT) AS MAX_COMMENT,
+MIN(O_COMMENT) AS MIN_COMMENT,
+MAX(O_CLERK) AS MAX_CLERK,
+MIN(O_CLERK) AS MIN_CLERK
+FROM ORDERS.TPCH_SF100.ORDERS
+GROUP BY YEAR(O_ORDERDATE)
+ORDER BY YEAR(O_ORDERDATE);
+
+-- Query view
+-- it initially may not appear the changes because it may take some time
+-- afterr changes, first query on the view may take some time
+-- check the command below
+SELECT * FROM ORDERS_MV
+ORDER BY YEAR;
+
+-- if MA not refreshe, we see the behind time with some seconds
+-- also the refresh data and compact date are also not changed
+SHOW MATERIALIZED VIEWS;
+```
+
+## Costs
+- we do not use our WH to process it, it is an underlying process managedd by SF
+- So, there are aditional costs
+- can see the costs byt selecting account admin > account > usage , and see the MV costs
+- or can use the qyery below
+```sql
+select * from table(information_schema.materialized_view_refresh_history())
+```
+
+## When to use MV
+- Cases
+    - when a view is taking too long to run
+    - and the underlying data o not change very frequently an on a regular basis
+- alternative for tables that change frequently are tasks + streams
+    - create a stream that checks changes on data source and update the underlying table
+    - everytime there is new data on underlying table a task update the final table
+    - this give us control over how frequent to update the final table 
+    - thius helping on reducing costs
+
+## MV Liimitations
+- only available on enterprise or higher
+- self joins are not supported and joiins are not also
+- some aggregations functions are not supported
+- having, order,  limit an UDFs also not supported
+
+# DYNAMIC DATA MASKING
+
+## What is Data Masking
+- this is a columns level security feature
+- it is fully customized
+- can be assigned to roles
+
+## Creating a Masking Policy
+```sql
+USE DEMO_DB;
+USE ROLE ACCOUNTADMIN;
+
+-- Prepare table --
+create or replace table customers(
+  id number,
+  full_name varchar, 
+  email varchar,
+  phone varchar,
+  spent number,
+  create_date DATE DEFAULT CURRENT_DATE);
+
+-- insert values in table --
+insert into customers (id, full_name, email,phone,spent)
+values
+  (1,'Lewiss MacDwyer','lmacdwyer0@un.org','262-665-9168',140),
+  (2,'Ty Pettingall','tpettingall1@mayoclinic.com','734-987-7120',254),
+  (3,'Marlee Spadazzi','mspadazzi2@txnews.com','867-946-3659',120),
+  (4,'Heywood Tearney','htearney3@patch.com','563-853-8192',1230),
+  (5,'Odilia Seti','oseti4@globo.com','730-451-8637',143),
+  (6,'Meggie Washtell','mwashtell5@rediff.com','568-896-6138',600);
+
+
+
+-- set up roles
+-- test with 2 roles
+CREATE OR REPLACE ROLE ANALYST_MASKED;
+CREATE OR REPLACE ROLE ANALYST_FULL;
+
+-- grant select on table to roles
+GRANT SELECT ON TABLE DEMO_DB.PUBLIC.CUSTOMERS TO ROLE ANALYST_MASKED;
+GRANT SELECT ON TABLE DEMO_DB.PUBLIC.CUSTOMERS TO ROLE ANALYST_FULL;
+
+GRANT USAGE ON SCHEMA DEMO_DB.PUBLIC TO ROLE ANALYST_MASKED;
+GRANT USAGE ON SCHEMA DEMO_DB.PUBLIC TO ROLE ANALYST_FULL;
+
+-- grant warehouse access to roles
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ANALYST_MASKED;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ANALYST_FULL;
+
+-- assign roles to a user (in this case, us)
+GRANT ROLE ANALYST_MASKED TO USER NIKOLAISCHULER;
+GRANT ROLE ANALYST_FULL TO USER NIKOLAISCHULER;
+
+
+
+-- Set up masking policy
+create or replace masking policy phone 
+    as (val varchar) returns varchar ->
+            case        
+            when current_role() in ('ANALYST_FULL', 'ACCOUNTADMIN') then val
+            else '##-###-##'
+            end;
+  
+-- Apply policy on a specific column 
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN phone 
+SET MASKING POLICY PHONE;
+
+
+
+-- Validating policies
+USE ROLE ANALYST_FULL;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
+```
+
+## Unset and Replace Policy
+```sql
+--#### More examples  #####
+USE ROLE ACCOUNTADMIN;
+--- 1) Apply policy to multiple columns
+-- Apply policy on a specific column 
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN full_name 
+SET MASKING POLICY phone;
+-- Apply policy on another specific column 
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN phone
+SET MASKING POLICY phone;
+
+
+
+--- 2) Replace or drop policy
+-- if trying to alter the policy, you need to unset the policy
+DROP masking policy phone;
+
+-- List and describe policies
+DESC MASKING POLICY phone;
+SHOW MASKING POLICIES;
+
+-- Show columns with applied policies
+SELECT * FROM table(information_schema.policy_references(policy_name=>'phone'));
+
+-- Remove policy before replacing/dropping 
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN full_name 
+UNSET MASKING POLICY phone;
+
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN email
+UNSET MASKING POLICY;
+
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN phone
+UNSET MASKING POLICY;
+
+
+
+create or replace masking policy phone as (val varchar) returns varchar ->
+            case
+            when current_role() in ('ANALYST_FULL', 'ACCOUNTADMIN') then val
+            else CONCAT(LEFT(val,2),'*******')
+            end;
+
+-- replace policy
+create or replace masking policy names as (val varchar) returns varchar ->
+            case
+            when current_role() in ('ANALYST_FULL', 'ACCOUNTADMIN') then val
+            else CONCAT(LEFT(val,2),'*******')
+            end;
+
+-- apply policy
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN full_name
+SET MASKING POLICY names;
+
+
+-- Validating policies
+USE ROLE ANALYST_FULL;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
+```
+
+## Alter an Existing Policy
+- recreating a policy remove the columns it was applied
+- if qant to change the policy and keep it applied where it is, we should alter the policy
+```sql
+-- Alter existing policies 
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ACCOUNTADMIN;
+
+alter masking policy phone set body ->
+case        
+ when current_role() in ('ANALYST_FULL', 'ACCOUNTADMIN') then val
+ else '**-**-**'
+ end;
+
+            
+ALTER TABLE CUSTOMERS MODIFY COLUMN email UNSET MASKING POLICY;
+```
+
+## Masking Examples
+```sql
+--### More examples - 1 - ###
+-- leave email domain unmasked
+USE ROLE ACCOUNTADMIN;
+
+create or replace masking policy emails as (val varchar) returns varchar ->
+case
+  when current_role() in ('ANALYST_FULL') then val
+  when current_role() in ('ANALYST_MASKED') then regexp_replace(val,'.+\@','*****@') -- leave email domain unmasked
+  else '********'
+end;
+
+-- apply policy
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN email
+SET MASKING POLICY emails;
+-- Validating policies
+USE ROLE ANALYST_FULL;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ACCOUNTADMIN;
+
+
+
+--### More examples - 2 - ###
+--return hash of the column value
+-- this is still traceable hashing 
+create or replace masking policy sha2 as (val varchar) returns varchar ->
+case
+  when current_role() in ('ANALYST_FULL') then val
+  else sha2(val) -- return hash of the column value
+end;
+
+-- apply policy
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN full_name
+SET MASKING POLICY sha2;
+
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN full_name
+UNSET MASKING POLICY;
+
+-- Validating policies
+USE ROLE ANALYST_FULL;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ACCOUNTADMIN;
+
+
+-- ### More examples - 3 - ###
+-- returns 0001-01-01 00:00:00.000
+create or replace masking policy dates as (val date) returns date ->
+case
+  when current_role() in ('ANALYST_FULL') then val
+  else date_from_parts(0001, 01, 01)::date -- returns 0001-01-01 00:00:00.000
+end;
+
+-- Apply policy on a specific column 
+ALTER TABLE IF EXISTS CUSTOMERS MODIFY COLUMN create_date 
+SET MASKING POLICY dates;
+
+-- Validating policies
+USE ROLE ANALYST_FULL;
+SELECT * FROM CUSTOMERS;
+
+USE ROLE ANALYST_MASKED;
+SELECT * FROM CUSTOMERS;
 ```
