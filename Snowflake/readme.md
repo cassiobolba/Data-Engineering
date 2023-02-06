@@ -3454,6 +3454,7 @@ ALTER TABLE CUSTOMERS MODIFY COLUMN email UNSET MASKING POLICY;
 ```
 
 ## Masking Examples
+
 ```sql
 --### More examples - 1 - ###
 -- leave email domain unmasked
@@ -3525,3 +3526,288 @@ SELECT * FROM CUSTOMERS;
 USE ROLE ANALYST_MASKED;
 SELECT * FROM CUSTOMERS;
 ```
+
+# ACCESS MANAGEMENT
+
+## What is Access Management
+- Management of who can access and perfom actions on objects in snowflake
+- There are 2 aspect of access control combined
+    - DAC - Discretionary Access Control: each object has an owner who can grant access to that object
+    - RBAC - Access privileges are assigned to roles, which are in turn assigned to users
+Example:
+```
+                                |--> USER 0
+ROLE 1 ---> TABLE 1 ---> ROLE 2 ---> USER 1
+                    |--> ROLE 3 ---> USER 2
+                                |--> USER 3
+```
+- Role 1 create tables 1 and then role 1 can give access to the table to whomever he wants
+- Role 1 grive access to the table to Roles 2 and 3
+- User 0 and 1 have the Role 2, so they can read table 1
+- same for roles 3 and the users that have this roles
+We have also 2 level off objects: Account Objects and Schema Objects. The schema objects are under the Database Object (which is an Account object)
+    - ACCOUNT OBJECTS:  user, role, database, warehouse ...
+    - SCHEMA OBJECTS: table, view, stage, integration....
+- Every object is owned by a single row
+- Owner roles has all privileges by default
+
+### Key Concepts
+- USER: Perople or system
+- Role: entity taht receives the privileges
+- Privilege: Level of access to an object (select, delete, create...)
+- Securable Object: Object to which privileges can be granted
+
+## Snowflake Roles Overview
+- there are 5 system defined roles
+- ACCOUNTADMIN: can do all that opther roles do (limited users should have it)
+- SECURITYADMIN: Do all USERADMIN can, manage users and roles, manage any object grant globally
+- SYSADMIN: create WH and DB, recommended all custom roles are assigned this
+- USERADMIN: dedicated to user and role management only, create roles and users
+- PUBLIC: all user have this access, create own objects like other roles
+
+## ACCOUNTADMIN
+- To level roles
+- Manage  & view all objects
+- All configurations on account level
+- All account operations (billing, create readear account)
+- automatically assigned to first user
+- Used mainly to initial setup & managin account level objects 
+BEST PRACTICES
+- very controlled and few users should have it
+- all user with it should have MFA
+- at least 2 users should have this role 
+- avoid creating object with this role unless you have to
+
+## ACCOUNTADMIN in practice
+- Select the ACCOUNTADMIN Role
+- on UI you can then see the Account icon, enter on it, and you can manage
+    - Billing and payment
+    - reader account
+    - usage 
+    - Users
+    - Roles
+    - sessions
+    - Policies
+    - Resource Monitor
+- this role can also create MFA
+    - click arrow beside user > preferences > general > Enrol MFA > add phone number
+- Can also set other account admins:
+```sql
+--- User 1 ---
+CREATE USER maria PASSWORD = '123' 
+DEFAULT_ROLE = ACCOUNTADMIN 
+MUST_CHANGE_PASSWORD = TRUE;
+
+GRANT ROLE ACCOUNTADMIN TO USER maria;
+
+--- User 2 ---
+CREATE USER frank PASSWORD = '123' 
+DEFAULT_ROLE = SECURITYADMIN 
+MUST_CHANGE_PASSWORD = TRUE;
+
+GRANT ROLE SECURITYADMIN TO USER frank;
+
+--- User 3 ---
+CREATE USER adam PASSWORD = '123' 
+DEFAULT_ROLE = SYSADMIN 
+MUST_CHANGE_PASSWORD = TRUE;
+GRANT ROLE SYSADMIN TO USER adam;
+```
+
+## SECUTIRYADMIN    
+- Still have some access to Account tab, but limitedd
+- Can create and manage users and roles
+- Grant and Revoke privileges to roles
+
+## SECUTIRYADMIN in Practice
+- we have created some roles before, lets re use them
+- for this example we gonna create a sales Admin role as child of SYSADMIN, and a Sales Role as a child os Sales Admin
+- Also, for testing, we will create a HR Admin Role (NOT CHILD OF SYSADMIN) and HR Role child of HR ADMIN (TO SHOW PROBLEMS)
+```sql
+-- SECURITYADMIN role --
+--  Create and Manage Roles & Users --
+-- Create Sales Roles & Users for SALES--
+-- first login with frank account, created on past lecture
+-- enter the context of SECURITYADMIN to perform below actions
+create role sales_admin;
+create role sales_users;
+
+-- Create hierarchy
+grant role sales_users to role sales_admin;
+
+-- As per best practice assign roles to SYSADMIN
+grant role sales_admin to role SYSADMIN;
+
+-- create sales user
+CREATE USER simon_sales PASSWORD = '123' DEFAULT_ROLE =  sales_users 
+MUST_CHANGE_PASSWORD = TRUE;
+GRANT ROLE sales_users TO USER simon_sales;
+
+-- create user for sales administration
+CREATE USER olivia_sales_admin PASSWORD = '123' DEFAULT_ROLE =  sales_admin
+MUST_CHANGE_PASSWORD = TRUE;
+GRANT ROLE sales_admin TO USER  olivia_sales_admin;
+
+-----------------------------------
+-- lets to the same thing here, but not assing the admin to sysadmin
+-- Create Sales Roles & Users for HR--
+create role hr_admin;
+create role hr_users;
+
+-- Create hierarchy
+grant role hr_users to role hr_admin;
+
+-- This time we will not assign roles to SYSADMIN (against best practice)
+-- grant role hr_admin to role SYSADMIN;
+
+-- create hr user
+CREATE USER oliver_hr PASSWORD = '123' DEFAULT_ROLE =  hr_users 
+MUST_CHANGE_PASSWORD = TRUE;
+GRANT ROLE hr_users TO USER oliver_hr;
+
+-- create user for sales administration
+CREATE USER mike_hr_admin PASSWORD = '123' DEFAULT_ROLE =  hr_admin
+MUST_CHANGE_PASSWORD = TRUE;
+GRANT ROLE hr_admin TO USER mike_hr_admin;
+```
+- we used the SECURITYADMIN for its purpose or creating security via roles
+- next lecture lets see why we need to assing admin roles to SYSADMIN
+
+## SYSADMIN
+- Can create  and manage objects: WH, DB , tables, etc
+- Custom roles should be assigned to the SYSADMIN as the parent
+- Then, this role has the ability to grant provileges on WH, DB, and other objects to the custom rols
+- This is the recommended best practice
+
+## SYSADMIN in Practice
+- for this practice we gonna create VW, DB and tables and assign it to the custom roles
+```sql
+-- SYSADMIN --
+-- login as Adam, roles created in previous lecture
+-- Create a warehouse of size X-SMALL
+create warehouse public_wh with
+warehouse_size='X-SMALL'
+auto_suspend=300 
+auto_resume= true
+
+-- grant usage to role public
+grant usage on warehouse public_wh 
+to role public
+
+-- create a database accessible to everyone
+create database common_db;
+grant usage on database common_db to role public;
+
+-- create sales database for sales
+create database sales_database;
+grant ownership on database sales_database to role sales_admin;
+grant ownership on schema sales_database.public to role sales_admin
+
+-- see the owner of each DB
+SHOW DATABASES;
+
+-- create database for hr
+create database hr_db;
+-- grant the ownership to hr_admin
+grant ownership on database hr_db to role hr_admin;
+-- try to grant something else, not possible because hr_admin is not a child of SYSADMIN
+-- we can no longer do anyrhing
+-- it makes really hard to sysadmin to manage the roles
+grant ownership on schema hr_db.public to role hr_admin;
+```
+
+## Custom Roles
+- used to customize roles according to needs and also reflect the hierarchy on your company
+- they are usually created by SECURITYADMIN
+- also assigned to SYSADMIN to allow it to manage
+
+## Custom Roles in Practice
+- we gonna reuse the roles created on previous lecture to test
+- continue logged as Adam and on contect of sysadmin
+
+```sql
+-- select the roles to administrate sales objects
+USE ROLE SALES_ADMIN;
+USE SALES_DATABASE;
+
+-- Create table -  we are the owner of it
+create or replace table customers(
+  id number,
+  full_name varchar, 
+  email varchar,
+  phone varchar,
+  spent number,
+  create_date DATE DEFAULT CURRENT_DATE);
+
+-- insert values in table --
+insert into customers (id, full_name, email,phone,spent)
+values
+  (1,'Lewiss MacDwyer','lmacdwyer0@un.org','262-665-9168',140),
+  (2,'Ty Pettingall','tpettingall1@mayoclinic.com','734-987-7120',254),
+  (3,'Marlee Spadazzi','mspadazzi2@txnews.com','867-946-3659',120),
+  (4,'Heywood Tearney','htearney3@patch.com','563-853-8192',1230),
+  (5,'Odilia Seti','oseti4@globo.com','730-451-8637',143),
+  (6,'Meggie Washtell','mwashtell5@rediff.com','568-896-6138',600);
+  
+SHOW TABLES;
+
+-- query from table --
+-- with roles sales_admin we should be able to query it
+-- changing to sales_user we should not be able
+SELECT* FROM CUSTOMERS;
+USE ROLE SALES_USERS;
+SELECT* FROM CUSTOMERS;
+
+
+-- grant usage to role
+USE ROLE SALES_ADMIN;
+
+GRANT USAGE ON DATABASE SALES_DATABASE TO ROLE SALES_USERS;
+GRANT USAGE ON SCHEMA SALES_DATABASE.PUBLIC TO ROLE SALES_USERS;
+GRANT SELECT ON TABLE SALES_DATABASE.PUBLIC.CUSTOMERS TO ROLE SALES_USERS
+
+
+-- Validate privileges --
+USE ROLE SALES_USERS;
+SELECT* FROM CUSTOMERS; -- able
+DROP TABLE CUSTOMERS; -- not able
+DELETE FROM CUSTOMERS; -- not able
+SHOW TABLES;
+
+-- grant DROP on table
+-- now user should be able to delete
+USE ROLE SALES_ADMIN;
+GRANT DELETE ON TABLE SALES_DATABASE.PUBLIC.CUSTOMERS TO ROLE SALES_USERS
+```
+
+## USERADMIN
+- dedicated to users and roles ( user and roles management )
+- the diferenece between this and securityadmin is that this one cant grant much privileges (only to the object it owns)
+
+## USERADMNI in Practice
+- lets try to solve the HR_ADMIN Problem with objects created that are not linked to sysadmin
+```sql
+-- USERADMIN --
+-- set the context to USERADMIN
+--- User 4 ---
+CREATE USER ben PASSWORD = '123' 
+DEFAULT_ROLE = ACCOUNTADMIN 
+MUST_CHANGE_PASSWORD = TRUE;
+
+-- try to grant the role using useradmin, will not work
+-- then try with sysadmin, should work
+GRANT ROLE HR_ADMIN TO USER ben;
+
+SHOW ROLES;
+-- with secutiry admin you can the fix the HR_ADMIN not linked to SYSADMIN
+-- this is thge main difference: USER ADMIN cant grant accesss to other roles, because it has small priovileges
+GRANT ROLE HR_ADMIN TO ROLE SYSADMIN;
+```
+
+## PUBLIC
+- Least privileged roles
+- every user have this roles
+- can own objects, and this is avaialbe to all users
+- useful for data that should be accessible to everyone
+- the last one in the hierarchy
+
