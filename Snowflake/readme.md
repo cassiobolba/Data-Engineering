@@ -3811,3 +3811,92 @@ GRANT ROLE HR_ADMIN TO ROLE SYSADMIN;
 - useful for data that should be accessible to everyone
 - the last one in the hierarchy
 
+# PARTNER CONNECT
+- Can easily integrate with partners
+- need to be on account admin role
+- of course, the parter will charge but give you a 14 trial
+- do a sample with mattilion
+
+# BEST PRACTICES
+
+## Most common Best Practices
+- Virtual Warehouse
+- Table design
+- Retention Period
+- Monitoring
+
+## Virtual Warehouses
+- Alway enable auto-suspend 
+- Enable auto resume
+- Set appropriate timeouts for auto-suspend
+    - ETL / data load -> set to minimum, 1min
+    - BI -> set to 10min or higher to enable use of caching
+    - DEV or DS -> set to 5min, since the queries change all the time
+- set the correct size
+    - complex queries -> englare the VW
+    - if many concurrent query, enable multi cluster
+
+## Table Design
+- choose appropriate table table
+    - for staging table, use transient table
+    - it saves money (failsafe 7 days storage, 1 day TT)
+    - for production, use permanent
+    - Development tables - transient tables (reducing TT and failsafe cost)
+- Appropriate data type
+    - for dates always use date format, no varchar for example, because date is more efficient
+    - numbers always on number format because they are also more efficient
+    - use varchar(n) when possible to find errors and reduce storage 
+- Set cluster keys only if necessary
+    - only for large tables (TBs and on)
+    - Most query time for table scan in the query profiling
+    - use it on dimensions: for ecample we have a table with data arriving on natural order being added by transaction date but we very ofter filter on a dimenion, lets say region, could be a good idea to add a cluster key on region
+
+## Monitoring
+- 1 way of monitoring the usage is loggin as ACCOUNTADMIN > Account > usage of data storage and credits
+- to analyze more specifically, we can query and visualize in a BI tool
+```sql
+-- Table Storage
+SELECT * FROM "SNOWFLAKE"."ACCOUNT_USAGE"."TABLE_STORAGE_METRICS";
+
+-- How much is queried in databases
+SELECT * FROM "SNOWFLAKE"."ACCOUNT_USAGE"."QUERY_HISTORY";
+
+SELECT 
+DATABASE_NAME,
+COUNT(*) AS NUMBER_OF_QUERIES,
+SUM(CREDITS_USED_CLOUD_SERVICES)
+FROM "SNOWFLAKE"."ACCOUNT_USAGE"."QUERY_HISTORY"
+GROUP BY DATABASE_NAME;
+
+-- Usage of credits by warehouses
+SELECT * FROM "SNOWFLAKE"."ACCOUNT_USAGE"."WAREHOUSE_METERING_HISTORY";
+
+-- Usage of credits by warehouses // Grouped by day
+SELECT 
+DATE(START_TIME),
+SUM(CREDITS_USED)
+FROM "SNOWFLAKE"."ACCOUNT_USAGE"."WAREHOUSE_METERING_HISTORY"
+GROUP BY DATE(START_TIME);
+
+-- Usage of credits by warehouses // Grouped by warehouse
+SELECT
+WAREHOUSE_NAME,
+SUM(CREDITS_USED)
+FROM "SNOWFLAKE"."ACCOUNT_USAGE"."WAREHOUSE_METERING_HISTORY"
+GROUP BY WAREHOUSE_NAME;
+
+-- Usage of credits by warehouses // Grouped by warehouse & day
+SELECT
+DATE(START_TIME),
+WAREHOUSE_NAME,
+SUM(CREDITS_USED)
+FROM "SNOWFLAKE"."ACCOUNT_USAGE"."WAREHOUSE_METERING_HISTORY"
+GROUP BY WAREHOUSE_NAME,DATE(START_TIME);
+```
+
+## Retention Period
+- for staging db or schema, we should use transient table, and zero retention days to save storage (Failsafe and TT)
+- production table should be at least 1 day, but good to be 4-7 days
+Example of storage
+- I have a 20gb table being updated 20x a day, the active storage is 20gb, but the TT storage for 1 day is 400gb, and the faile safe storage is around 2.8Tb. 
+- This is a good case of zero retention periods, specially if the data continues available in other source
