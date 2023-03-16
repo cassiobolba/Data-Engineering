@@ -4,3 +4,4 @@ from
     customer
 limit
     100
+;
