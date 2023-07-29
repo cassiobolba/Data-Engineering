@@ -1,0 +1,57 @@
+## What is Glue
+* Fully managed ETL service
+* Consists of a central metadata catalog repository (glue data catalog)
+* Spark ETL Engine
+* Flexible Scheduler
+
+# IMAGE glue architecture
+
+## AWS Glue Data Catalog
+* Persistent Metadata Store
+* Managed service to store, annotate and share metadata wich can be used to query and transdform data
+* One glue catalog per AWS Region
+* IAM policies control access
+* Can be used for data governance
+* Store: Data location, checma, data types, data classification...
+* Database in Glue
+    * Set of associated in Data catalog table definitions organized into logical groups
+    * it just organizes the logical data, dont actually move any data 
+    * The metadata definition that represnt your data. Data resides in its original store, this is just a representation of the schema
+
+### Create Database Practices
+* Organize glue databases in respective folders in S3
+* All files for a database should be under the folder, for organization
+
+## AWS Partitions
+* Folders where data is stored on S3, which are physical entities, are mapped to parititons, which are logical entities. Ie: columns in glues table
+* helps to query data more efficiently because we just query the necessary data
+
+# IMAGE s3 partitions
+sample folder structure:
+* sales
+    * 2019
+        * july
+        * august
+            * 01
+            * 02
+            * 03
+
+## AWS Glue Crawler
+* A program that connects to a data store (source or target), progresses through a prioritized list of classifiers to determine the schema  for your data, and then creates metadata tables in the AWS Glue Data Catalog
+* Can add data manually in a data catalog (columns by column and its format addition)
+* Can add data via crawler also
+
+## AWS Glue Jobs
+* Store business logic required for ETL
+* It is composed by transformation script, data sources, and data targets
+* job runs are initiated by triggers that can be scheduled or triggeres by events
+* it is under jobs
+    * can select the engine, the temp folder, and the scripts folder
+
+## AWS Triggers
+* Create triggers for Glue Jobs
+* Triggers can be event based or schedule based
+
+## AWS DEV Endpoint
+* Create a cluster to develop scripts and test locally sending the code to test in this cluster on AWS
+* Costs can scale very easily
