@@ -109,3 +109,9 @@ activated venv (be in the folder)
 ```python
 . venv/bin/activate
 ```
+
+## Install DBT
+Activate the venv in terminal and execute the below code:
+```python
+pip install dbt-snowflake==1.7.1
+```
