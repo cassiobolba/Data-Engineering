@@ -3,7 +3,7 @@ dbt_project:
     dev:
       account: SUPYPQL.OM48075
       database: AIRBNB
-      password: dbtPassword123
+      password: 
       role: transform
       schema: DEV
       threads: 1
