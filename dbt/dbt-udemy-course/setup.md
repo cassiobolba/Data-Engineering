@@ -115,3 +115,18 @@ Activate the venv in terminal and execute the below code:
 ```python
 pip install dbt-snowflake==1.7.1
 ```
+
+## Create the DBT project
+### mac
+```bash
+mkdir .dbt #or ~/.dbt
+dbt init dbt_project
+```
+answer the questions
+```bash
+cd dbt_project
+dbt debug
+```
+Possible errors:
+* cannot login into snowflake : maybe you account identifier is abcdef.123456, just change the . for a -
+* cannot find dbt_project.yml : happens when you run dbt commands outisde the the project folder. cd to the folder created

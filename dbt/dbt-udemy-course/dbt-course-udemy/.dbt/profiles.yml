@@ -1,0 +1,13 @@
+dbt_project:
+  outputs:
+    dev:
+      account: SUPYPQL.OM48075
+      database: AIRBNB
+      password: dbtPassword123
+      role: transform
+      schema: DEV
+      threads: 1
+      type: snowflake
+      user: dbt
+      warehouse: COMPUTE_WH
+  target: dev
