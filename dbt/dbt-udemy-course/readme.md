@@ -3,3 +3,4 @@
 [Snowflake Instance](https://supypql-om48075.snowflakecomputing.com/console/login)   
 
 ### [Setup the course](./setup.md)
+### [Models](./models.md)
