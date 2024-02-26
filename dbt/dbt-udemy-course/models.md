@@ -2,9 +2,9 @@
 SQL definitions that materliaze as tables and views and contain all business logics.   
 
 #### SRC models
-[src_hosts](./dbt_project/models/src/src_hosts.sql)    
-[src_listings](./dbt_project/models/src/src_listings.sql)    
-[src_reviews](./dbt_project/models/src/src_reviews.sql)   
+[src_hosts](./dbt-course-udemy/dbt_project/models/src/src_hosts.sql)    
+[src_listings](./dbt-course-udemy/dbt_project/models/src/src_listings.sql)    
+[src_reviews](./dbt-course-udemy/dbt_project/models/src/src_reviews.sql)   
 
 #### ref tag
 Jinja template tag (jinja is a template engine).   
@@ -25,7 +25,7 @@ To query from a src table:
 * Ephemeral (create CTE)
 
 #### Project Level Materialization
-Setup in the file [dbt_project.yml](./dbt_project/dbt_project.yml) by the code below. All folders in the project will be by default views. But, dim folder models not, they are tables (except if there is a model specific materialization config in the sql file).
+Setup in the file [dbt_project.yml](./dbt-course-udemy/dbt_project/dbt_project.yml) by the code below. All folders in the project will be by default views. But, dim folder models not, they are tables (except if there is a model specific materialization config in the sql file).
 ```yml
 models:
   dbt_project:
@@ -34,4 +34,7 @@ models:
     dim:
       +materialized: table
 ```
+
+#### Incremental Materizalization
+
 
