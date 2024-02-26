@@ -36,5 +36,56 @@ models:
 ```
 
 #### Incremental Materizalization
+like in [fct_reviews.sql](./dbt-course-udemy/dbt_project/models/fct/fct_reviews.sql). Can only append.To test the incremental model, Get every review for listing 3176:
+```sql
+SELECT * FROM "AIRBNB"."DEV"."FCT_REVIEWS" WHERE listing_id=3176;
+```
+Add a new record to the table:
+```sql
+INSERT INTO "AIRBNB"."RAW"."RAW_REVIEWS"
+VALUES (3176, CURRENT_TIMESTAMP(), 'Zoltan', 'excellent stay!', 'positive');
+```
+Making a full-refresh:
+```bash
+dbt run --full-refresh
+```
 
-
+#### Ephemeral Materizalization
+good for staging data. can also set in the project level on [dbt_project.yml](./dbt-course-udemy/dbt_project/dbt_project.yml).   
+Since we changed all views in source to ephemeral we can drop the views.  
+Now the src folder queries were converted to ephemeral, it is no longer shown as tables or views when running dbt run command. They are converted to CTEs during query compilations when running dbt run.   
+For example dim_hosts_cleansed use src_hosts, and to see the full query compiled with the now ephemeral materialization in src queries, go to the target folder and see it [here](./dbt_project/target/compiled/dbt_project/models/dim/dim_hosts_cleansed.sql), but you can only see this file in your local, because target folder is hiden. But the query look like this:
+```sql
+WITH  __dbt__cte__src_hosts as (
+WITH raw_hosts AS (
+    SELECT
+        *
+    FROM
+       AIRBNB.RAW.RAW_HOSTS
+)
+SELECT
+    id AS host_id,
+    NAME AS host_name,
+    is_superhost,
+    created_at,
+    updated_at
+FROM
+    raw_hosts
+), src_hosts AS (
+    SELECT
+        *
+    FROM
+        __dbt__cte__src_hosts
+)
+SELECT
+    host_id,
+    NVL(
+        host_name,
+        'Anonymous'
+    ) AS host_name,
+    is_superhost,
+    created_at,
+    updated_at
+FROM
+    src_hosts
+```
