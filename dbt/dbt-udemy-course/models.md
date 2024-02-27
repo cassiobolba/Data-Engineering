@@ -89,3 +89,28 @@ SELECT
 FROM
     src_hosts
 ```
+
+### Seed x Sources
+#### Seeds
+In seeds folder we can create static data by dropping csv files there. Goog for lookups data entered manually.
+#### Sources
+Add 1 more semantic layer in DBT, good for lineage.   
+Intead of reading from raw tables, can read from sources created in [sources.yml](./dbt_project/target/compiled/dbt_project/models/sources.yml) using the jinja macro for sources:
+```sql
+SELECT * FROM
+ --AIRBNB.RAW.RAW_REVIEWS
+{{ source ('airbnb','reviews') }}
+```
+run compile to see if it works (or run the project)
+```bash
+dbt compile
+```
+
+### Source Freshness
+Can set for each source the freshness to check last time the column was updated based on date column. Check [sources.yml](./dbt_project/target/compiled/dbt_project/models/sources.yml) to see how to implement, and then run the command:
+```bash
+dbt source freshness
+```
+
+### Snapshots
+Used to handle type 2 SCD

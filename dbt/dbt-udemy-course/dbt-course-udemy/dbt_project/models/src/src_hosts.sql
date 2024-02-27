@@ -2,7 +2,9 @@ WITH raw_hosts AS (
     SELECT
         *
     FROM
-       AIRBNB.RAW.RAW_HOSTS
+       --AIRBNB.RAW.RAW_HOSTS --reading direct from table, not included in lineage
+       {{ source ('airbnb','hosts') }}
+
 )
 SELECT
     id AS host_id,
