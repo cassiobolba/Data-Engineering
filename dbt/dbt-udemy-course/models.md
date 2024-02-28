@@ -162,4 +162,17 @@ dbt test --select dim_listings_cleansed
 * Packages can be downloaded with more macros and tests
 * in jinja there are control loops and so on, must the study jinja to do more advanced stuff
 
-Create a new macro on macro folders as [no_nulls_in_columns.sql](./dbt_project/macros/no_nulls_in_columns.sql) and then call the macro in tests, creating a specific test like [no_nulls_in_dim_listings.sql](./dbt_project/tests/no_nulls_in_dim_listings.sql).   
+Create a new macro on macro folders as [no_nulls_in_columns.sql](./dbt_project/macros/no_nulls_in_columns.sql) and then call the macro in tests, creating a specific test like [no_nulls_in_dim_listings.sql](./dbt_project/tests/no_nulls_in_dim_listings.sql), now run dbt tests anc check
+
+#### Custom Generic Tests with Macros
+we previously create a single test [dim_listings_minimum_nights.sql](./dbt_project/tests/dim_listings_minimum_nights.sql), but we can conver to generic test, so availalbe to all models. They also live in macros folder, and can be converted from the previous file to [positive_values.sql](./dbt_project/macros/positive_values.sql), and then need to set the test in [schema.yml](./dbt_project/models/schema.yml).
+
+#### Packages
+[Available Packages](https://hub.getdbt.com)   
+We are testing [dbt-utils funcions](https://github.com/dbt-labs/dbt-utils/tree/1.1.1/).   
+To install, must be set in the [packages.yml](./dbt-course-udemy/dbt_project/packages.yml) and execute dbt deps.   
+Lets use the generate_surrogate_key funtion in [scd_raw_listings.sql](./dbt_project/models/fct/fct_reviews.sql).   
+If executing dbt run, it will fail because fct_reviews is incremental, and we set the incremetal model to fail if there are schema changes. To rebuilt the incremental model, run a full refresh.
+```bash
+dbt run --full-refresh --select fct_reviews
+```
