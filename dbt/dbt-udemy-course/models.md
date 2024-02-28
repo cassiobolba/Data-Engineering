@@ -95,7 +95,7 @@ FROM
 In seeds folder we can create static data by dropping csv files there. Goog for lookups data entered manually.
 #### Sources
 Add 1 more semantic layer in DBT, good for lineage.   
-Intead of reading from raw tables, can read from sources created in [sources.yml](./dbt_project/target/compiled/dbt_project/models/sources.yml) using the jinja macro for sources:
+Intead of reading from raw tables, can read from sources created in [sources.yml](./dbt_project/models/sources.yml) using the jinja macro for sources:
 ```sql
 SELECT * FROM
  --AIRBNB.RAW.RAW_REVIEWS
@@ -107,7 +107,7 @@ dbt compile
 ```
 
 ### Source Freshness
-Can set for each source the freshness to check last time the column was updated based on date column. Check [sources.yml](./dbt_project/target/compiled/dbt_project/models/sources.yml) to see how to implement, and then run the command:
+Can set for each source the freshness to check last time the column was updated based on date column. Check [sources.yml](./dbt_project/models/sources.yml) to see how to implement, and then run the command:
 ```bash
 dbt source freshness
 ```
@@ -119,7 +119,7 @@ Used to handle type 2 SCD.
 * check: Any change in a set of columns (or all columns) will be picked up as an update.
 
 #### Implementing
-Snapshots live in their folder, like [scd_raw_listings.sql](./dbt_project/target/compiled/dbt_project/snapshots/scd_raw_listings.sql), and they ran over a different command:
+Snapshots live in their folder, like [scd_raw_listings.sql](./dbt_project/snapshots/scd_raw_listings.sql), and they ran over a different command:
 ```bash
 dbt snapshot
 ```
@@ -140,7 +140,7 @@ SELECT * FROM AIRBNB.DEV.SCD_RAW_LISTINGS WHERE ID=3176;
     * unique, not_null, accepted_values, relationships
 
 #### Generic Test
-Create a file called [schema.yml](./dbt_project/target/compiled/dbt_project/models/schema.yml) in models. This is not mandatory, you can create sepatare files inside each model folder, as you wish to organize it. Test it with:
+Create a file called [schema.yml](./dbt_project/models/schema.yml) in models. This is not mandatory, you can create sepatare files inside each model folder, as you wish to organize it. Test it with:
 ```bash
 dbt test
 ```
@@ -148,8 +148,18 @@ Can also check the compiled queries in target folder to see the query created.
 To check a failure, change one of the accepted values to a fake value and run the tests, it should break.
 
 ### Single Test
-Live in the test folder and are queries, like [dim_listings_minimum_nights.sql](./dbt_project/target/compiled/dbt_project/tests/dim_listings_minimum_nights.sql).   
+Live in the test folder and are queries, like [dim_listings_minimum_nights.sql](./dbt_project/tests/dim_listings_minimum_nights.sql).   
 You can run as dbt test to execute all tests, or can execute just this test (same approach works to dbt run and other dbt commands).
 ```bash
 dbt test --select dim_listings_cleansed
 ```
+
+### Macros, Custom Tests and Packages
+* Macros are jinja templates created in macro folder
+* There are many built in macros
+* Can be used in model definitions and tests
+* A special macro called test can be used to create own generic tests
+* Packages can be downloaded with more macros and tests
+* in jinja there are control loops and so on, must the study jinja to do more advanced stuff
+
+Create a new macro on macro folders as [no_nulls_in_columns.sql](./dbt_project/macros/no_nulls_in_columns.sql) and then call the macro in tests, creating a specific test like [no_nulls_in_dim_listings.sql](./dbt_project/tests/no_nulls_in_dim_listings.sql).   
