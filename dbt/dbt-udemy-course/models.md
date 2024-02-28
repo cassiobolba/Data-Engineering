@@ -113,4 +113,43 @@ dbt source freshness
 ```
 
 ### Snapshots
-Used to handle type 2 SCD
+Used to handle type 2 SCD.   
+2 Strategies available:
+* Timestamp: A unique ley and an updated_at field is defined on the source model, these columns are used for determining changes.
+* check: Any change in a set of columns (or all columns) will be picked up as an update.
+
+#### Implementing
+Snapshots live in their folder, like [scd_raw_listings.sql](./dbt_project/target/compiled/dbt_project/snapshots/scd_raw_listings.sql), and they ran over a different command:
+```bash
+dbt snapshot
+```
+Some columns are added as metadata to use snapshots: DBT_ID, DBT_UPDATED_AT, DBT_VALID_FROM and DBT_VALID_TO. What matter are valid from and valid to, to identify changes. Current data does have valid to as null. When they change a new line is inserted and the old line has a valid to value until when it was valid.   
+To test the snapshot:
+```sql
+UPDATE AIRBNB.RAW.RAW_LISTINGS SET MINIMUM_NIGHTS=30,
+    updated_at=CURRENT_TIMESTAMP() WHERE ID=3176;
+
+SELECT * FROM AIRBNB.DEV.SCD_RAW_LISTINGS WHERE ID=3176;
+```
+
+### DBT Tests
+2 types of tests: 
+* Singular 
+    * queries created by user, returining empty resultset
+* Generic
+    * unique, not_null, accepted_values, relationships
+
+#### Generic Test
+Create a file called [schema.yml](./dbt_project/target/compiled/dbt_project/models/schema.yml) in models. This is not mandatory, you can create sepatare files inside each model folder, as you wish to organize it. Test it with:
+```bash
+dbt test
+```
+Can also check the compiled queries in target folder to see the query created.   
+To check a failure, change one of the accepted values to a fake value and run the tests, it should break.
+
+### Single Test
+Live in the test folder and are queries, like [dim_listings_minimum_nights.sql](./dbt_project/target/compiled/dbt_project/tests/dim_listings_minimum_nights.sql).   
+You can run as dbt test to execute all tests, or can execute just this test (same approach works to dbt run and other dbt commands).
+```bash
+dbt test --select dim_listings_cleansed
+```
