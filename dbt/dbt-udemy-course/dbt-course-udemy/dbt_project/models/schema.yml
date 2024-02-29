@@ -29,3 +29,30 @@ models:
         description: '{{ doc("dim_listing_cleansed_minimum_nights") }}' #this call an md doc
         tests:
           - positive_value
+
+  - name: dim_hosts_cleansed
+    description: Cleansed table which contains Airbnb hosts.
+    columns:
+
+      - name: host_id
+        description: The hosts's id. References the host table.
+        tests:
+          - not_null
+          - unique
+
+      - name: host_name
+        description: Host full name.
+        tests:
+          - not_null
+
+      - name: is_superhost
+        description: Flag to identify host's category.
+        tests:
+          - accepted_values:
+              values: ['t', 'f']
+
+      - name: created_at
+        description: Date the data was entered in the table.
+
+      - name: updated_at
+        description: Date the data was updated in the table.
