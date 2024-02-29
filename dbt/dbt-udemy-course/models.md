@@ -54,41 +54,7 @@ dbt run --full-refresh
 good for staging data. can also set in the project level on [dbt_project.yml](./dbt-course-udemy/dbt_project/dbt_project.yml).   
 Since we changed all views in source to ephemeral we can drop the views.  
 Now the src folder queries were converted to ephemeral, it is no longer shown as tables or views when running dbt run command. They are converted to CTEs during query compilations when running dbt run.   
-For example dim_hosts_cleansed use src_hosts, and to see the full query compiled with the now ephemeral materialization in src queries, go to the target folder and see it [here](./dbt_project/target/compiled/dbt_project/models/dim/dim_hosts_cleansed.sql), but you can only see this file in your local, because target folder is hiden. But the query look like this:
-```sql
-WITH  __dbt__cte__src_hosts as (
-WITH raw_hosts AS (
-    SELECT
-        *
-    FROM
-       AIRBNB.RAW.RAW_HOSTS
-)
-SELECT
-    id AS host_id,
-    NAME AS host_name,
-    is_superhost,
-    created_at,
-    updated_at
-FROM
-    raw_hosts
-), src_hosts AS (
-    SELECT
-        *
-    FROM
-        __dbt__cte__src_hosts
-)
-SELECT
-    host_id,
-    NVL(
-        host_name,
-        'Anonymous'
-    ) AS host_name,
-    is_superhost,
-    created_at,
-    updated_at
-FROM
-    src_hosts
-```
+For example dim_hosts_cleansed use src_hosts, and to see the full query compiled with the now ephemeral materialization in src queries, go to the target folder and see it [here](./dbt_project/target/compiled/dbt_project/models/dim/dim_hosts_cleansed.sql), but you can only see this file in your local, because target folder is hiden. 
 
 ### Seed x Sources
 #### Seeds
@@ -176,3 +142,32 @@ If executing dbt run, it will fail because fct_reviews is incremental, and we se
 ```bash
 dbt run --full-refresh --select fct_reviews
 ```
+
+### Documentation
+* Can be defined in 2 ways:
+    * yml
+    * standalone md files
+* dbt ships  withs lightweight documentation webserver
+* can create custom overview page
+* can also store different assets to special folder
+
+#### Documenting a Model
+Can be done in the [schema.yml](./dbt_project/models/schema.yml). Every object can gain a description value.   
+Run then `dbt docs generate` and it is compiled and saved a folder, as showed in the result of execution.   
+Now run `dbt docs serve` to spin up a simple server.
+
+#### docs.md
+Can create an md file called docs.md in the models folder and create custom docs inside it and call on the description field in schema.yml. in the description field, call the [docs.yml](./dbt_project/models/docs.yml) by using jinja.
+```yml
+      - name: minimum_nights
+        description: '{{ doc("dim_listing_cleansed_minimum_nights") }}' #this call an md doc
+        tests:
+          - positive_value
+```
+Now run `dbt docs generate` and then `dbt docs serve` to see the implementation in the description field on docs.
+
+#### overview.md
+Create overview.md in models to for example show the full dag in the overview docs page.   
+Can customize the overview page with images, by creating a folder called assests under dbt project and mapping it in the dbt_project.yml
+
+#### Dags 
