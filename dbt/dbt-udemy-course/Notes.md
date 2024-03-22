@@ -170,4 +170,52 @@ Now run `dbt docs generate` and then `dbt docs serve` to see the implementation 
 Create overview.md in models to for example show the full dag in the overview docs page.   
 Can customize the overview page with images, by creating a folder called assests under dbt project and mapping it in the dbt_project.yml
 
-#### Dags 
+### Analyses, Hooks and Exposures
+#### Analyses
+Queries Ad-Hoc that do not create a model, but you can reuse macros and dbt functions. After, you can see the compiled query in the target folder.   
+What is the use of this?
+
+#### Hooks
+* SQLs that are executed at predefined times
+* Hooks can be configured on the project, subfolder, or model level
+* Hook types:
+  * on_run_start: executed at thestart of dbt (run,seed,snapshot)
+  * on_run_end: executed at the end of dbt (run,seed,snapshot)
+  * pre-hook: executed before a model/seed/snapshot is built
+  * post-hook: executed after a model/seed/snapshot is built
+
+Create all the permissions for a resporter role, to connect with preset:
+```sql
+USE ROLE ACCOUNTADMIN;
+CREATE ROLE IF NOT EXISTS REPORTER;
+CREATE USER IF NOT EXISTS PRESET
+ PASSWORD='presetPassword123'
+ LOGIN_NAME='preset'
+ MUST_CHANGE_PASSWORD=FALSE
+ DEFAULT_WAREHOUSE='COMPUTE_WH'
+ DEFAULT_ROLE='REPORTER'
+ DEFAULT_NAMESPACE='AIRBNB.DEV'
+ COMMENT='Preset user for creating reports';
+
+GRANT ROLE REPORTER TO USER PRESET;
+GRANT ROLE REPORTER TO ROLE ACCOUNTADMIN;
+GRANT ALL ON WAREHOUSE COMPUTE_WH TO ROLE REPORTER;
+GRANT USAGE ON DATABASE AIRBNB TO ROLE REPORTER;
+GRANT USAGE ON SCHEMA AIRBNB.DEV TO ROLE REPORTER;
+
+-- We don't want to grant select rights here; we'll do this through hooks:
+-- GRANT SELECT ON ALL TABLES IN SCHEMA AIRBNB.DEV TO ROLE REPORTER;
+-- GRANT SELECT ON ALL VIEWS IN SCHEMA AIRBNB.DEV TO ROLE REPORTER;
+-- GRANT SELECT ON FUTURE TABLES IN SCHEMA AIRBNB.DEV TO ROLE REPORTER;
+-- GRANT SELECT ON FUTURE VIEWS IN SCHEMA AIRBNB.DEV TO ROLE REPORTER;
+```
+Configure the hooks in the [dbt_project.yml](./dbt-course-udemy/dbt_project/dbt_project.yml).   
+We configured a post run that will be executed after every model run, and will grant access to reporter role to the model, automatically.    
+
+Setup an account with preset and confure a snowflake database.   
+Link to my dashboard -> https://ad1603f1.us1a.app.preset.io/superset/explore/p/8Mp5VnELXnw/
+
+
+#### Exposures
+Link to external resources that can be appended to the documentation.   
+They live in yml files. 
