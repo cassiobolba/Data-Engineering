@@ -45,3 +45,44 @@ Open-Source data integration tool that moves data from one system to another. so
 * enter in the folder with docker compose files
 * execute `docker compose -f airbyte-docker-compose.yml up -d`
 ## Airbyte UI
+## Source and Destination
+Google Spreadsheet
+* Place the file in the drive folder
+* create a new project in the same GCP account you used the drive folder
+* enable google spread sheet api in apis & services
+* create a service account to enable this appi
+    * select the api
+    * choose application data > next
+    * give a name > continue
+    * roles = owner > continue > done
+* now go to IAM and create a service account
+    * select aurbyte role > create key > json 
+    * copy and paste all content in airbyte
+    * get the service account email in details tab
+    * grant access in the spreadsheet to the email with editor access
+    * copy the link of the spreadsheet into airbyte
+
+Big Query
+* Enable billing in the project
+* Find the project id and paste in airbyte
+* On Bq create a dataset in the project tree
+* set the project id, set the destination location US, and name as the dataset created
+* paste the service key
+* test
+
+## Connection
+* name it meaninfully
+* select schedule
+* destination namespace: default will default to the dataset name
+* Stream prefix: each table will have the same name as the tab name, can add prefix. 
+    * remember, streams are the group of objects in a source
+* Detect propagate schema changes
+    * propagate files changes only
+    * propagate all filed and stream changes
+    * detect changes and manually approve
+    * detect changes and pause connection
+* can select which stream and columns to sync
+* sync modes:
+    * full refresh / overwrite
+    * full refresh / append
+
